@@ -1,0 +1,30 @@
+from json import load
+class Json:
+    #executed before init, creates the object manually
+    def __new__(cls, filename):
+        print("object called")
+        inst = object.__new__(cls)
+        return inst
+
+    #class variable
+    how_many_times_used = 0
+
+    def __init__(self, filename):
+        self.__fn = open(filename, "rt")
+        self.__data = load(self.__fn)
+        Json.how_many_times_used += 1
+    
+    def __enter__(self):
+        return self.__data
+    
+    def __exit__(self, type, value, traceback):
+        if type is not None:
+            print(f"An exception of type {type} occurred with message: {value}")
+        self.__fn.close()  
+        return False  
+
+with Json("students.json") as data:
+    print(data)
+    print(data[0]['name'])
+
+print(Json.how_many_times_used)

@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CISCO Static Routing | Quantum Repository</title>
+    <link rel="stylesheet" href="../main.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.1/css/all.css">
+    <style>
+        /* FULL WIDTH - Override all max-width restrictions */
+        body {
+            margin: 0;
+            padding: 0;
+        }
+        
+        .guide-container {
+            width: 95%;
+            max-width: none !important;
+            margin: 2rem auto;
+            padding: 0 2.5%;
+        }
+        
+        .guide-content {
+            width: 100%;
+            max-width: none !important;
+        }
+        
+        .guide-content article {
+            line-height: 1.8;
+            font-size: 1.15rem;
+            width: 100%;
+        }
+        
+        .guide-content img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 2rem auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+        }
+        
+        .guide-content h2 {
+            margin-top: 3rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 3px solid var(--primary-color);
+            font-size: 2rem;
+        }
+        
+        .guide-content h3 {
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+        
+        .guide-content p {
+            margin-bottom: 1.5rem;
+            line-height: 1.8;
+        }
+        
+        .guide-content ul, .guide-content ol {
+            margin-bottom: 1.5rem;
+            padding-left: 2.5rem;
+            line-height: 1.8;
+        }
+        
+        .guide-content li {
+            margin-bottom: 0.75rem;
+        }
+        
+        .guide-content code {
+            background: #2d2d2d;
+            color: #f0f0f0;
+            padding: 0.3em 0.6em;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 1rem;
+        }
+        
+        .guide-content pre {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 2rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 2rem 0;
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+        
+        .guide-footer {
+            margin-top: 4rem;
+            padding-top: 2rem;
+            border-top: 2px solid var(--border-color);
+            text-align: center;
+        }
+        
+        .btn-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem 2rem;
+            background: var(--primary-color);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s;
+        }
+        
+        .btn-back:hover {
+            background: var(--accent-hover);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+        
+        /* Override any conflicting styles */
+        .container {
+            max-width: none !important;
+            width: 100%;
+        }
+        
+        /* Make header full width too */
+        .site-header .container {
+            max-width: 95%;
+            width: 95%;
+        }
+        
+        .breadcrumbs .container {
+            max-width: 95%;
+            width: 95%;
+        }
+    </style>
+</head>
+<body>
+    <div class="reading-progress-bar"></div>
+
+    <header class="site-header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-atom"></i>
+                    <span>Quantum Repository</span>
+                </div>
+                <nav class="main-nav">
+                    <a href="../index.html">Home</a>
+                    <a href="../index.html#guides">Guides</a>
+                    <a class="btn-donate" href="https://donate.stripe.com/5kQaEX2kMgnB85ia4ycZa00" target="_blank" rel="noopener noreferrer" aria-label="Donate – opens in a new tab"><i class="fas fa-heart" aria-hidden="true"></i><span>Donate</span></a>
+                    <button class="theme-toggle" id="themeToggle">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <div class="breadcrumbs">
+        <div class="container">
+            <a href="../index.html">Home</a>
+            <span>/</span>
+            <span class="category-badge">Networking</span>
+            <span>/</span>
+            <span>CISCO Static Routing</span>
+        </div>
+    </div>
+
+    <div class="guide-container">
+        <main class="guide-content">
+            <article>
+<h2 id="cisco-static-routing">CISCO Configuring Static Routing</h2>
+            <p>In networking, routing is the process of defining a path(s) for IP traffic. Imagine being an IP packet – you travel along a path and hit a router (or a device capable of routing). The router guides you where to go, either through a specific ‘route’ in its routing table or its ‘gateway of last resort’. We'll explore both terms in this guide.</p>
+
+            <h2 id="lab-setup">Lab Setup</h2>
+            <ul>
+                <li>GNS3 as the network emulation software.</li>
+                <img src="1.png" alt="1">
+            <li>2 PCs (Virtual PCs).</li>
+                <li>2x CISCO routers on IOSv 15.7 (Router - Cisco Modelling Labs Personal $199).</li>
+            </ul>
+
+            <h2 id="ip-schema">IP Schema</h2>
+            <p>The IP schemas used in this lab are:</p>
+            <ul>
+                <li>2x LAN subnets: 192.168.10.0/24 and 192.168.20.0/24.</li>
+                <li>1x Router-to-router subnet: 10.10.10.0/30.</li>
+            </ul>
+
+            <h2 id="ip-addressing">IP Addressing Router Interfaces and Virtual PCs</h2>
+            <p>Let's start by IP addressing the Virtual PCs:</p>
+
+            <img src="2.png" alt="2">
+            <img src="3.png" alt="3">
+            <p>I'll address the router interfaces attached to these LANs. For simplicity, I have attached interface gi0/0 of each of the routers to the LAN. The address assigned to each interface is the last address in the subnet.</p>
+            <p>Router 1:</p>
+
+            <img src="4.png" alt="4">
+            <img src="5.png" alt="5">
+            <p>Router 2:</p>
+
+            <img src="6.png" alt="6">
+
+            <p>Let's check the basic connectivity. First, a ping from PC1 to router 1:</p>
+
+            <img src="pc1togateway.png" alt="pc1togateway">
+
+            <p>Now a ping from PC1 to PC2. This should fail as router 1 does not yet recognize the 192.168.20.0/24 network.</p>
+
+            <img src="pc1topc2fail.png" alt="pc1topc2fail">
+
+            <p>Next, we'll enable connectivity between these networks by adding static routes to router 1 and router 2.</p>
+
+            <h2 id="configuring-static-routes">Configuring Static Routes</h2>
+            <p>When adding a route in one direction and expecting a return, such as with a ping, we need to configure a route back as well. We'll begin by adding a route to router 1, instructing it on how to access the 192.168.20.0/24 network. According to the topology, the path to the 192.168.20.0/24 network is via 10.10.10.2 (router 2's connected interface).</p>
+
+            <img src="7.png" alt="7">
+
+            <p>Remember to add a route back as well. We'll add a route back to the 192.168.10.0/24 network on router 2, specifying that to reach the 192.168.10.0/24 network, traffic should go via 10.10.10.1.</p>
+
+            <img src="8.png" alt="8">
+
+            That is all we needed to do to enable connectivity between these two networks. We can check the routing table to see our static route:
+            <img src="9.png" alt="9">
+
+            Notice the 'S'. This denotes a static route. I will now confirm connectivity with a ping check PC1 to PC2:
+            <img src="gatewayoflastresortpingsuccess.png" alt="gatewayoflastresortpingsuccess">
+
+            <p>Success, connectivity has now been realised between these two networks.</p>
+
+            <h2 id="gateway-of-last-resort">Gateway of Last Resort</h2>
+            You may have noticed that when we looked at the routing table of router 1, there was a configuration called ‘gateway of last resort’:
+            <img src="10.png" alt="10">
+
+            While this does not come under the banner of static routing, it does come under the overall term of routing. The gateway of last resort is basically saying 'send all here IP traffic here if there is no specificed static or dynamic routes for the IP packet in question'. 
+            This can be useful to set for devices that sit on the access layer and only have connected line. Using our topology, I will demonstrate its functionality on router 1. First, I will remove the static route to 192.168.20.0/24 and then configure the gateway of last resort to be 10.10.10.2:
+            <img src="gatewayoflastresort.png" alt="gatewayoflastresort">
+
+            Line 2 in the above screenshot is assigning the gateway of last resort, this is basically saying 'all IP addresses (0.0.0.0.0), all subnets (0.0.0.0), send to 10.10.10.2'. In our topolgy this works well as it is only connected to a single router, this would work as a 'catch all' routing statement. 
+            Finally, lets check we have connectivity by pinging each way from PC1 to PC2:
+            <img src="gatewayoflastresortpingsuccess.png" alt="gatewayoflastresortpingsuccess">
+            <img src="pc2topc1ping.png" alt="pc2topc1ping">
+            This concludes this guide, however, a point to note here. Static routing has its advantages (granular routing control, easy to configure on small networks) and disadvantages. The disadvantages being, picture this toplogy having 5+ routers and numerous networks attached. We would have to manually configure routes 
+            on every router - this would be cumbersome and in some cases impossible to maintain. To combat this we have dynamic routing, dynamic routing protocols propagate routes across routers automatically and continually update their routing tables. Check my other guides on how to configure some of the well-known dynamic routing protocols.
+            </article>
+
+            <div class="guide-footer">
+                <a href="../index.html" class="btn-back">
+                    <i class="fas fa-arrow-left"></i> Back to Guides
+                </a>
+            </div>
+        </main>
+    </div>
+
+    <button class="back-to-top" id="backToTop">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p><i class="fas fa-atom"></i> Quantum Repository</p>
+            <p>Technical guides for system administrators and developers</p>
+            <p>alex@slash-root.com | &copy; 2025</p>
+        </div>
+    </footer>
+
+    <script src="../guide.js"></script>
+</body>
+</html>

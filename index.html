@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Free cybersecurity learning resources, networking guides, Python tutorials, and hands-on labs.">
+    <meta name="keywords" content="cybersecurity, networking, CISCO, Python, Docker, Kubernetes, security labs">
+    <meta name="author" content="quantumrepository">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.1/css/all.css">
+    <link rel="stylesheet" href="main.css">
+    <link rel="stylesheet" href="accessibility.css">
+    <title>Quantum Repository | Free Computer Science Learning Resources</title>
+</head>
+<body>
+    
+    <div class="skip-links">
+        <a href="#main-content" class="skip-link">Skip to main content</a>
+        <a href="#guides" class="skip-link">Skip to guides</a>
+        <a href="#contact" class="skip-link">Skip to contact</a>
+    </div>
+    
+    <header>
+        <div class="header-container">
+            <div class="logo">
+                <i class="fas fa-atom"></i>
+                <h1>Quantum Repository</h1>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="#guides">Guides</a></li>
+                    <li><a href="#resources">Resources</a></li>
+                    <li><a href="#contact">Contact</a></li>
+                    <li>
+                        <a class="btn-donate" href="https://donate.stripe.com/5kQaEX2kMgnB85ia4ycZa00" target="_blank" rel="noopener noreferrer" aria-label="Donate – opens in a new tab">
+                            <i class="fas fa-heart" aria-hidden="true"></i>
+                            <span>Donate</span>
+                        </a>
+                    </li>
+                    <li><button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light mode" aria-label="Toggle dark and light mode" aria-pressed="false">
+                        <i class="fas fa-moon" id="theme-icon" aria-hidden="true"></i>
+                        <span class="sr-only" id="theme-text">Switch to light mode</span>
+                    </button></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        
+        <section class="hero fade-in">
+            <div class="container">
+                <h1>Welcome to the Quantum Repository</h1>
+                <p>
+                    Free, hands-on cybersecurity and networking resources for learners and professionals.
+                    All guides are personally written and provided free for educational purposes.
+                </p>
+                <div class="hero-stats">
+                    <div class="stat">
+                        <span class="stat-number" data-count="77">0</span>
+                        <span class="stat-label">Guides</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number" data-count="10">0</span>
+                        <span class="stat-label">Categories</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number" data-count="100">0</span>
+                        <span class="stat-label">Free</span>
+                    </div>
+                </div>
+                
+                <div class="safety-warning" style="background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%); color: white; padding: 1rem 1.5rem; text-align: center; font-size: 0.95rem; font-weight: 500; border-radius: 8px; box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3); margin-top: 2rem;">
+                    <span class="warning-icon" style="margin-right: 0.5rem; font-size: 1.1rem;">⚠️</span>
+                    <strong>SECURITY WARNING:</strong> Never run commands you don't understand. Always review code before execution. Use at your own risk.
+                </div>
+            </div>
+        </section>
+
+        <section class="search-container" role="search">
+            <div class="search-wrapper">
+                <label for="searchInput" class="sr-only">Search guides</label>
+                <i class="fas fa-search search-icon" aria-hidden="true"></i>
+                <input 
+                    type="text" 
+                    class="search-input" 
+                    id="searchInput" 
+                    placeholder="Search guides... (e.g., 'CISCO', 'Python', 'Docker')"
+                    onkeyup="searchGuides()"
+                    aria-describedby="search-help"
+                    autocomplete="off"
+                >
+                <div id="search-help" class="sr-only">Search through cybersecurity guides by technology or topic</div>
+            </div>
+        </section>
+
+        <section class="filter-container" role="tablist" aria-label="Filter guides by category">
+            <button class="filter-btn active" role="tab" aria-selected="true" aria-controls="guides" onclick="filterGuides('all')" id="filter-all">All</button>
+            <button class="filter-btn" role="tab" aria-selected="false" aria-controls="guides" onclick="filterGuides('networking')" id="filter-networking">Networking</button>
+            <button class="filter-btn" role="tab" aria-selected="false" aria-controls="guides" onclick="filterGuides('python')" id="filter-python">Python</button>
+            <button class="filter-btn" role="tab" aria-selected="false" aria-controls="guides" onclick="filterGuides('active-directory')" id="filter-ad">Active Directory</button>
+            <button class="filter-btn" role="tab" aria-selected="false" aria-controls="guides" onclick="filterGuides('docker')" id="filter-docker">Docker</button>
+            <button class="filter-btn" role="tab" aria-selected="false" aria-controls="guides" onclick="filterGuides('kubernetes')" id="filter-k8s">Kubernetes</button>
+            <button class="filter-btn" role="tab" aria-selected="false" aria-controls="guides" onclick="filterGuides('guides')" id="filter-general">General Guides</button>
+        </section>
+
+        <main id="main-content">
+        <section id="guides" class="guides-grid" role="tabpanel" aria-labelledby="filter-all">
+
+            <article class="card fade-in" data-category="networking">
+                <div class="card-header">
+                    <i class="fas fa-network-wired card-icon"></i>
+                    <h3>Networking <span class="guide-count">12</span></h3>
+                </div>
+                <div class="card-meta">
+                    <span class="card-tag">CISCO</span>
+                    <span class="card-tag">Routing</span>
+                </div>
+                <ul class="card-links">
+                    <li><a href="ciscoipaddress/ciscoip.html">CISCO Configuring Interfaces</a></li>
+                    <li><a href="ciscovlans/ciscovlans.html">CISCO VLANs Configuration</a></li>
+                    <li><a href="ciscodhcp/ciscodhcp.html">CISCO Configuring DHCP</a></li>
+                    <li><a href="ciscondns/ciscodns.html">CISCO Configuring DNS</a></li>
+                    <li><a href="ciscostaticnat/ciscostaticnat.html">CISCO Configuring Static NAT</a></li>
+                    <li><a href="ciscodynamicnat/ciscodynamicnat.html">CISCO Configuring Dynamic NAT</a></li>
+                    <li><a href="ciscostaticrouting/ciscostaticrouting.html">CISCO Configuring Static Routing</a></li>
+                    <li><a href="ciscorip/ciscorip.html">CISCO RIP Routing</a></li>
+                    <li><a href="ciscoeigrp/ciscoeigrp.html">CISCO EIGRP Routing</a></li>
+                    <li><a href="ciscoospf/ciscoospf.html">CISCO OSPF Routing</a></li>
+                    <li><a href="ciscotelnet/ciscotelnet.html">CISCO Remote TELNET Access</a></li>
+                    <li><a href="ciscogre/ciscogre.html">CISCO GRE and IPSec Tunnels</a></li>
+                </ul>
+            </article>
+
+            <article class="card fade-in" data-category="networking">
+                <div class="card-header">
+                    <i class="fas fa-shield-alt card-icon"></i>
+                    <h3>CISCO Security <span class="guide-count">4</span></h3>
+                </div>
+                <div class="card-meta">
+                    <span class="card-tag">Security</span>
+                    <span class="card-tag">Firewall</span>
+                </div>
+                <ul class="card-links">
+                    <li><a href="ciscosecure/ciscosecure.html">CISCO SSH Access with AAA</a></li>
+                    <li><a href="ciscoasazones/ciscoasazones.html">CISCO ASA Firewall Zones</a></li>
+                    <li><a href="ciscostp/ciscostp.html">CISCO Spanning Tree Protocol (STP)</a></li>
+                    <li><a href="ciscoportsecurity/ciscoportsecurity.html">CISCO Port Security</a></li>
+                </ul>
+            </article>
+
+            <article class="card fade-in" data-category="active-directory">
+                <div class="card-header">
+                    <i class="fas fa-server card-icon"></i>
+                    <h3>Active Directory Lab <span class="guide-count">10</span></h3>
+                </div>
+                <div class="card-meta">
+                    <span class="card-tag">Windows</span>
+                    <span class="card-tag">Pentesting</span>
+                </div>
+                <ul class="card-links">
+                    <li><a href="ad1/ad.html">1. Downloading Images & VMware Setup</a></li>
+                    <li><a href="ad2/ad.html">2. Creating Virtual Machines</a></li>
+                    <li><a href="ad3/ad.html">3. Domain Controller Installation</a></li>
+                    <li><a href="ad4/ad.html">4. Active Directory Configuration</a></li>
+                    <li><a href="ad5/ad.html">5. Creating OUs and Domain Admins</a></li>
+                    <li><a href="ad6/ad.html">6. Configuring DHCP Server</a></li>
+                    <li><a href="#"><span class="badge badge-warning">Coming Soon</span> 7. File Server Configuration</a></li>
+                    <li><a href="#"><span class="badge badge-warning">Coming Soon</span> 8. NAT Configuration</a></li>
+                    <li><a href="#"><span class="badge badge-warning">Coming Soon</span> 9. Windows 10 Installation</a></li>
+                    <li><a href="#"><span class="badge badge-warning">Coming Soon</span> 10. Joining Domain</a></li>
+                </ul>
+            </article>
+
+            <article class="card fade-in" data-category="python">
+                <div class="card-header">
+                    <i class="fab fa-python card-icon"></i>
+                    <h3>Python Fundamentals <span class="guide-count">15</span></h3>
+                </div>
+                <div class="card-meta">
+                    <span class="card-tag">Programming</span>
+                    <span class="card-tag">Beginner</span>
+                </div>
+                <ul class="card-links">
+                    <li><a href="code/strings.html">Strings</a></li>
+                    <li><a href="code/ints.html">Integers and Floats</a></li>
+                    <li><a href="code/lists.html">Lists</a></li>
+                    <li><a href="code/dictionaries.html">Dictionaries</a></li>
+                    <li><a href="code/tuples.html">Tuples</a></li>
+                    <li><a href="code/booleans.html">Booleans</a></li>
+                    <li><a href="code/all_any.html">All & Any</a></li>
+                    <li><a href="code/if.html">IF Statements</a></li>
+                    <li><a href="code/if2.html">Logical Operators</a></li>
+                    <li><a href="code/loops1.html">Loops - For & While</a></li>
+                    <li><a href="code/loops2.html">Enumerate & List Comprehension</a></li>
+                    <li><a href="code/loops3.html">Continue & Pass</a></li>
+                    <li><a href="code/imports.html">Imports and Modules</a></li>
+                    <li><a href="code/functions.html">Functions</a></li>
+                    <li><a href="code/classes.html">Classes</a></li>
+                </ul>
+            </article>
+
+            <article class="card fade-in" data-category="python">
+                <div class="card-header">
+                    <i class="fas fa-code card-icon"></i>
+                    <h3>Python Advanced <span class="guide-count">4</span></h3>
+                </div>
+                <div class="card-meta">
+                    <span class="card-tag">Programming</span>
+                    <span class="card-tag">Advanced</span>
+                </div>
+                <ul class="card-links">
+                    <li><a href="code/files.html">Reading and Writing Files</a></li>
+                    <li><a href="code/unittesting.html">Unit Testing with unittest</a></li>
+                    <li><a href="code/pydoc.html">Creating Documentation with Pydoc</a></li>
+                    <li><a href="code/custom_context_managers.html">Custom Context Managers</a></li>
+                    <li><a href="code/path.html">Pathlib Module</a></li>
+                </ul>
+            </article>
+
+            <article class="card fade-in" data-category="python">
+                <div class="card-header">
+                    <i class="fas fa-project-diagram card-icon"></i>
+                    <h3>Python Projects <span class="guide-count">8</span></h3>
+                </div>
+                <div class="card-meta">
+                    <span class="card-tag">Projects</span>
+                    <span class="card-tag">Hands-on</span>
+                </div>
+                <ul class="card-links">
+                    <li><a href="code/employee.html">Employee Pay Calculator Tool</a></li>
+                    <li><a href="hangman/hangman.html">Hangman Game</a></li>
+                    <li><a href="code/tools.html">Tool Downloader with Argparse</a></li>
+                    <li><a href="code/simpleserver.html">Simple TCP Server</a></li>
+                    <li><a href="code/sshclient.html">SSH Client with Paramiko</a></li>
+                    <li><a href="code/webscraper.html">Multi-threaded Web Scraper</a></li>
+                    <li><a href="code/downloader.html">File Downloader</a></li>
+                    <li><a href="code/securedownloader.html">Secure File Downloader over SSH</a></li>
+                </ul>
+            </article>
+
+            <article class="card fade-in" data-category="docker">
+                <div class="card-header">
+                    <i class="fab fa-docker card-icon"></i>
+                    <h3>Docker & Swarm <span class="guide-count">3</span></h3>
+                </div>
+                <div class="card-meta">
+                    <span class="card-tag">Containers</span>
+                    <span class="card-tag">DevOps</span>
+                </div>
+                <ul class="card-links">
+                    <li><a href="docker/installdocker.html">Install Docker</a></li>
+                    <li><a href="docker/initswarm.html">Docker Swarm Setup on Ubuntu</a></li>
+                    <li><a href="docker/letsencrypt.html">Let's Encrypt with Docker (Cloudflare)</a></li>
+                </ul>
+            </article>
+
+            <article class="card fade-in" data-category="kubernetes">
+                <div class="card-header">
+                    <i class="fas fa-dharmachakra card-icon"></i>
+                    <h3>Kubernetes <span class="guide-count">5</span></h3>
+                </div>
+                <div class="card-meta">
+                    <span class="card-tag">K8s</span>
+                    <span class="card-tag">Orchestration</span>
+                </div>
+                <ul class="card-links">
+                    <li><a href="kubernetes/k8sinstall.html">Installing K8s Cluster on Ubuntu</a></li>
+                    <li><a href="kubernetes/k8slb.html">NGINX External Load Balancer</a></li>
+                    <li><a href="kubernetes/k8snodeport.html">NGINX NodePort Deployment</a></li>
+                    <li><a href="kubernetes/k8slbservice.html">NGINX LoadBalancer Service</a></li>
+                    <li><a href="kubernetes/k8spersistentvolumes.html">Persistent Volumes with NFS</a></li>
+                </ul>
+            </article>
+
+            <article class="card fade-in" data-category="guides">
+                <div class="card-header">
+                    <i class="fas fa-book card-icon"></i>
+                    <h3>General Guides <span class="guide-count">5</span></h3>
+                </div>
+                <div class="card-meta">
+                    <span class="card-tag">Tutorials</span>
+                    <span class="card-tag">Setup</span>
+                </div>
+                <ul class="card-links">
+                    <li><a href="lhd/lhd.html">Local Host Discovery</a></li>
+                    <li><a href="ssh/ssh.html">SSH with Password & Key Authentication</a></li>
+                    <li><a href="vb/vb.html">VirtualBox Virtual Lab Setup</a></li>
+                    <li><a href="pfsenselab/pfsenselab.html">VMware Lab with pfSense Gateway</a></li>
+                    <li><a href="hex/hex.html">Decimal to Hexadecimal Conversion</a></li>
+                </ul>
+            </article>
+
+        </section>
+
+        <section id="resources" class="mt-2">
+            <article class="card">
+                <div class="card-header">
+                    <i class="fas fa-external-link-alt card-icon"></i>
+                    <h3>External Resources</h3>
+                </div>
+                <p class="text-muted">Curated list of useful cybersecurity tools and resources</p>
+                <ul class="card-links">
+                    <li><a href="https://osiexplain.com/" target="_blank" rel="noopener noreferrer">OSI Explain - Interactive OSI Model Guide (by the Quantum Repository)</a></li>
+                    <li><a href="https://fixmyerror.net" target="_blank" rel="noopener noreferrer">Fix My Error - Error Lookup Tool (by the Quantum Repository)</a></li>
+                    <li><a href="https://malapi.io/" target="_blank" rel="noopener noreferrer">MalAPI - Malware Evasion API</a></li>
+                    <li><a href="https://hashes.com/en/tools/hash_identifier" target="_blank" rel="noopener noreferrer">Hash Identifier Tool</a></li>
+                    <li><a href="https://hashes.com/en/decrypt/hash" target="_blank" rel="noopener noreferrer">Hash Lookup Database</a></li>
+                    <li><a href="https://gtfobins.github.io/" target="_blank" rel="noopener noreferrer">GTFOBins</a></li>
+                    <li><a href="https://unprotect.it/map/" target="_blank" rel="noopener noreferrer">Unprotect Project - Evasion Techniques</a></li>
+                    <li><a href="https://threatcops.com/" target="_blank" rel="noopener noreferrer">Threatcops - OSINT Tools</a></li>
+                    <li><a href="https://www.revshells.com/" target="_blank" rel="noopener noreferrer">Revshells - Reverse Shell Generator</a></li>
+                    <li><a href="https://merricx.github.io/enigmator/" target="_blank" rel="noopener noreferrer">Enigmator - Decryption Tools</a></li>
+                    <li><a href="https://github.com/payloadbox/sql-injection-payload-list" target="_blank" rel="noopener noreferrer">SQLi Payload List</a></li>
+                    <li><a href="https://linuxjourney.com/" target="_blank" rel="noopener noreferrer">Linux Journey - Learn Linux</a></li>
+                    <li><a href="https://gchq.github.io/CyberChef/" target="_blank" rel="noopener noreferrer">CyberChef - Encode/Decrypt Tool</a></li>
+                </ul>
+            </article>
+        </section>
+
+        <section class="mt-2">
+            <article class="card">
+                <div class="card-header">
+                    <i class="fas fa-flag card-icon"></i>
+                    <h3>CTF Challenges</h3>
+                </div>
+                <p>
+                    I have created 15 Capture The Flag (CTF) style vulnerable virtual machines 
+                    for penetration testing practice. These VMs range from beginner to advanced difficulty.
+                </p>
+                <p class="text-muted">
+                    <strong>⚠️ Warning:</strong> NEVER deploy these vulnerable systems in a production environment. 
+                    They are intentionally insecure for educational purposes only.
+                </p>
+                <p>
+                    Interested? Email me for instructions and download links!
+                </p>
+            </article>
+        </section>
+
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>About</h3>
+                <p class="text-muted">
+                    Free cybersecurity and networking resources created for educational purposes. 
+                    All content has been written by me but not extensively tested, use at your own risk.
+                </p>
+            </div>
+            <div class="footer-section">
+                <h3>Quick Links</h3>
+                <ul>
+                    <li><a href="#guides">All Guides</a></li>
+                    <li><a href="#resources">Resources</a></li>
+                    <li><a href="#contact">Contact</a></li>
+                </ul>
+            </div>
+            <div class="footer-section" id="contact">
+                <h3><i class="fas fa-envelope"></i> Get In Touch</h3>
+                <p class="text-muted">
+                    Have questions, suggestions, or want to request a guide?
+                </p>
+                <p><strong>Email:</strong> <a href="mailto:alex@slash-root.com" style="color: var(--accent-primary);">alex@slash-root.com</a></p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 quantumrepository.com | All rights reserved</p>
+        </div>
+    </footer>
+
+    <script>
+        // Theme Toggle with Accessibility
+        function toggleTheme() {
+            const html = document.documentElement;
+            const icon = document.getElementById('theme-icon');
+            const themeText = document.getElementById('theme-text');
+            const themeButton = document.querySelector('.theme-toggle');
+            const currentTheme = html.getAttribute('data-theme');
+            
+            if (currentTheme === 'light') {
+                html.removeAttribute('data-theme');
+                icon.className = 'fas fa-moon';
+                themeText.textContent = 'Switch to light mode';
+                themeButton.setAttribute('aria-pressed', 'false');
+                themeButton.title = 'Switch to light mode';
+                localStorage.setItem('theme', 'dark');
+                announceToScreenReader('Switched to dark mode');
+            } else {
+                html.setAttribute('data-theme', 'light');
+                icon.className = 'fas fa-sun';
+                themeText.textContent = 'Switch to dark mode';
+                themeButton.setAttribute('aria-pressed', 'true');
+                themeButton.title = 'Switch to dark mode';
+                localStorage.setItem('theme', 'light');
+                announceToScreenReader('Switched to light mode');
+            }
+        }
+
+        // Load saved theme
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('theme');
+            const icon = document.getElementById('theme-icon');
+            const themeText = document.getElementById('theme-text');
+            const themeButton = document.querySelector('.theme-toggle');
+            
+            if (savedTheme === 'light') {
+                document.documentElement.setAttribute('data-theme', 'light');
+                icon.className = 'fas fa-sun';
+                themeText.textContent = 'Switch to dark mode';
+                themeButton.setAttribute('aria-pressed', 'true');
+            }
+            
+            // Detect keyboard users
+            document.addEventListener('keydown', handleKeyboardUser);
+            document.addEventListener('mousedown', handleMouseUser);
+        });
+        
+        // Keyboard Navigation
+        let isKeyboardUser = false;
+        
+        function handleKeyboardUser(e) {
+            if (e.key === 'Tab') {
+                isKeyboardUser = true;
+                document.body.classList.add('keyboard-user');
+            }
+            
+            // Keyboard shortcuts
+            if (e.ctrlKey || e.metaKey) {
+                switch(e.key) {
+                    case 'k':
+                        e.preventDefault();
+                        document.getElementById('searchInput').focus();
+                        break;
+                    case '/':
+                        e.preventDefault();
+                        showKeyboardHelp();
+                        break;
+                }
+            }
+            
+            // ESC to close modals
+            if (e.key === 'Escape') {
+                closeKeyboardHelp();
+            }
+        }
+        
+        function handleMouseUser() {
+            if (isKeyboardUser) {
+                isKeyboardUser = false;
+                document.body.classList.remove('keyboard-user');
+            }
+        }
+        
+        // Keyboard Help Modal
+        function showKeyboardHelp() {
+            const helpModal = document.createElement('div');
+            helpModal.className = 'keyboard-help';
+            helpModal.id = 'keyboard-help';
+            helpModal.setAttribute('role', 'dialog');
+            helpModal.setAttribute('aria-labelledby', 'help-title');
+            helpModal.innerHTML = `
+                <h3 id="help-title">Keyboard Shortcuts</h3>
+                <ul>
+                    <li><span>Search guides</span> <kbd>Ctrl + K</kbd></li>
+                    <li><span>Toggle theme</span> <kbd>Click theme button</kbd></li>
+                    <li><span>Navigate filters</span> <kbd>Tab / Arrow keys</kbd></li>
+                    <li><span>Close this help</span> <kbd>Escape</kbd></li>
+                </ul>
+                <button onclick="closeKeyboardHelp()" aria-label="Close help">Close</button>
+            `;
+            document.body.appendChild(helpModal);
+            helpModal.querySelector('button').focus();
+        }
+        
+        function closeKeyboardHelp() {
+            const helpModal = document.getElementById('keyboard-help');
+            if (helpModal) {
+                helpModal.remove();
+            }
+        }
+
+        // Search Functionality
+        function searchGuides() {
+            const input = document.getElementById('searchInput').value.toLowerCase();
+            const cards = document.querySelectorAll('.card');
+            
+            cards.forEach(card => {
+                const text = card.textContent.toLowerCase();
+                if (text.includes(input)) {
+                    card.style.display = '';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        // Filter Functionality with Accessibility
+        let currentFilter = 'all';
+        
+        function filterGuides(category) {
+            currentFilter = category;
+            const cards = document.querySelectorAll('.card[data-category]');
+            const buttons = document.querySelectorAll('.filter-btn');
+            
+            // Update active button with ARIA
+            buttons.forEach(btn => {
+                btn.classList.remove('active');
+                btn.setAttribute('aria-selected', 'false');
+            });
+            
+            const activeButton = event.target;
+            activeButton.classList.add('active');
+            activeButton.setAttribute('aria-selected', 'true');
+            
+            // Update tabpanel
+            const guidesSection = document.getElementById('guides');
+            guidesSection.setAttribute('aria-labelledby', activeButton.id);
+            
+            // Filter cards
+            let visibleCount = 0;
+            cards.forEach(card => {
+                if (category === 'all' || card.dataset.category === category) {
+                    card.style.display = '';
+                    card.removeAttribute('aria-hidden');
+                    visibleCount++;
+                } else {
+                    card.style.display = 'none';
+                    card.setAttribute('aria-hidden', 'true');
+                }
+            });
+            
+            // Announce results to screen readers
+            announceToScreenReader(`Showing ${visibleCount} guides for ${category === 'all' ? 'all categories' : category}`);
+            
+            // Clear search when filtering
+            document.getElementById('searchInput').value = '';
+        }
+        
+        // Screen reader announcements
+        function announceToScreenReader(message) {
+            const announcement = document.createElement('div');
+            announcement.setAttribute('aria-live', 'polite');
+            announcement.setAttribute('aria-atomic', 'true');
+            announcement.className = 'sr-only';
+            announcement.textContent = message;
+            document.body.appendChild(announcement);
+            setTimeout(() => document.body.removeChild(announcement), 1000);
+        }
+
+        // Animated counter for stats
+        function animateCounter(element) {
+            const target = parseInt(element.dataset.count);
+            const duration = 2000;
+            const step = target / (duration / 16);
+            let current = 0;
+            
+            const timer = setInterval(() => {
+                current += step;
+                if (current >= target) {
+                    element.textContent = target + (target === 100 ? '%' : '+');
+                    clearInterval(timer);
+                } else {
+                    element.textContent = Math.floor(current) + (target === 100 ? '%' : '+');
+                }
+            }, 16);
+        }
+
+        // Animate stats on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            const statNumbers = document.querySelectorAll('.stat-number');
+            setTimeout(() => {
+                statNumbers.forEach(animateCounter);
+            }, 300);
+        });
+
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                const href = this.getAttribute('href');
+                if (href !== '#' && document.querySelector(href)) {
+                    e.preventDefault();
+                    document.querySelector(href).scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Add fade-in animation on scroll
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        // Observe all cards
+        document.querySelectorAll('.card').forEach(card => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+            observer.observe(card);
+        });
+    </script>
+</body>
+</html>

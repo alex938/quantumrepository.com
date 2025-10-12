@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CISCO OSPF | Quantum Repository</title>
+    <link rel="stylesheet" href="../main.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.1/css/all.css">
+    <style>
+        /* FULL WIDTH - Override all max-width restrictions */
+        body {
+            margin: 0;
+            padding: 0;
+        }
+        
+        .guide-container {
+            width: 95%;
+            max-width: none !important;
+            margin: 2rem auto;
+            padding: 0 2.5%;
+        }
+        
+        .guide-content {
+            width: 100%;
+            max-width: none !important;
+        }
+        
+        .guide-content article {
+            line-height: 1.8;
+            font-size: 1.15rem;
+            width: 100%;
+        }
+        
+        .guide-content img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 2rem auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+        }
+        
+        .guide-content h2 {
+            margin-top: 3rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 3px solid var(--primary-color);
+            font-size: 2rem;
+        }
+        
+        .guide-content h3 {
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+        
+        .guide-content p {
+            margin-bottom: 1.5rem;
+            line-height: 1.8;
+        }
+        
+        .guide-content ul, .guide-content ol {
+            margin-bottom: 1.5rem;
+            padding-left: 2.5rem;
+            line-height: 1.8;
+        }
+        
+        .guide-content li {
+            margin-bottom: 0.75rem;
+        }
+        
+        .guide-content code {
+            background: #2d2d2d;
+            color: #f0f0f0;
+            padding: 0.3em 0.6em;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 1rem;
+        }
+        
+        .guide-content pre {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 2rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 2rem 0;
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+        
+        .guide-footer {
+            margin-top: 4rem;
+            padding-top: 2rem;
+            border-top: 2px solid var(--border-color);
+            text-align: center;
+        }
+        
+        .btn-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem 2rem;
+            background: var(--primary-color);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s;
+        }
+        
+        .btn-back:hover {
+            background: var(--accent-hover);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+        
+        /* Override any conflicting styles */
+        .container {
+            max-width: none !important;
+            width: 100%;
+        }
+        
+        /* Make header full width too */
+        .site-header .container {
+            max-width: 95%;
+            width: 95%;
+        }
+        
+        .breadcrumbs .container {
+            max-width: 95%;
+            width: 95%;
+        }
+    </style>
+</head>
+<body>
+    <div class="reading-progress-bar"></div>
+
+    <header class="site-header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-atom"></i>
+                    <span>Quantum Repository</span>
+                </div>
+                <nav class="main-nav">
+                    <a href="../index.html">Home</a>
+                    <a href="../index.html#guides">Guides</a>
+                    <a class="btn-donate" href="https://donate.stripe.com/5kQaEX2kMgnB85ia4ycZa00" target="_blank" rel="noopener noreferrer" aria-label="Donate – opens in a new tab"><i class="fas fa-heart" aria-hidden="true"></i><span>Donate</span></a>
+                    <button class="theme-toggle" id="themeToggle">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <div class="breadcrumbs">
+        <div class="container">
+            <a href="../index.html">Home</a>
+            <span>/</span>
+            <span class="category-badge">Networking</span>
+            <span>/</span>
+            <span>CISCO OSPF</span>
+        </div>
+    </div>
+
+    <div class="guide-container">
+        <main class="guide-content">
+            <article>
+<h2 id="ospf-routing">CISCO Configuring Dynamic Routing - Open Shortest Path First (OSPF) Routing</h2>
+            <p>
+            Open Shortest Path First (OSPF) is a link state routing protocol. This means, unlike RIP (which is based on the number of hops) 
+            OSPF uses a link state routing algorithm to understand the wider topology. 
+            <br><br>OSPF will ultimately gather information from available 
+            routers and construct a network map. The cost metric (what OSPF uses to make its routing decision) is derived from an interfaces bandwidth. A cost is 
+            established using a reference bandwidth of 100mbps. 
+            <br><br>
+            Therefore, if we have a 20mbps interface the cost is 100/20 = 5. This will be done for all 
+            interfaces across the network within the area. The final point to note is Autonomous System (AS) and areas; in OSPF an AS is simply a collection of 
+            IP networks that all share a routing strategy. An area is a logical group of routers and links that ultimately make up the AS. There can be many areas 
+            in an AS.</p>
+
+            <h2 id="lab-setup">Lab setup</h2>
+            <ol>
+                <li>GNS3 as the network emulation software.</li>
+            </ol>
+            <img src="topology.png" alt="topology">
+            <ol start="2">
+                <li>I have my 3 PC's (Virtual PC's).</li>
+                <li>3x CISCO routers on IOSv 15.7 (Router - Cisco Modelling Labs Personal $199).</li>
+            </ol>
+
+            <h2 id="ip-schema">IP Schema</h2>
+            <p>The IP schemas used in this lab will be:</p>
+            <ol>
+                <li>3x LAN subnets being 192.168.10.0/24, 192.168.20.0/24 and 192.168.30.0/24.</li>
+                <li>3x Router-to-router subnets being 10.10.10.0/30, 10.10.20.0/30 and 10.10.30.0/30.</li>
+            </ol>
+
+            <h2 id="ip-addressing">IP addressing interfaces and Virtual PC's</h2>
+            First, let's IP address the Virtual PC's:
+            <img src="pc1ip.png" alt="pc1ip">
+            <img src="pc2ip.png" alt="pc2ip">
+            <img src="pc2ip.png" alt="pc2">
+
+            I am now going to IP address the router interfaces attached to each of these LAN's. To make things easier to follow, I have attached interface gi0/0 of each of the routers 
+            to the LAN. The address I am going to assign to each of these interfaces is the last address in the subnet.
+            <img src="r1gi00ip.png" alt="r1gi00ip">
+            <img src="r2gi00ip.png" alt="r2gi00ip">
+            <img src="r3gi00ip.png" alt="r3gi00ip">
+
+            Finally, lets IP address the interfaces connected on the router-to-router links. Router 1:
+            <img src="r1gi01ip.png" alt="r1gi01ip">
+            <img src="r1gi02ip.png" alt="r1gi02ip">
+            Router 2:
+            <img src="r2gi01ip.png" alt="r2gi01ip">
+            <img src="r2gi02ip.png" alt="r2gi02ip">
+            And finally router 3:
+            <img src="r3gi01ip.png" alt="r3gi01ip">
+            <img src="r3gi02ip.png" alt="r3gi02ip">
+            Before we start configuring OSPF, I will do a quick ping check to ensure no connectivity apart from that to default-gateway exists:
+            <img src="pingfailed.png" alt="pingfailed">
+
+            <h2 id="configuring-ospf">Configuring OSPF</h2>
+            I am going to configure OSPF utilising some authentication (this will help mitigate the injection of rogue OSPF traffic). To do this I am going to use 
+            HMAC-SHA-256 in combination with a password. A point to note, depending on what version of OSPF you are using will dictate what type of authentication you can utilise as  
+            some versions are restricted to MD5 and plain-text. 
+            
+            <br><br>I am using OSPFv2 which allows for:
+            <i>"The OSPFv2 Cryptographic Authentication feature allows you to configure a key chain on the OSPF interface to authenticate OSPFv2 packets by using HMAC-SHA algorithms. 
+            You can use an existing key chain that is being used by another protocol, or you can create a key chain specifically for OSPFv2" - CISCO manual.</i>
+            To define a key chain and key to use, I first to need to create it (I am doing the new few steps on R1, but all routers will need the same configuration to share OSPF information):
+            <img src="keycreation.png" alt="keycreation">
+
+            This has created a key chain called 'slashroot' and defined a key 1 with the value 'password'. The algorithm I have chosen as discussed above is SHA-256 with HMAC. 
+            The send lifetime defines a period in which the key can be used, in this case from 11:00:00 01 March 2023 with no end time. To confirm it has been accepted I will view the key status:
+            <img src="keystatus.png" alt="keystatus">
+
+            To allow OSPF to use this key chain as its authentication parameter we need to apply it to the interfaces being used by OSPF or alternatively apply the key chain to the OSPF area. We have not defined 
+            any areas as of yet so what I am going to do is apply the key chain to the interface:
+            <img src="ospfauthtointgi01.png" alt="ospfauthtointgi01">
+            <img src="ospfauthtointgi02.png" alt="ospfauthtointgi02">
+            OSPF will now use this key chain for OSPF traffic on that interface. We can check this by looking at our OSPF configuration. Notice how the following command fails at this stage 
+            as we have not actually enabled OSPF yet.
+            <img src="ospfnotenabled.png" alt="ospfnotenabled">
+
+            I will correct this now and enable OSPF routing as well as advertise some networks. 
+            <img src="ospfnetworks1.png" alt="ospfnetworks1">
+            <img src="ospfnetworks2.png" alt="ospfnetworks2">
+            The above commands have done 3 things. 1. It has created an OSPF group 1 (this is information that is relevant locally to the router only). 2. It has advertised 
+            3 networks to an OSPF area of 0 (a logical grouping to share networks, this will need to be shared with other routers in the area). 3. Enabled OSPF. To check our OSPF configuration 
+            we should be able to type the same command as above and receive an output:
+            <img src="ospfenabledhmacsha.png" alt="ospfenabledhmacsha">
+
+            You will notice at the bottom of the configuration our key chain is displayed as confirmation it is being utilised. It is worth having a look at the settings before moving on to ensure 
+            you fully understand what is going on - in particular the timings of Hello, Dead, Wait and Retransmit. The Hello message uses multicast address 224.0.0.5, is sent every 10 seconds and has the purpose 
+            of identifying OSPF neighbours. You can see this in Wiseshark when looking at the line connected to an OSPF enabled interface:
+            <img src="ospfhello.png" alt="ospfhello">
+
+            All we need to do at this stage is put the same configuration information into each of the other two routers (advertising their respective networks). I do this next on router 2:
+            <img src="router2keychain.png" alt="router2keychain">
+
+            Apply the key chain to OSPF authentication on the interfaces:
+            <img src="r2authentication.png" alt="r2authentication">
+
+            And finally advertise some networks:
+            <img src="r2networks.png" alt="r2networks">
+
+            The first thing you will notice after entering a configuration on another router is a status message will pop-up:
+            <img src="neighbour.png" alt="neighbour">
+
+            What this is telling us, is that an OSPF neighbour partnership has been estbalished with the router ID 192.168.10.254. This is router 1. We just didn't change the router ID 
+            when we set OSPF up so it auto populated this with the first interfaces ID on R1 i.e. 192.168.10.254. We can view OSPF neighbours using the following command:
+            <img src="neighbourestablished.png" alt="neighbourestablished">
+
+            The final step is to complete the topology and enter the same configuration into router 3. Once done, we can view the neighbour relationships on router 3 to see the following:
+            <img src="r3neighbour.png" alt="r3neighbour">
+
+            We can also view the routes that router 3 now knows through OSPF using the following command:
+            <img src="r3routes.png" alt="r3routes">
+
+            It worth checking what all this looks like in Wireshark to fully understand the OSPF messaging. Here you can see the 'update' and 'description' messages being transmitted between router 1 and router 3:
+            <img src="wiresharkospf.png" alt="wiresharkospf">
+
+            At this point we should be ready to go. As a final check I will ping the 192.168.20.0/24 and 192.168.30.0/24 networks from PC1, which is in the 192.168.10.0/24 network:
+            <img src="pingsuccess.png" alt="pingsuccess">
+            </article>
+
+            <div class="guide-footer">
+                <a href="../index.html" class="btn-back">
+                    <i class="fas fa-arrow-left"></i> Back to Guides
+                </a>
+            </div>
+        </main>
+    </div>
+
+    <button class="back-to-top" id="backToTop">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p><i class="fas fa-atom"></i> Quantum Repository</p>
+            <p>Technical guides for system administrators and developers</p>
+            <p>alex@slash-root.com | &copy; 2025</p>
+        </div>
+    </footer>
+
+    <script src="../guide.js"></script>
+</body>
+</html>

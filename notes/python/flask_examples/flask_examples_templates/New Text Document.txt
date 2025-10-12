@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Results Dashboard</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            text-align: left;
+            padding: 8px;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <h1>Dashboard</h1>
+    <p>Number of people who passed over 50: {{ passes_over_50 }}</p>
+    <table border="1">
+        <tr>
+            <th>Name</th>
+            <th>Result</th>
+            <th>Location</th>
+            <th>Sex</th>
+        </tr>
+        {% for item in data %}
+        <tr>
+            <td>{{ item['name'] }}</td>
+            <td>{{ item['result'] }}</td>
+            <td>{{ item['location'] }}</td>
+            <td>{{ item['details'].get('sex', 'Unknown') }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>

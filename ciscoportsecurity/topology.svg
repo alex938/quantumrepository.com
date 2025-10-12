@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 800" style="background: #0d1117;">
+  <defs>
+    <!-- Gradients -->
+    <linearGradient id="switchGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#1f2937;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#111827;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Shadow filter -->
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
+      <feOffset dx="0" dy="3" result="offsetblur"/>
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.4"/>
+      </feComponentTransfer>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Title -->
+  <text x="700" y="35" font-family="'Segoe UI', Arial, sans-serif" font-size="26" font-weight="700" fill="#c9d1d9" text-anchor="middle">
+    Port Security Lab Topology
+  </text>
+  <text x="700" y="60" font-family="'Segoe UI', Arial, sans-serif" font-size="13" fill="#8b949e" text-anchor="middle">
+    Three ports configured with different violation modes: Protect, Restrict, and Shutdown
+  </text>
+  
+  <!-- ========== CENTRAL SWITCH ========== -->
+  <g filter="url(#shadow)">
+    <rect x="525" y="250" width="350" height="150" rx="12" fill="url(#switchGrad)" stroke="#3b82f6" stroke-width="3"/>
+    <rect x="600" y="265" width="200" height="30" rx="15" fill="#1e40af" opacity="0.5"/>
+    <text x="700" y="286" font-family="'Segoe UI', Arial, sans-serif" font-size="14" font-weight="600" fill="#60a5fa" text-anchor="middle">LAYER 2 SWITCH</text>
+    
+    <text x="700" y="325" font-family="'Segoe UI', Arial, sans-serif" font-size="24" font-weight="bold" fill="#e6edf3" text-anchor="middle">Switch1</text>
+    <text x="700" y="355" font-family="'Consolas', monospace" font-size="11" fill="#8b949e" text-anchor="middle">IOSv L2 - Port Security Enabled</text>
+    <text x="700" y="380" font-family="'Consolas', monospace" font-size="10" fill="#6e7681" text-anchor="middle">Fa0/1: Protect | Fa0/2: Restrict | Fa0/3: Shutdown</text>
+  </g>
+  
+  <!-- ========== PC1 - PROTECT MODE ========== -->
+  <g filter="url(#shadow)">
+    <rect x="75" y="580" width="280" height="120" rx="8" fill="#0d1117" stroke="#22c55e" stroke-width="2.5"/>
+    <text x="215" y="615" font-family="'Segoe UI', Arial, sans-serif" font-size="16" font-weight="bold" fill="#e6edf3" text-anchor="middle">💻 PC1 (Authorised)</text>
+    <text x="215" y="640" font-family="'Segoe UI', Arial, sans-serif" font-size="13" font-weight="600" fill="#22c55e" text-anchor="middle">PROTECT Mode</text>
+    <text x="215" y="660" font-family="'Consolas', monospace" font-size="11" fill="#8b949e" text-anchor="middle">MAC: 00:50:79:66:68:01</text>
+    <text x="215" y="680" font-family="'Consolas', monospace" font-size="10" fill="#86efac" text-anchor="middle">✓ Port stays UP</text>
+  </g>
+  
+  <!-- Connection PC1 to Switch -->
+  <line x1="215" y1="320" x2="215" y2="580" stroke="#22c55e" stroke-width="4"/>
+  <rect x="165" y="470" width="100" height="50" rx="5" fill="#065f46" stroke="#22c55e" stroke-width="1.5"/>
+  <text x="215" y="490" font-family="'Consolas', monospace" font-size="11" font-weight="bold" fill="#d1fae5" text-anchor="middle">Fa0/1</text>
+  <text x="215" y="507" font-family="'Consolas', monospace" font-size="9" fill="#86efac" text-anchor="middle">Max 1 MAC</text>
+  <!-- Port indicator at switch -->
+  <circle cx="525" cy="320" r="6" fill="#22c55e" stroke="#22c55e" stroke-width="2"/>
+  <line x1="215" y1="320" x2="525" y2="320" stroke="#22c55e" stroke-width="3" opacity="0.3"/>
+  
+  <!-- ========== PC2 - RESTRICT MODE ========== -->
+  <g filter="url(#shadow)">
+    <rect x="560" y="580" width="280" height="120" rx="8" fill="#0d1117" stroke="#f59e0b" stroke-width="2.5"/>
+    <text x="700" y="615" font-family="'Segoe UI', Arial, sans-serif" font-size="16" font-weight="bold" fill="#e6edf3" text-anchor="middle">💻 PC2 (Authorised)</text>
+    <text x="700" y="640" font-family="'Segoe UI', Arial, sans-serif" font-size="13" font-weight="600" fill="#f59e0b" text-anchor="middle">RESTRICT Mode</text>
+    <text x="700" y="660" font-family="'Consolas', monospace" font-size="11" fill="#8b949e" text-anchor="middle">MAC: 00:50:79:66:68:02</text>
+    <text x="700" y="680" font-family="'Consolas', monospace" font-size="10" fill="#fbbf24" text-anchor="middle">⚠ Logs violations</text>
+  </g>
+  
+  <!-- Connection PC2 to Switch -->
+  <line x1="700" y1="400" x2="700" y2="580" stroke="#f59e0b" stroke-width="4"/>
+  <rect x="650" y="470" width="100" height="50" rx="5" fill="#78350f" stroke="#f59e0b" stroke-width="1.5"/>
+  <text x="700" y="490" font-family="'Consolas', monospace" font-size="11" font-weight="bold" fill="#fef3c7" text-anchor="middle">Fa0/2</text>
+  <text x="700" y="507" font-family="'Consolas', monospace" font-size="9" fill="#fbbf24" text-anchor="middle">Max 1 MAC</text>
+  <!-- Port indicator at switch -->
+  <circle cx="700" cy="400" r="6" fill="#f59e0b" stroke="#f59e0b" stroke-width="2"/>
+  
+  <!-- ========== PC3 - SHUTDOWN MODE ========== -->
+  <g filter="url(#shadow)">
+    <rect x="1045" y="580" width="280" height="120" rx="8" fill="#0d1117" stroke="#ef4444" stroke-width="2.5"/>
+    <text x="1185" y="615" font-family="'Segoe UI', Arial, sans-serif" font-size="16" font-weight="bold" fill="#e6edf3" text-anchor="middle">💻 PC3 (Authorised)</text>
+    <text x="1185" y="640" font-family="'Segoe UI', Arial, sans-serif" font-size="13" font-weight="600" fill="#ef4444" text-anchor="middle">SHUTDOWN Mode</text>
+    <text x="1185" y="660" font-family="'Consolas', monospace" font-size="11" fill="#8b949e" text-anchor="middle">MAC: 00:50:79:66:68:03</text>
+    <text x="1185" y="680" font-family="'Consolas', monospace" font-size="10" fill="#fca5a5" text-anchor="middle">🛑 Port err-disabled</text>
+  </g>
+  
+  <!-- Connection PC3 to Switch -->
+  <line x1="1185" y1="320" x2="1185" y2="580" stroke="#ef4444" stroke-width="4"/>
+  <rect x="1135" y="470" width="100" height="50" rx="5" fill="#450a0a" stroke="#ef4444" stroke-width="1.5"/>
+  <text x="1185" y="490" font-family="'Consolas', monospace" font-size="11" font-weight="bold" fill="#fca5a5" text-anchor="middle">Fa0/3</text>
+  <text x="1185" y="507" font-family="'Consolas', monospace" font-size="9" fill="#dc2626" text-anchor="middle">Max 1 MAC</text>
+  <!-- Port indicator at switch -->
+  <circle cx="875" cy="320" r="6" fill="#ef4444" stroke="#ef4444" stroke-width="2"/>
+  <line x1="875" y1="320" x2="1185" y2="320" stroke="#ef4444" stroke-width="3" opacity="0.3"/>
+  
+  <!-- ========== UNAUTHORIZED DEVICES (ATTACKERS) ========== -->
+  <!-- Attacker 1 trying to connect to Fa0/1 -->
+  <g filter="url(#shadow)" opacity="0.7">
+    <rect x="75" y="100" width="220" height="90" rx="8" fill="#1c1917" stroke="#dc2626" stroke-width="2" stroke-dasharray="5,5"/>
+    <text x="185" y="130" font-family="'Segoe UI', Arial, sans-serif" font-size="14" font-weight="bold" fill="#fca5a5" text-anchor="middle">⛔ Unauthorised</text>
+    <text x="185" y="150" font-family="'Consolas', monospace" font-size="11" fill="#8b949e" text-anchor="middle">MAC: AA:BB:CC:DD:EE:01</text>
+    <text x="185" y="170" font-family="'Consolas', monospace" font-size="9" fill="#ef4444" text-anchor="middle">Silently dropped</text>
+  </g>
+  <line x1="185" y1="190" x2="525" y2="320" stroke="#dc2626" stroke-width="2" stroke-dasharray="5,5" opacity="0.6"/>
+  
+  <!-- Attacker 2 trying to connect to Fa0/2 -->
+  <g filter="url(#shadow)" opacity="0.7">
+    <rect x="590" y="100" width="220" height="90" rx="8" fill="#1c1917" stroke="#dc2626" stroke-width="2" stroke-dasharray="5,5"/>
+    <text x="700" y="130" font-family="'Segoe UI', Arial, sans-serif" font-size="14" font-weight="bold" fill="#fca5a5" text-anchor="middle">⛔ Unauthorised</text>
+    <text x="700" y="150" font-family="'Consolas', monospace" font-size="11" fill="#8b949e" text-anchor="middle">MAC: AA:BB:CC:DD:EE:02</text>
+    <text x="700" y="170" font-family="'Consolas', monospace" font-size="9" fill="#ef4444" text-anchor="middle">Blocked + Alert sent</text>
+  </g>
+  <line x1="700" y1="190" x2="700" y2="250" stroke="#dc2626" stroke-width="2" stroke-dasharray="5,5" opacity="0.6"/>
+  
+  <!-- Attacker 3 trying to connect to Fa0/3 -->
+  <g filter="url(#shadow)" opacity="0.7">
+    <rect x="1075" y="100" width="220" height="90" rx="8" fill="#1c1917" stroke="#dc2626" stroke-width="2" stroke-dasharray="5,5"/>
+    <text x="1185" y="130" font-family="'Segoe UI', Arial, sans-serif" font-size="14" font-weight="bold" fill="#fca5a5" text-anchor="middle">⛔ Unauthorised</text>
+    <text x="1185" y="150" font-family="'Consolas', monospace" font-size="11" fill="#8b949e" text-anchor="middle">MAC: AA:BB:CC:DD:EE:03</text>
+    <text x="1185" y="170" font-family="'Consolas', monospace" font-size="9" fill="#ef4444" text-anchor="middle">Port disabled!</text>
+  </g>
+  <line x1="1185" y1="190" x2="875" y2="320" stroke="#dc2626" stroke-width="2" stroke-dasharray="5,5" opacity="0.6"/>
+  
+  <!-- ========== LEGEND ========== -->
+  <g filter="url(#shadow)">
+    <rect x="50" y="720" width="380" height="60" rx="8" fill="#161b22" stroke="#30363d" stroke-width="2"/>
+    <text x="240" y="743" font-family="'Segoe UI', Arial, sans-serif" font-size="13" font-weight="bold" fill="#c9d1d9" text-anchor="middle">Legend</text>
+    
+    <line x1="70" y1="758" x2="125" y2="758" stroke="#22c55e" stroke-width="3"/>
+    <text x="135" y="762" font-family="'Segoe UI', Arial, sans-serif" font-size="11" fill="#c9d1d9">Authorised Device</text>
+    
+    <line x1="260" y1="758" x2="315" y2="758" stroke="#dc2626" stroke-width="2" stroke-dasharray="5,5"/>
+    <text x="325" y="762" font-family="'Segoe UI', Arial, sans-serif" font-size="11" fill="#c9d1d9">Attacker Blocked</text>
+  </g>
+  
+  <!-- ========== INFO BOX ========== -->
+  <g filter="url(#shadow)">
+    <rect x="970" y="720" width="380" height="60" rx="8" fill="#161b22" stroke="#3b82f6" stroke-width="2"/>
+    <text x="1160" y="743" font-family="'Segoe UI', Arial, sans-serif" font-size="12" font-weight="bold" fill="#60a5fa" text-anchor="middle">🔒 Port Security Modes</text>
+    <text x="1160" y="762" font-family="'Consolas', monospace" font-size="9" fill="#c9d1d9" text-anchor="middle">Protect (Silent) | Restrict (Log) | Shutdown (Disable)</text>
+  </g>
+</svg>

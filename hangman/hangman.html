@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python Hangman | Quantum Repository</title>
+    <link rel="stylesheet" href="../main.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.1/css/all.css">
+    <style>
+        /* FULL WIDTH - Override all max-width restrictions */
+        body {
+            margin: 0;
+            padding: 0;
+        }
+        
+        .guide-container {
+            width: 95%;
+            max-width: none !important;
+            margin: 2rem auto;
+            padding: 0 2.5%;
+        }
+        
+        .guide-content {
+            width: 100%;
+            max-width: none !important;
+        }
+        
+        .guide-content article {
+            line-height: 1.8;
+            font-size: 1.15rem;
+            width: 100%;
+        }
+        
+        .guide-content img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 2rem auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+        }
+        
+        .guide-content h2 {
+            margin-top: 3rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 3px solid var(--primary-color);
+            font-size: 2rem;
+        }
+        
+        .guide-content h3 {
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+        
+        .guide-content p {
+            margin-bottom: 1.5rem;
+            line-height: 1.8;
+        }
+        
+        .guide-content ul, .guide-content ol {
+            margin-bottom: 1.5rem;
+            padding-left: 2.5rem;
+            line-height: 1.8;
+        }
+        
+        .guide-content li {
+            margin-bottom: 0.75rem;
+        }
+        
+        .guide-content code {
+            background: #2d2d2d;
+            color: #f0f0f0;
+            padding: 0.3em 0.6em;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 1rem;
+        }
+        
+        .guide-content pre {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 2rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 2rem 0;
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+        
+        .guide-footer {
+            margin-top: 4rem;
+            padding-top: 2rem;
+            border-top: 2px solid var(--border-color);
+            text-align: center;
+        }
+        
+        .btn-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem 2rem;
+            background: var(--primary-color);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s;
+        }
+        
+        .btn-back:hover {
+            background: var(--accent-hover);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+        
+        /* Override any conflicting styles */
+        .container {
+            max-width: none !important;
+            width: 100%;
+        }
+        
+        /* Make header full width too */
+        .site-header .container {
+            max-width: 95%;
+            width: 95%;
+        }
+        
+        .breadcrumbs .container {
+            max-width: 95%;
+            width: 95%;
+        }
+    </style>
+</head>
+<body>
+    <div class="reading-progress-bar"></div>
+
+    <header class="site-header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-atom"></i>
+                    <span>Quantum Repository</span>
+                </div>
+                <nav class="main-nav">
+                    <a href="../index.html">Home</a>
+                    <a href="../index.html#guides">Guides</a>
+                    <a class="btn-donate" href="https://donate.stripe.com/5kQaEX2kMgnB85ia4ycZa00" target="_blank" rel="noopener noreferrer" aria-label="Donate – opens in a new tab"><i class="fas fa-heart" aria-hidden="true"></i><span>Donate</span></a>
+                    <button class="theme-toggle" id="themeToggle">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <div class="breadcrumbs">
+        <div class="container">
+            <a href="../index.html">Home</a>
+            <span>/</span>
+            <span class="category-badge">Python</span>
+            <span>/</span>
+            <span>Python Hangman</span>
+        </div>
+    </div>
+
+    <div class="guide-container">
+        <main class="guide-content">
+            <article>
+<h2>Creating a Hangman game (including functions and reading files)</h2>
+<p1>In this tutorial we are going to create a game of Hangman in Python. We will be utilising a number of 'if' statements, loops, functions including reading files. This guide assumes you have an environment 
+                set up in order to compile Python code. If you are unsure on the dynamics of the game Hangman, you can read about it here: <b><a href="https://en.wikipedia.org/wiki/Hangman_(game)" target="_blank" rel="noopener noreferrer">Wikipedia Hangman (Game).</a></b>
+
+                <h2>Functionality Required</h2>
+A function to configure the game.<br>
+                A function to manage the conditions of a live game.<br>
+                A function to check for a winning condition (all letters revealed).<br>
+                A function to check for a losing condition (no lives left).<br>
+                A function to restart or quit the game.
+
+                <h2>Structure</h2>
+Our starting structure is the following:<br><br>
+                <code>def configure_game():<br>
+                    ...<br><br>
+                    def play():<br>
+                    ...<br><br>
+                    def check_win():<br>
+                    ...<br><br>
+                    def check_lose():<br>
+                    ...<br><br>
+                    def play_again():<br>
+                    ...<br><br>
+                    if __name__ == "__main__":<br>
+                    ...
+                </code>
+
+                <h2>configure_game()</h2>
+The first function we are going to setup is the logic to initiate the game starting condition, such as the word to be guessed and total lives.<br><br>
+                <code>
+                    def configure_game():<br><br>
+                        <font color="green">A variable to hold the number of starting lives</font><br> 
+                        lives = 5<br><br>
+
+                        <font color="green">A list of words to be used for guessing. 
+                        This 'for' loop is reading in each line from the file 'words.txt' and then removing the new line identifier '\n' from the end of each word being loaded. Ensure a file 'words.txt' is available and contains a few words, each on a new line. We 
+                        also encapsulate this in a TRY/EXCEPT block. This will alert the player the words.txt file could not be loaded if it is in fact missing.</font><br>
+                        try:<br>
+                        &nbsp&nbsp&nbsp words = [line.rstrip("\n") for line in open(r"c:/Users/slashroot/Desktop/words.txt")]<br>
+                        except FileNotFoundError:<br>
+                        &nbsp&nbsp&nbsp print("*** WORDS.TXT FILE NOT FOUND ***")<br><br>
+
+                        <font color="green">A word to be used for this instance of the game. We are randomly choosing a word from the list with the help of the 'random' library. We now need to make sure we import this library.</font><br>
+                        word_to_guess = random.choice(words)<br><br>
+
+                        <font color="green">As we do not want to display the word to the player, we will create a 'current_guess' variable that is the same length as the 'word_to_guess' variable. This variable will simply be the character '_' multiplied by the number 
+                        of characters in the 'word_to_guess'. Therefore, if the 'word_to_guess' is 'cheese'. The starting point for 'current_guess' is '_ _ _ _ _ _'. We will then dynamically update this variable with the characters the player guesses.</font><br>
+                        current_guess = len(word_to_guess) * '_'<br><br>
+
+                        <font color="green">This completes the function. We do have one last thing to do however, we need to make these variables accessible from outside of this function, therefore, we need to make them 'global'. 
+                        We do this by using the keyword 'global'. We'll reposition this statement in our final function below.</font><br>
+                        global lives, word_to_guess, current_guess<br><br>
+                </code>
+
+                The complete configure_game() function is below:<br><br>
+                <code>
+                    def configure_game():<br>
+                        &nbsp&nbsp&nbsp global lives, word_to_guess, current_guess<br>
+                        &nbsp&nbsp&nbsp lives = 5<br>
+                        &nbsp&nbsp&nbsp try:<br>
+                        &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp words = [line.rstrip("\n") for line in open(r"c:/Users/slashroot/Desktop/words.txt")]<br>
+                        &nbsp&nbsp&nbsp except FileNotFoundError:<br>
+                        &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp print("*** WORDS.TXT FILE NOT FOUND ***")<br>
+                        &nbsp&nbsp&nbsp word_to_guess = random.choice(words)<br>
+                        &nbsp&nbsp&nbsp current_guess = len(word_to_guess) * '_'<br><br>
+                </code>
+
+                My 'words.txt' document holds the following:<br><br>
+                <code>
+                    cheese<br>
+                    hard<br>
+                    blueberries<br>
+                    computer<br>
+                    slashroot<br>
+                </code>
+
+                <h2>check_win()</h2>
+<code>
+                    def check_win():<br><br>
+                    <font color="green">This function is used to check whether is symbol "_" currently exists within the current_guess variable. If it does, not all characters have been guessed, therefore, the win 
+                        condition has not been met and the bool false is returned. The symbol "_" is replaced with guesses in the play function - if the guess is in the word.</font><br> 
+                    if "_" in current_guess:<br>
+                    &nbsp&nbsp&nbsp return True<br>
+                    &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp else:<br>
+                    &nbsp&nbsp&nbsp return False<br><br>
+                </code>
+
+                The complete check_win() function is below:<br><br>
+                <code>
+                    def check_win():<br>
+                    &nbsp&nbsp&nbsp if "_" in current_guess:<br>
+                    &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp return True<br>
+                    &nbsp&nbsp&nbsp else: <br>
+                    &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp return False<br>
+                </code>
+
+                <h2>check_lives()</h2>
+<code>
+                    def lives():<br><br>
+                        <font color="green">Tell the function we are using the global lives variable.</font><br> 
+                        global lives<br><br>
+                        <font color="green">This if statement is used to check if the current lives integer is above the value 0. If it is, the game continues with a bool value of true being returned. The play function decrements the lives 
+                            integer if the current_guess is not present in the word_to_guess.</font><br> 
+                        if lives > 0:<br> 
+                        &nbsp&nbsp&nbsp return True<br> 
+                        else:<br>  
+                        &nbsp&nbsp&nbsp return False<br><br>
+                </code>
+
+                The complete check_lives() function is below:<br><br>
+                <code>
+                    def check_lives():<br>
+                    &nbsp&nbsp&nbspglobal lives<br>
+                    &nbsp&nbsp&nbspif lives > 0:<br>
+                    &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp    return True<br>
+                    &nbsp&nbsp&nbspelse: <br>
+                    &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp    return False<br>
+                </code>
+
+                <h2>play()</h2>
+<code>
+                    def play():<br>
+                    <br>
+                    &nbsp;&nbsp;&nbsp;<font color="green">Declare the usage of global variables: lives, current_guess.</font><br>
+                    &nbsp;&nbsp;&nbsp;global lives, current_guess<br>
+                    <br>
+                    &nbsp;&nbsp;&nbsp;<font color="green">Start an infinite loop for the game.</font><br>
+                    &nbsp;&nbsp;&nbsp;while True:<br>
+                    <br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="green">Check if the player has lost the game.</font><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if check_lives() == False:<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;print("You have lost!")<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;break<br>
+                    <br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="green">Check if the player has won the game.</font><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if check_win() == False:<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;print("You have won!")<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;break<br>
+                    <br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="green">Ask the player to input a letter for guessing.</font><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;while True:<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;guess = input("Guess a letter: ")<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if guess.isalpha() != True:<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;print("You must enter a single letter!")<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;elif len(guess) > 1:<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;print("You are only allowed to enter a single character!")<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;else:<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;break<br>
+                    <br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="green">Check if the guessed letter is not in the word to guess.</font><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if guess not in word_to_guess:<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lives -= 1<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;print("Letter not found!")<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;time.sleep(1)<br>
+                    <br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="green">If the guessed letter is in the word to guess, update the current guess.</font><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;else:<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for i in range(len(word_to_guess)):<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if guess == word_to_guess[i]:<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;temp = list(current_guess)<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;temp[i] = guess<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;current_guess = "".join(temp)<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;print(guess + " is in the word!")<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;time.sleep(1)<br>
+                    <br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="green">Clear the console screen.</font><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;os.system('cls')<br>
+                    <br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="green">Print the current lives and current guess.</font><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;print("Current lives: " + str(lives))<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;print("Current guess: " + current_guess)<br>
+                    
+                </code>
+                <h2>play_again()</h2>
+<code>
+                    def play_again():<br>
+                    <br>
+                    &nbsp;&nbsp;&nbsp;<font color="green">Start an infinite loop for prompting the player.</font><br>
+                    &nbsp;&nbsp;&nbsp;while True:<br>
+                    <br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="green">Ask the player if they want to play again.</font><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;again = input("Do you want to play again 'y' or 'n'? ")<br>
+                    <br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="green">Check if the input is not 'y' or 'n' and display an error message.</font><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if not (again == 'y' or again == 'n'):<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;print("You must enter a single 'y' or 'n' to play again or quit!")<br>
+                    <br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="green">If the input is valid, exit the loop.</font><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;else:<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;break<br>
+                    <br>
+                    &nbsp;&nbsp;&nbsp;<font color="green">Check if the player wants to play again or quit and return the corresponding value.</font><br>
+                    &nbsp;&nbsp;&nbsp;if again == 'y':<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return True<br>
+                    &nbsp;&nbsp;&nbsp;else:<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return False<br>
+                </code>
+
+                <h2>main()</h2>
+<code>
+                    if __name__ == "__main__":<br>
+                    <br>
+                    &nbsp;&nbsp;&nbsp;<font color="green">Start an infinite loop for the game.</font><br>
+                    &nbsp;&nbsp;&nbsp;while True:<br>
+                    <br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="green">Configure the game settings.</font><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;configure_game()<br>
+                    <br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="green">Play the game.</font><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;play()<br>
+                    <br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="green">Check if the player wants to play again.</font><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if play_again() == False:<br>
+                    <br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="green">If not, break out of the infinite loop and end the program.</font><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;break<br>
+                    
+                </code>
+
+                <h2>Complete Code</h2>
+<div style="background: #202020; overflow:auto;width:auto;border:solid gray;border-width:.1em .1em .1em .8em;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%"><span style="color: #6ab825; font-weight: bold">import</span> <span style="color: #447fcf; text-decoration: underline">random</span>
+<span style="color: #6ab825; font-weight: bold">import</span> <span style="color: #447fcf; text-decoration: underline">os</span>
+<span style="color: #6ab825; font-weight: bold">import</span> <span style="color: #447fcf; text-decoration: underline">time</span>
+
+<span style="color: #6ab825; font-weight: bold">def</span> <span style="color: #447fcf">play_again</span><span style="color: #d0d0d0">():</span>
+    <span style="color: #6ab825; font-weight: bold">while</span> <span style="color: #24909d">True</span><span style="color: #d0d0d0">:</span>
+        <span style="color: #d0d0d0">again</span> <span style="color: #d0d0d0">=</span> <span style="color: #24909d">input</span><span style="color: #d0d0d0">(</span><span style="color: #ed9d13">&quot;Do you want to play again &#39;y&#39; or &#39;n&#39;? &quot;</span><span style="color: #d0d0d0">)</span>
+        <span style="color: #6ab825; font-weight: bold">if</span> <span style="color: #6ab825; font-weight: bold">not</span> <span style="color: #d0d0d0">(again</span> <span style="color: #d0d0d0">==</span> <span style="color: #ed9d13">&#39;y&#39;</span> <span style="color: #6ab825; font-weight: bold">or</span> <span style="color: #d0d0d0">again</span> <span style="color: #d0d0d0">==</span> <span style="color: #ed9d13">&#39;n&#39;</span><span style="color: #d0d0d0">):</span>
+            <span style="color: #6ab825; font-weight: bold">print</span><span style="color: #d0d0d0">(</span><span style="color: #ed9d13">&quot;You much enter a single &#39;y&#39; or &#39;n&#39; to play again or quit!&quot;</span><span style="color: #d0d0d0">)</span>
+        <span style="color: #6ab825; font-weight: bold">else</span><span style="color: #d0d0d0">:</span>
+            <span style="color: #6ab825; font-weight: bold">break</span>
+    <span style="color: #6ab825; font-weight: bold">if</span> <span style="color: #d0d0d0">again</span> <span style="color: #d0d0d0">==</span> <span style="color: #ed9d13">&#39;y&#39;</span><span style="color: #d0d0d0">:</span>
+        <span style="color: #6ab825; font-weight: bold">return</span> <span style="color: #24909d">True</span>
+    <span style="color: #6ab825; font-weight: bold">else</span><span style="color: #d0d0d0">:</span>
+        <span style="color: #6ab825; font-weight: bold">return</span> <span style="color: #24909d">False</span>
+
+<span style="color: #6ab825; font-weight: bold">def</span> <span style="color: #447fcf">configure_game</span><span style="color: #d0d0d0">():</span>
+    <span style="color: #6ab825; font-weight: bold">global</span> <span style="color: #d0d0d0">lives,</span> <span style="color: #d0d0d0">word_to_guess,</span> <span style="color: #d0d0d0">current_guess</span>
+    <span style="color: #d0d0d0">lives</span> <span style="color: #d0d0d0">=</span> <span style="color: #3677a9">5</span>
+    <span style="color: #6ab825; font-weight: bold">try</span><span style="color: #d0d0d0">:</span>
+        <span style="color: #d0d0d0">words</span> <span style="color: #d0d0d0">=</span> <span style="color: #d0d0d0">[line.rstrip(</span><span style="color: #ed9d13">&quot;\n&quot;</span><span style="color: #d0d0d0">)</span> <span style="color: #6ab825; font-weight: bold">for</span> <span style="color: #d0d0d0">line</span> <span style="color: #6ab825; font-weight: bold">in</span> <span style="color: #24909d">open</span><span style="color: #d0d0d0">(</span><span style="color: #ed9d13">r&quot;c:/Users/slashroot/Desktop/words.txt&quot;</span><span style="color: #d0d0d0">)]</span>
+    <span style="color: #6ab825; font-weight: bold">except</span> <span style="color: #d0d0d0">FileNotFoundError:</span>
+        <span style="color: #6ab825; font-weight: bold">print</span><span style="color: #d0d0d0">(</span><span style="color: #ed9d13">&quot;*** WORDS.TXT FILE NOT FOUND ***&quot;</span><span style="color: #d0d0d0">)</span>
+        <span style="color: #6ab825; font-weight: bold">return</span>
+    <span style="color: #d0d0d0">word_to_guess</span> <span style="color: #d0d0d0">=</span> <span style="color: #d0d0d0">random.choice(words)</span>
+    <span style="color: #d0d0d0">current_guess</span> <span style="color: #d0d0d0">=</span> <span style="color: #24909d">len</span><span style="color: #d0d0d0">(word_to_guess)</span> <span style="color: #d0d0d0">*</span> <span style="color: #ed9d13">&#39;_&#39;</span>
+
+<span style="color: #6ab825; font-weight: bold">def</span> <span style="color: #447fcf">check_win</span><span style="color: #d0d0d0">():</span>
+    <span style="color: #6ab825; font-weight: bold">if</span> <span style="color: #ed9d13">&quot;_&quot;</span> <span style="color: #6ab825; font-weight: bold">in</span> <span style="color: #d0d0d0">current_guess:</span>
+        <span style="color: #6ab825; font-weight: bold">return</span> <span style="color: #24909d">True</span>
+    <span style="color: #6ab825; font-weight: bold">else</span><span style="color: #d0d0d0">:</span>
+        <span style="color: #6ab825; font-weight: bold">return</span> <span style="color: #24909d">False</span>
+
+<span style="color: #6ab825; font-weight: bold">def</span> <span style="color: #447fcf">check_lives</span><span style="color: #d0d0d0">():</span>
+    <span style="color: #6ab825; font-weight: bold">global</span> <span style="color: #d0d0d0">lives</span>
+    <span style="color: #6ab825; font-weight: bold">if</span> <span style="color: #d0d0d0">lives</span> <span style="color: #d0d0d0">&gt;</span> <span style="color: #3677a9">0</span><span style="color: #d0d0d0">:</span>
+        <span style="color: #6ab825; font-weight: bold">return</span> <span style="color: #24909d">True</span>
+    <span style="color: #6ab825; font-weight: bold">else</span><span style="color: #d0d0d0">:</span>
+        <span style="color: #6ab825; font-weight: bold">return</span> <span style="color: #24909d">False</span>
+
+<span style="color: #6ab825; font-weight: bold">def</span> <span style="color: #447fcf">play</span><span style="color: #d0d0d0">():</span>
+    <span style="color: #6ab825; font-weight: bold">global</span> <span style="color: #d0d0d0">lives,</span> <span style="color: #d0d0d0">current_guess</span>
+
+    <span style="color: #6ab825; font-weight: bold">while</span> <span style="color: #24909d">True</span><span style="color: #d0d0d0">:</span>
+        <span style="color: #6ab825; font-weight: bold">if</span> <span style="color: #d0d0d0">check_lives()</span> <span style="color: #d0d0d0">==</span> <span style="color: #24909d">False</span><span style="color: #d0d0d0">:</span>
+            <span style="color: #6ab825; font-weight: bold">print</span><span style="color: #d0d0d0">(</span><span style="color: #ed9d13">&quot;You have lost!&quot;</span><span style="color: #d0d0d0">)</span>
+            <span style="color: #6ab825; font-weight: bold">break</span>
+        <span style="color: #6ab825; font-weight: bold">if</span> <span style="color: #d0d0d0">check_win()</span> <span style="color: #d0d0d0">==</span> <span style="color: #24909d">False</span><span style="color: #d0d0d0">:</span>
+            <span style="color: #6ab825; font-weight: bold">print</span><span style="color: #d0d0d0">(</span><span style="color: #ed9d13">&quot;You have won!&quot;</span><span style="color: #d0d0d0">)</span>
+            <span style="color: #6ab825; font-weight: bold">break</span>
+
+        <span style="color: #6ab825; font-weight: bold">while</span> <span style="color: #24909d">True</span><span style="color: #d0d0d0">:</span>
+            <span style="color: #d0d0d0">guess</span> <span style="color: #d0d0d0">=</span> <span style="color: #24909d">input</span><span style="color: #d0d0d0">(</span><span style="color: #ed9d13">&quot;Guess a letter: &quot;</span><span style="color: #d0d0d0">)</span>
+            <span style="color: #6ab825; font-weight: bold">if</span> <span style="color: #d0d0d0">guess.isalpha()</span> <span style="color: #d0d0d0">!=</span> <span style="color: #24909d">True</span><span style="color: #d0d0d0">:</span>
+                <span style="color: #6ab825; font-weight: bold">print</span><span style="color: #d0d0d0">(</span><span style="color: #ed9d13">&quot;You much enter a single letter!&quot;</span><span style="color: #d0d0d0">)</span>
+            <span style="color: #6ab825; font-weight: bold">elif</span> <span style="color: #24909d">len</span><span style="color: #d0d0d0">(guess)</span> <span style="color: #d0d0d0">&gt;</span> <span style="color: #3677a9">1</span><span style="color: #d0d0d0">:</span>
+                <span style="color: #6ab825; font-weight: bold">print</span><span style="color: #d0d0d0">(</span><span style="color: #ed9d13">&quot;You are only allowed to enter a single character!&quot;</span><span style="color: #d0d0d0">)</span>
+            <span style="color: #6ab825; font-weight: bold">else</span><span style="color: #d0d0d0">:</span>
+                <span style="color: #6ab825; font-weight: bold">break</span>
+
+        <span style="color: #6ab825; font-weight: bold">if</span> <span style="color: #d0d0d0">guess</span> <span style="color: #6ab825; font-weight: bold">not</span> <span style="color: #6ab825; font-weight: bold">in</span> <span style="color: #d0d0d0">word_to_guess:</span>
+            <span style="color: #d0d0d0">lives</span> <span style="color: #d0d0d0">-=</span> <span style="color: #3677a9">1</span>
+            <span style="color: #6ab825; font-weight: bold">print</span><span style="color: #d0d0d0">(</span><span style="color: #ed9d13">&quot;Letter not found!&quot;</span><span style="color: #d0d0d0">)</span>
+            <span style="color: #d0d0d0">time.sleep(</span><span style="color: #3677a9">1</span><span style="color: #d0d0d0">)</span>
+        <span style="color: #6ab825; font-weight: bold">else</span><span style="color: #d0d0d0">:</span>
+            <span style="color: #6ab825; font-weight: bold">for</span> <span style="color: #d0d0d0">i</span> <span style="color: #6ab825; font-weight: bold">in</span> <span style="color: #24909d">range</span><span style="color: #d0d0d0">(</span><span style="color: #24909d">len</span><span style="color: #d0d0d0">(word_to_guess)):</span>
+                <span style="color: #6ab825; font-weight: bold">if</span> <span style="color: #d0d0d0">guess</span> <span style="color: #d0d0d0">==</span> <span style="color: #d0d0d0">word_to_guess[i]:</span>
+                    <span style="color: #d0d0d0">temp</span> <span style="color: #d0d0d0">=</span> <span style="color: #24909d">list</span><span style="color: #d0d0d0">(current_guess)</span>
+                    <span style="color: #d0d0d0">temp[i]</span> <span style="color: #d0d0d0">=</span> <span style="color: #d0d0d0">guess</span>
+                    <span style="color: #d0d0d0">current_guess</span> <span style="color: #d0d0d0">=</span> <span style="color: #ed9d13">&quot;&quot;</span><span style="color: #d0d0d0">.join(temp)</span>
+                    <span style="color: #6ab825; font-weight: bold">print</span><span style="color: #d0d0d0">(guess</span> <span style="color: #d0d0d0">+</span> <span style="color: #ed9d13">&quot; is in the word!&quot;</span><span style="color: #d0d0d0">)</span>
+                    <span style="color: #d0d0d0">time.sleep(</span><span style="color: #3677a9">1</span><span style="color: #d0d0d0">)</span>
+        <span style="color: #d0d0d0">os.system(</span><span style="color: #ed9d13">&#39;cls&#39;</span><span style="color: #d0d0d0">)</span>
+        <span style="color: #6ab825; font-weight: bold">print</span><span style="color: #d0d0d0">(</span><span style="color: #ed9d13">&quot;Current lives: &quot;</span> <span style="color: #d0d0d0">+</span> <span style="color: #24909d">str</span><span style="color: #d0d0d0">(lives))</span>
+        <span style="color: #6ab825; font-weight: bold">print</span><span style="color: #d0d0d0">(</span><span style="color: #ed9d13">&quot;Current guess: &quot;</span> <span style="color: #d0d0d0">+</span> <span style="color: #d0d0d0">current_guess)</span>
+
+<span style="color: #6ab825; font-weight: bold">if</span> <span style="color: #d0d0d0">__name__</span> <span style="color: #d0d0d0">==</span> <span style="color: #ed9d13">&quot;__main__&quot;</span><span style="color: #d0d0d0">:</span>
+    <span style="color: #6ab825; font-weight: bold">while</span> <span style="color: #24909d">True</span><span style="color: #d0d0d0">:</span>
+        <span style="color: #d0d0d0">configure_game()</span>
+        <span style="color: #d0d0d0">play()</span>
+        <span style="color: #6ab825; font-weight: bold">if</span> <span style="color: #d0d0d0">play_again()</span> <span style="color: #d0d0d0">==</span> <span style="color: #24909d">False</span><span style="color: #d0d0d0">:</span>
+            <span style="color: #6ab825; font-weight: bold">break</span>
+</pre></div>
+
+            </p1>
+            </article>
+
+            <div class="guide-footer">
+                <a href="../index.html" class="btn-back">
+                    <i class="fas fa-arrow-left"></i> Back to Guides
+                </a>
+            </div>
+        </main>
+    </div>
+
+    <button class="back-to-top" id="backToTop">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p><i class="fas fa-atom"></i> Quantum Repository</p>
+            <p>Technical guides for system administrators and developers</p>
+            <p>alex@slash-root.com | &copy; 2025</p>
+        </div>
+    </footer>
+
+    <script src="../guide.js"></script>
+</body>
+</html>

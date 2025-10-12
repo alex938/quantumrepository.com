@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python Guide | Quantum Repository</title>
+    <link rel="stylesheet" href="../main.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.1/css/all.css">
+    <style>
+        /* FULL WIDTH - Override all max-width restrictions */
+        body {
+            margin: 0;
+            padding: 0;
+        }
+        
+        .guide-container {
+            width: 95%;
+            max-width: none !important;
+            margin: 2rem auto;
+            padding: 0 2.5%;
+        }
+        
+        .guide-content {
+            width: 100%;
+            max-width: none !important;
+        }
+        
+        .guide-content article {
+            line-height: 1.8;
+            font-size: 1.15rem;
+            width: 100%;
+        }
+        
+        .guide-content img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 2rem auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+        }
+        
+        .guide-content h2 {
+            margin-top: 3rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 3px solid var(--primary-color);
+            font-size: 2rem;
+        }
+        
+        .guide-content h3 {
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+        
+        .guide-content p {
+            margin-bottom: 1.5rem;
+            line-height: 1.8;
+        }
+        
+        .guide-content ul, .guide-content ol {
+            margin-bottom: 1.5rem;
+            padding-left: 2.5rem;
+            line-height: 1.8;
+        }
+        
+        .guide-content li {
+            margin-bottom: 0.75rem;
+        }
+        
+        .guide-content code {
+            background: #2d2d2d;
+            color: #f0f0f0;
+            padding: 0.3em 0.6em;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 1rem;
+        }
+        
+        .guide-content pre {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 2rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 2rem 0;
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+        
+        .guide-footer {
+            margin-top: 4rem;
+            padding-top: 2rem;
+            border-top: 2px solid var(--border-color);
+            text-align: center;
+        }
+        
+        .btn-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem 2rem;
+            background: var(--primary-color);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s;
+        }
+        
+        .btn-back:hover {
+            background: var(--accent-hover);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+        
+        /* Override any conflicting styles */
+        .container {
+            max-width: none !important;
+            width: 100%;
+        }
+        
+        /* Make header full width too */
+        .site-header .container {
+            max-width: 95%;
+            width: 95%;
+        }
+        
+        .breadcrumbs .container {
+            max-width: 95%;
+            width: 95%;
+        }
+    </style>
+</head>
+<body>
+    <div class="reading-progress-bar"></div>
+
+    <header class="site-header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-atom"></i>
+                    <span>Quantum Repository</span>
+                </div>
+                <nav class="main-nav">
+                    <a href="../index.html">Home</a>
+                    <a href="../index.html#guides">Guides</a>
+                    <a class="btn-donate" href="https://donate.stripe.com/5kQaEX2kMgnB85ia4ycZa00" target="_blank" rel="noopener noreferrer" aria-label="Donate – opens in a new tab"><i class="fas fa-heart" aria-hidden="true"></i><span>Donate</span></a>
+                    <button class="theme-toggle" id="themeToggle">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <div class="breadcrumbs">
+        <div class="container">
+            <a href="../index.html">Home</a>
+            <span>/</span>
+            <span class="category-badge">Python</span>
+            <span>/</span>
+            <span>Python Guide</span>
+        </div>
+    </div>
+
+    <div class="guide-container">
+        <main class="guide-content">
+            <article>
+<h2>Complete Code</h2>
+<div style="background: #202020; overflow:auto;width:auto;border:solid gray;border-width:.1em .1em .1em .8em;padding:.2em .6em; font-size: 20px; margin: 1.5rem 0;" class="code-block"><pre >
+<span style="color: #6ab825; font-weight: bold">import</span> <span style="color: #447fcf; text-decoration: underline">sys</span>  <span style="color: #999999; font-style: italic"># Importing the sys module for system-specific parameters and functions</span>
+<span style="color: #6ab825; font-weight: bold">from</span> <span style="color: #447fcf; text-decoration: underline">threading</span> <span style="color: #6ab825; font-weight: bold">import</span> <span style="color: #d0d0d0">Thread</span>  <span style="color: #999999; font-style: italic"># Importing the Thread class from the threading module</span>
+<span style="color: #6ab825; font-weight: bold">import</span> <span style="color: #447fcf; text-decoration: underline">time</span>  <span style="color: #999999; font-style: italic"># Importing the time module for time-related functions</span>
+<span style="color: #6ab825; font-weight: bold">import</span> <span style="color: #447fcf; text-decoration: underline">urllib.request</span>  <span style="color: #999999; font-style: italic"># Importing the urllib.request module for making HTTP requests</span>
+<span style="color: #6ab825; font-weight: bold">from</span> <span style="color: #447fcf; text-decoration: underline">urllib.parse</span> <span style="color: #6ab825; font-weight: bold">import</span> <span style="color: #d0d0d0">urlparse</span>  <span style="color: #999999; font-style: italic"># Importing the urlparse function from urllib.parse module for URL parsing</span>
+<span style="color: #6ab825; font-weight: bold">import</span> <span style="color: #447fcf; text-decoration: underline">os</span>  <span style="color: #999999; font-style: italic"># Importing the os module for operating system-related functions</span>
+<span style="color: #6ab825; font-weight: bold">import</span> <span style="color: #447fcf; text-decoration: underline">re</span>  <span style="color: #999999; font-style: italic"># Importing the re module for regular expressions</span>
+
+<span style="color: #6ab825; font-weight: bold">class</span> <span style="color: #447fcf; text-decoration: underline">get_webpage</span><span style="color: #d0d0d0">:</span>
+    <span style="color: #6ab825; font-weight: bold">def</span> <span style="color: #447fcf">__init__</span><span style="color: #d0d0d0">(</span><span style="color: #24909d">self</span><span style="color: #d0d0d0">,</span> <span style="color: #d0d0d0">user_agent):</span>
+        <span style="color: #24909d">self</span><span style="color: #d0d0d0">.agent</span> <span style="color: #d0d0d0">=</span> <span style="color: #d0d0d0">user_agent</span>
+        <span style="color: #24909d">self</span><span style="color: #d0d0d0">.construct_header()</span>
+
+    <span style="color: #6ab825; font-weight: bold">def</span> <span style="color: #447fcf">construct_header</span><span style="color: #d0d0d0">(</span><span style="color: #24909d">self</span><span style="color: #d0d0d0">):</span>
+        <span style="color: #24909d">self</span><span style="color: #d0d0d0">.header</span> <span style="color: #d0d0d0">=</span> <span style="color: #d0d0d0">{}</span>
+        <span style="color: #24909d">self</span><span style="color: #d0d0d0">.header[</span><span style="color: #ed9d13">&#39;User-Agent&#39;</span><span style="color: #d0d0d0">]</span> <span style="color: #d0d0d0">=</span> <span style="color: #24909d">self</span><span style="color: #d0d0d0">.agent</span>
+        <span style="color: #24909d">print</span><span style="color: #d0d0d0">(</span><span style="color: #ed9d13">&quot;\nUser-agent used: &quot;</span> <span style="color: #d0d0d0">+</span> <span style="color: #24909d">str</span><span style="color: #d0d0d0">(</span><span style="color: #24909d">self</span><span style="color: #d0d0d0">.header)</span> <span style="color: #d0d0d0">+</span> <span style="color: #ed9d13">&quot;\n&quot;</span><span style="color: #d0d0d0">)</span>  <span style="color: #999999; font-style: italic"># Printing the user-agent being used</span>
+
+    <span style="color: #6ab825; font-weight: bold">def</span> <span style="color: #447fcf">make_request</span><span style="color: #d0d0d0">(</span><span style="color: #24909d">self</span><span style="color: #d0d0d0">,</span> <span style="color: #d0d0d0">webpage):</span>
+        <span style="color: #d0d0d0">req</span> <span style="color: #d0d0d0">=</span> <span style="color: #d0d0d0">urllib.request.Request(webpage,</span> <span style="color: #d0d0d0">headers=</span><span style="color: #24909d">self</span><span style="color: #d0d0d0">.header)</span>  <span style="color: #999999; font-style: italic"># Creating a request object with the provided headers</span>
+        <span style="color: #d0d0d0">html</span> <span style="color: #d0d0d0">=</span> <span style="color: #d0d0d0">urllib.request.urlopen(req).read()</span>  <span style="color: #999999; font-style: italic"># Sending the request and reading the response</span>
+        <span style="color: #24909d">open</span><span style="color: #d0d0d0">(</span><span style="color: #24909d">self</span><span style="color: #d0d0d0">.filename_to_write(webpage),</span> <span style="color: #ed9d13">&quot;w&quot;</span><span style="color: #d0d0d0">).write(html.decode())</span>  <span style="color: #999999; font-style: italic"># Writing the HTML content to a file</span>
+        <span style="color: #24909d">print</span><span style="color: #d0d0d0">(</span><span style="color: #ed9d13">&quot;Webpage saved to: &quot;</span> <span style="color: #d0d0d0">+</span> <span style="color: #24909d">str</span><span style="color: #d0d0d0">(os.getcwd())</span> <span style="color: #d0d0d0">+</span> <span style="color: #ed9d13">&quot;\\&quot;</span> <span style="color: #d0d0d0">+</span> <span style="color: #24909d">self</span><span style="color: #d0d0d0">.filename_to_write(webpage))</span>  <span style="color: #999999; font-style: italic"># Printing the path where the webpage is saved</span>
+
+    <span style="color: #6ab825; font-weight: bold">def</span> <span style="color: #447fcf">filename_to_write</span><span style="color: #d0d0d0">(</span><span style="color: #24909d">self</span><span style="color: #d0d0d0">,</span> <span style="color: #d0d0d0">webpage):</span>
+        <span style="color: #d0d0d0">filename</span> <span style="color: #d0d0d0">=</span> <span style="color: #d0d0d0">urlparse(webpage)[</span><span style="color: #3677a9">1</span><span style="color: #d0d0d0">]</span>  <span style="color: #999999; font-style: italic"># Extracting the domain name from the webpage URL</span>
+        <span style="color: #d0d0d0">filename</span> <span style="color: #d0d0d0">=</span> <span style="color: #d0d0d0">re.sub(</span><span style="color: #ed9d13">&#39;[^a-zA-Z0-9]&#39;</span><span style="color: #d0d0d0">,</span> <span style="color: #ed9d13">&#39;&#39;</span><span style="color: #d0d0d0">,</span> <span style="color: #d0d0d0">filename)</span>  <span style="color: #999999; font-style: italic"># Removing non-alphanumeric characters from the filename</span>
+        <span style="color: #6ab825; font-weight: bold">return</span> <span style="color: #d0d0d0">filename</span> <span style="color: #d0d0d0">+</span> <span style="color: #ed9d13">&quot;.txt&quot;</span>  <span style="color: #999999; font-style: italic"># Appending &quot;.txt&quot; extension to the filename</span>
+
+<span style="color: #6ab825; font-weight: bold">class</span> <span style="color: #447fcf; text-decoration: underline">load_site_list</span><span style="color: #d0d0d0">():</span>
+    <span style="color: #6ab825; font-weight: bold">def</span> <span style="color: #447fcf">__init__</span><span style="color: #d0d0d0">(</span><span style="color: #24909d">self</span><span style="color: #d0d0d0">):</span>
+        <span style="color: #24909d">self</span><span style="color: #d0d0d0">.websitelist</span> <span style="color: #d0d0d0">=</span> <span style="color: #6ab825; font-weight: bold">None</span>
+
+    <span style="color: #6ab825; font-weight: bold">def</span> <span style="color: #447fcf">get_website_list</span><span style="color: #d0d0d0">(</span><span style="color: #24909d">self</span><span style="color: #d0d0d0">):</span>
+        <span style="color: #6ab825; font-weight: bold">try</span><span style="color: #d0d0d0">:</span>
+            <span style="color: #d0d0d0">file</span> <span style="color: #d0d0d0">=</span> <span style="color: #24909d">input</span><span style="color: #d0d0d0">(</span><span style="color: #ed9d13">&quot;Enter filename of website addresses: &quot;</span><span style="color: #d0d0d0">)</span>  <span style="color: #999999; font-style: italic"># Prompting the user to enter the filename of website addresses</span>
+            <span style="color: #24909d">self</span><span style="color: #d0d0d0">.websitelist</span> <span style="color: #d0d0d0">=</span> <span style="color: #24909d">open</span><span style="color: #d0d0d0">(file,</span> <span style="color: #ed9d13">&quot;r&quot;</span><span style="color: #d0d0d0">).read().split(</span><span style="color: #ed9d13">&quot;\n&quot;</span><span style="color: #d0d0d0">)</span>  <span style="color: #999999; font-style: italic"># Reading the file and storing the website addresses in a list</span>
+        <span style="color: #6ab825; font-weight: bold">except</span> <span style="color: #d0d0d0">FileNotFoundError:</span>
+            <span style="color: #24909d">print</span><span style="color: #d0d0d0">(</span><span style="color: #ed9d13">&quot;*** file not found ***&quot;</span><span style="color: #d0d0d0">)</span>  <span style="color: #999999; font-style: italic"># Printing an error message if the file is not found</span>
+        <span style="color: #6ab825; font-weight: bold">finally</span><span style="color: #d0d0d0">:</span>
+            <span style="color: #6ab825; font-weight: bold">pass</span>
+
+<span style="color: #6ab825; font-weight: bold">def</span> <span style="color: #447fcf">main</span><span style="color: #d0d0d0">():</span>
+    <span style="color: #d0d0d0">f</span> <span style="color: #d0d0d0">=</span> <span style="color: #d0d0d0">load_site_list()</span>  <span style="color: #999999; font-style: italic"># Creating an instance of the load_site_list class</span>
+    <span style="color: #d0d0d0">f.get_website_list()</span>  <span style="color: #999999; font-style: italic"># Calling the get_website_list method to get the website addresses</span>
+    <span style="color: #d0d0d0">req</span> <span style="color: #d0d0d0">=</span> <span style="color: #d0d0d0">get_webpage(</span><span style="color: #ed9d13">&quot;Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:48.0) Gecko/20100101 Firefox/48.0&quot;</span><span style="color: #d0d0d0">)</span>  <span style="color: #999999; font-style: italic"># Creating an instance of the get_webpage class with a user-agent</span>
+
+    <span style="color: #6ab825; font-weight: bold">for</span> <span style="color: #d0d0d0">i</span> <span style="color: #6ab825; font-weight: bold">in</span> <span style="color: #24909d">range</span><span style="color: #d0d0d0">(</span><span style="color: #3677a9">0</span><span style="color: #d0d0d0">,</span> <span style="color: #24909d">len</span><span style="color: #d0d0d0">(f.websitelist)):</span>
+        <span style="color: #24909d">print</span><span style="color: #d0d0d0">(</span><span style="color: #ed9d13">&quot;Starting thread to download: &quot;</span> <span style="color: #d0d0d0">+</span> <span style="color: #d0d0d0">f.websitelist[i])</span>  <span style="color: #999999; font-style: italic"># Printing the website address for which a thread is being started</span>
+        <span style="color: #6ab825; font-weight: bold">try</span><span style="color: #d0d0d0">:</span>
+            <span style="color: #d0d0d0">t</span> <span style="color: #d0d0d0">=</span> <span style="color: #d0d0d0">Thread(target=req.make_request,</span> <span style="color: #d0d0d0">args=(f.websitelist[i],))</span>  <span style="color: #999999; font-style: italic"># Creating a new thread to download the webpage</span>
+            <span style="color: #d0d0d0">t.start()</span>  <span style="color: #999999; font-style: italic"># Starting the thread</span>
+            <span style="color: #d0d0d0">t.join()</span>  <span style="color: #999999; font-style: italic"># Waiting for the thread to complete its execution</span>
+        <span style="color: #6ab825; font-weight: bold">except</span> <span style="color: #bbbbbb">Exception</span> <span style="color: #6ab825; font-weight: bold">as</span> <span style="color: #d0d0d0">err:</span>
+            <span style="color: #24909d">print</span><span style="color: #d0d0d0">(</span><span style="color: #ed9d13">&quot;Error creating threads: &quot;</span> <span style="color: #d0d0d0">+</span> <span style="color: #24909d">str</span><span style="color: #d0d0d0">(err))</span>  <span style="color: #999999; font-style: italic"># Printing an error message if there is an exception while creating threads</span>
+        <span style="color: #6ab825; font-weight: bold">finally</span><span style="color: #d0d0d0">:</span>
+            <span style="color: #6ab825; font-weight: bold">pass</span>
+
+<span style="color: #6ab825; font-weight: bold">if</span> <span style="color: #d0d0d0">__name__</span> <span style="color: #d0d0d0">==</span> <span style="color: #ed9d13">&#39;__main__&#39;</span><span style="color: #d0d0d0">:</span>
+    <span style="color: #d0d0d0">start</span> <span style="color: #d0d0d0">=</span> <span style="color: #d0d0d0">time.time()</span>  <span style="color: #999999; font-style: italic"># Recording the start time</span>
+    <span style="color: #d0d0d0">main()</span>  <span style="color: #999999; font-style: italic"># Calling the main function</span>
+    <span style="color: #d0d0d0">end</span> <span style="color: #d0d0d0">=</span> <span style="color: #d0d0d0">time.time()</span>  <span style="color: #999999; font-style: italic"># Recording the end time</span>
+    <span style="color: #999999; font-style: italic">#print(&quot;\nPage written to &quot; + str(os.getcwd()) + &quot;\page.txt&quot;)</span>
+    <span style="color: #24909d">print</span><span style="color: #d0d0d0">(</span><span style="color: #ed9d13">&quot;Time taken: {:.6f} seconds&quot;</span><span style="color: #d0d0d0">.format(end</span> <span style="color: #d0d0d0">-</span> <span style="color: #d0d0d0">start))</span>  <span style="color: #999999; font-style: italic"># Printing the time taken to complete the execution</span>
+</pre></div>
+            </article>
+
+            <div class="guide-footer">
+                <a href="../index.html" class="btn-back">
+                    <i class="fas fa-arrow-left"></i> Back to Guides
+                </a>
+            </div>
+        </main>
+    </div>
+
+    <button class="back-to-top" id="backToTop">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p><i class="fas fa-atom"></i> Quantum Repository</p>
+            <p>Technical guides for system administrators and developers</p>
+            <p>alex@slash-root.com | &copy; 2025</p>
+        </div>
+    </footer>
+
+    <script src="../guide.js"></script>
+</body>
+</html>

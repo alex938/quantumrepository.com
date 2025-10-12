@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Active Directory Lab - Part 6 | Quantum Repository</title>
+    <link rel="stylesheet" href="../main.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.1/css/all.css">
+    <style>
+        /* FULL WIDTH - Override all max-width restrictions */
+        body {
+            margin: 0;
+            padding: 0;
+        }
+        
+        .guide-container {
+            width: 95%;
+            max-width: none !important;
+            margin: 2rem auto;
+            padding: 0 2.5%;
+        }
+        
+        .guide-content {
+            width: 100%;
+            max-width: none !important;
+        }
+        
+        .guide-content article {
+            line-height: 1.8;
+            font-size: 1.15rem;
+            width: 100%;
+        }
+        
+        .guide-content img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 2rem auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+        }
+        
+        .guide-content h2 {
+            margin-top: 3rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 3px solid var(--primary-color);
+            font-size: 2rem;
+        }
+        
+        .guide-content h3 {
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+        
+        .guide-content p {
+            margin-bottom: 1.5rem;
+            line-height: 1.8;
+        }
+        
+        .guide-content ul, .guide-content ol {
+            margin-bottom: 1.5rem;
+            padding-left: 2.5rem;
+            line-height: 1.8;
+        }
+        
+        .guide-content li {
+            margin-bottom: 0.75rem;
+        }
+        
+        .guide-content code {
+            background: #2d2d2d;
+            color: #f0f0f0;
+            padding: 0.3em 0.6em;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 1rem;
+        }
+        
+        .guide-content pre {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 2rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 2rem 0;
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+        
+        .guide-footer {
+            margin-top: 4rem;
+            padding-top: 2rem;
+            border-top: 2px solid var(--border-color);
+            text-align: center;
+        }
+        
+        .btn-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem 2rem;
+            background: var(--primary-color);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s;
+        }
+        
+        .btn-back:hover {
+            background: var(--accent-hover);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+        
+        /* Override any conflicting styles */
+        .container {
+            max-width: none !important;
+            width: 100%;
+        }
+        
+        /* Make header full width too */
+        .site-header .container {
+            max-width: 95%;
+            width: 95%;
+        }
+        
+        .breadcrumbs .container {
+            max-width: 95%;
+            width: 95%;
+        }
+    </style>
+</head>
+<body>
+    <div class="reading-progress-bar"></div>
+
+    <header class="site-header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-atom"></i>
+                    <span>Quantum Repository</span>
+                </div>
+                <nav class="main-nav">
+                    <a href="../index.html">Home</a>
+                    <a href="../index.html#guides">Guides</a>
+                    <a class="btn-donate" href="https://donate.stripe.com/5kQaEX2kMgnB85ia4ycZa00" target="_blank" rel="noopener noreferrer" aria-label="Donate – opens in a new tab"><i class="fas fa-heart" aria-hidden="true"></i><span>Donate</span></a>
+                    <button class="theme-toggle" id="themeToggle">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <div class="breadcrumbs">
+        <div class="container">
+            <a href="../index.html">Home</a>
+            <span>/</span>
+            <span class="category-badge">Active Directory</span>
+            <span>/</span>
+            <span>Active Directory Lab - Part 6</span>
+        </div>
+    </div>
+
+    <div class="guide-container">
+        <main class="guide-content">
+            <article>
+<h2 id="active-directory-lab-build">Active Directory Lab Build - Configuring the DHCP server</h2>
+            <p>This tutorial assumes you have completed the previous steps. We will now setup the DHCP server (mine is named DORA) to serve our domain with network information such as IP addresses, default gateways and DNS.</p>
+
+            <h2 id="setting-the-dhcp-server-ip">Setting the DHCP server IP address and joining the Domain</h2>
+            <p>To use this server as a DHCP server for our domain, we must give it an IP address and join it to the domain we want it to serve.</p>
+
+            <img src="1.png" alt="1.png">
+
+            <p>We will now give the DHCP server a name. In our case this is 'DORA'.</p>
+
+            <img src="2.png" alt="2.png">
+
+            <p>Next we will join the server to our domain. Remember you'll need to use a domain administrator account to authorise joining the domain.</p>
+
+            <img src="3.png" alt="3.png">
+
+            <h2 id="confirm">Confirming settings and connectivity check</h2>
+            <p>To confirm our DC has picked up our new domain joined server, log into the DC - BOSS.</p>
+
+            <img src="4.png" alt="4.png">
+
+            <p>Using the 'Server Manager', load 'Active Directory Users and Computers' from the 'Manage' menu. Select 'Computers' and you should see DORA, the server we just joined to the domain.</p>
+
+            <img src="5.png" alt="5.png">
+
+            <p>Back on the DORA server, load up PowerShell or CMD and run 'ipconfig /all'. You should see domain information.</p>
+
+            <img src="6.png" alt="6.png">
+
+            <p>We now need to add the DHCP role to DORA and configure the DHCP settings.</p>
+            <h2 id="add-role">Adding the DHCP role to Windows Server</h2>
+            <p>On DORA, load 'Server Manager'.</p>
+
+            <img src="7.png" alt="7.png">
+
+            <p>Select 'Manage' and then 'Add Roles and Features'.</p>
+
+            <img src="8.png" alt="8.png">
+
+            <p>Select next.</p>
+
+            <img src="9.png" alt="9.png">
+
+            <p>Select next (your IP address information will differ to mine if you used a differing schema for your domain).</p>
+
+            <img src="10.png" alt="10.png">
+
+            <p>Select the 'DHCP Server' role and 'Add Features'.</p>
+
+            <img src="11.png" alt="11.png">
+
+            <p>DHCP will now be selected. Click next.</p>
+
+            <img src="12.png" alt="12.png">
+
+            <p>We are now ready to install the role. Select install.</p>
+
+            <img src="13.png" alt="13.png">
+
+            <p>This may take a few moments. Once completed, select close.</p>
+
+            <img src="14.png" alt="14.png">
+
+            <p>With the DHCP service now installed, however, before we can start using this DHCP server it needs to be authorised by a domain administrator.</p>
+            <h2 id="authorising-the-server">Authorising the DHCP server</h2>
+            <p>On the main server manager screen, you will notice a notification flag (!). Select this and 'Complete DHCP configuration'.</p>
+
+            <img src="15.png" alt="15.png">
+
+            <p>Select next.</p>
+
+            <img src="16.png" alt="16.png">
+
+            <p>On the authorisation section, we need to specify a domain administrator. Select 'Commit'.</p>
+
+            <img src="17.png" alt="17.png">
+
+            <p>Select close.</p>
+
+            <img src="18.png" alt="18.png">
+
+            <p>The final step is to configure a scope of IP addresses we want to serve to the domain.</p>
+            <h2 id="configure-scope">Configuring the DHCP server network settings</h2>
+            <p>On the server manager select 'Tools' and 'DHCP'.</p>
+
+            <img src="19.png" alt="19.png">
+
+            <p>This will allow us to configure the DHCP role of this server. Expand your domain (in my case dora.slashroot.local) and right-click IPv4. Now select 'New Scope'.</p>
+
+            <img src="20.png" alt="20.png">
+
+            <p>Give the scope a name, for me, this scope will server client machines. I have called this scope 'slashroot_clients'.</p>
+
+            <img src="21.png" alt="21.png">
+
+            <p>Set a start IP address and end IP address (these are the addresses your DHCP server will give out).</p>
+
+            <img src="22.png" alt="22.png">
+
+            <p>Add any exclusions. These could be other servers, printers etc that you are going to statically assign within your defined scope.</p>
+
+            <img src="23.png" alt="23.png">
+
+            <p>Set a time for IP address lease.</p>
+
+            <img src="24.png" alt="24.png">
+
+            <p>We also want to give our clients network information such as deafault-gateway and DNS. To do this select 'Yes, I want to configure these options now'.</p>
+
+            <img src="25.png" alt="25.png">
+
+            <p>The first option allows us to set a default-gateway. For my domain this will be our DC. Enter the IP address of your default-gateway. Do not forget to press 'Add'.</p>
+
+            <img src="26.png" alt="26.png">
+
+            <p>The next screen allows us to dessiminate DNS server information. For my domain this is again my DC - BOSS. Enter its IP address again followed by 'Add'.</p>
+
+            <img src="27.png" alt="27.png">
+
+            <p>If you want to configure a WINS server, enter this information now. I am not using this service in my domain.</p>
+
+            <img src="28.png" alt="28.png">
+
+            <p>The final option asks if we would like to activate this scope. In our case we do, so select yes.</p>
+
+            <img src="29.png" alt="29.png">
+
+            <p>That's it. The DHCP server is now up and running.</p>
+
+            <img src="30.png" alt="30.png">
+
+            <p>We'll test this when we start adding clients to the domain.</p>
+            </article>
+
+            <div class="guide-footer">
+                <a href="../index.html" class="btn-back">
+                    <i class="fas fa-arrow-left"></i> Back to Guides
+                </a>
+            </div>
+        </main>
+    </div>
+
+    <button class="back-to-top" id="backToTop">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p><i class="fas fa-atom"></i> Quantum Repository</p>
+            <p>Technical guides for system administrators and developers</p>
+            <p>alex@slash-root.com | &copy; 2025</p>
+        </div>
+    </footer>
+
+    <script src="../guide.js"></script>
+</body>
+</html>

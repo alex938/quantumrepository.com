@@ -1,0 +1,245 @@
+'''
+a = input("Enter string: ")
+b = [x.lower() for x in a if x.isalnum()]
+if b == b[::-1]: print("It is a palindrome.") 
+else: print("It is not a palindrome.")
+'''
+
+c = [["frank", 18],["phil", 7],["jess", 10]]
+numbers = ["1","2","3"]
+
+print(c)
+d = sorted(c, key=lambda x: x[1])
+print(d)
+
+c.sort(key=lambda x: x[1])
+print(c)
+
+print(numbers)
+numbers = list(map(int, numbers))
+print(numbers)
+
+from collections import defaultdict
+import time
+
+my_def_dict = defaultdict(lambda : time.time())
+print(my_def_dict)
+my_def_dict["first"]
+print(my_def_dict)
+import time
+time.sleep(1)
+my_def_dict["second"]
+print(my_def_dict)
+
+a = 10
+if isinstance(a, int): 
+    b = lambda x: print(a ** 2)
+    b(a)
+else: print("False")
+
+from collections import namedtuple
+
+ipv4 = namedtuple("ipv4_data",["ip_addr", "port"])
+listener = ipv4("127.0.0.1", 1066)
+
+from colorama import init, Fore, Back
+init(autoreset = True)
+
+print(Back.GREEN + str(listener))
+print(listener.ip_addr)
+print(listener.port)
+
+print(listener[0])
+
+dir = "tmp"
+
+pathname = fr"c:\{dir}\file.txt"
+pathname = r"c:\{}\file.txt".format(dir)
+print(pathname)
+
+num1 = 10
+print(bin(num1)) #10
+print(bin(num1 >> 1)) #5
+
+results = [True, False, True]
+if False in results:
+    print("false found")
+
+results = [True, True, True]
+if all(results): print("All true")
+
+if any(results): print("True value found")
+
+a = 10
+match a:
+    case 1: print("too low")
+    case 100: print("too high")
+    case 10: print("just right")
+    case _: print("not matches")
+
+name = "Frank"
+print(name[0:4])
+print(name[-1])
+
+name = "We are going to manipulate this strng using slicing, we show be able to get out different parts out!"
+print(len(name))
+
+cats = ["Frank", "Jess", "Phil"]
+
+#walrus
+newlist = [(i, ln) for i in cats if (ln:=len(i)) > 4]
+
+print(newlist)
+
+numbers = [1,2,3,4,5,6,7]
+squared = map(lambda x: x * x, numbers)
+print(list(squared))
+
+cat_dict = {cat:len(cat) for cat in cats}
+print(cat_dict)
+
+data = "10,20,30"
+
+mylist = map(lambda x: int(x), data.split(","))
+print(list(mylist))
+
+#User wants to change password
+#valid password based on 3 rules
+#1. min 8 chars
+#2. 1 upper case
+#3. 1 upper digit
+
+def proc(a, b, c):
+    assert all([a,b,c]), "Must all have values"
+    assert a > 2, "The 'a' variable must be larger than 2"
+    print(a, b, c)
+proc(a=3, b=2, c=3)
+#proc(3,0,2) Will cause assertion error
+#proc(2,0,2) Will cause assertion error
+
+'''
+class ParseError(ValueError):
+    def __init__(self):
+        self.__message = "Command format error: CMD <OPTION>"
+    
+    def __str__(self):
+        return self.__message
+    
+try:
+    command = input("Command: ")
+    if not command.startswith("CMD"):
+        raise ParseError
+except ParseError as err:
+    print(err)
+else:
+    print("Performing: {}".format(command))
+'''
+
+
+from json import load
+class Json:
+    #executed before init, creates the object manually
+    def __new__(cls, file):
+        print("object called")
+        inst = object.__new__(cls)
+        return inst
+
+    #class variable
+    how_many_times_used = 0
+
+    def __init__(self, filename):
+        self.__fn = open(filename, "rt")
+        self.__data = load(self.__fn)
+        Json.how_many_times_used += 1
+    
+    def __enter__(self):
+        return self.__data
+    
+    def __exit__(self, tipe, value, traceback):
+        self.__fn.close()
+
+with Json("student.json") as data:
+    print(data)
+    print(data[0]['name'])
+
+print(Json.how_many_times_used)
+
+
+import datetime
+today = datetime.datetime.now()
+print(str(today))
+print(repr(today))
+
+
+
+def out_print(func) -> None:
+    def inner2(left: str, right: str):
+        print(f"{left}--{right}")
+        return func(left, right)
+    return inner2
+
+def inner_print(left: str, right: str) -> None:
+    print(f"{left.capitalize()}__{right.capitalize()}")
+
+output_print = out_print(inner_print)
+output_print("test", "test2")
+
+print(1, "mark", True, sep="#")
+
+def func3(*args):
+    print(args)
+
+func3(1)
+func3(1,2)
+func3(1,2,3)
+
+list10 = [1,2,3,4,5,6]
+first, *unused, last = list10
+
+string1 = "Python is amazing"
+*string2, = string1
+print(string2)
+
+#*args = tuple
+#**kwargs = dictionary
+
+def func3(**kwargs):
+    print(kwargs)
+func3(name="frank", age=19, hungry="yes")
+
+print(12,"frank",sep='#',end='&')
+print("\n")
+def func4(*args, **kwargs):
+    print(args)
+    print(kwargs)
+func4(1,"frank", True, name="john", asleep="yes")
+
+# decorator
+#add extra functionality to a function
+
+def star(func):
+    def inner(*args, **kwargs):
+        print("*" * 30)
+        func(*args, **kwargs)
+        print("*" * 30)
+    return inner
+
+@star
+def printer(msg):
+    print(msg)
+
+#printer = star(printer)
+
+printer("Hello Frank")
+
+import functools
+def fmtprice(amt, sign):
+    return f"{sign}{amt}"
+
+print(fmtprice(20, "£"))
+
+fmtUS = functools.partial(fmtprice,sign="$")
+print(fmtUS(20))
+
+import os
+print(os.listdir("./files"))

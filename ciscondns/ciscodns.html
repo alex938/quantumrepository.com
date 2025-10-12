@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CISCO DNS | Quantum Repository</title>
+    <link rel="stylesheet" href="../main.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.1/css/all.css">
+    <style>
+        /* FULL WIDTH - Override all max-width restrictions */
+        body {
+            margin: 0;
+            padding: 0;
+        }
+        
+        .guide-container {
+            width: 95%;
+            max-width: none !important;
+            margin: 2rem auto;
+            padding: 0 2.5%;
+        }
+        
+        .guide-content {
+            width: 100%;
+            max-width: none !important;
+        }
+        
+        .guide-content article {
+            line-height: 1.8;
+            font-size: 1.15rem;
+            width: 100%;
+        }
+        
+        .guide-content img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 2rem auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+        }
+        
+        .guide-content h2 {
+            margin-top: 3rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 3px solid var(--primary-color);
+            font-size: 2rem;
+        }
+        
+        .guide-content h3 {
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+        
+        .guide-content p {
+            margin-bottom: 1.5rem;
+            line-height: 1.8;
+        }
+        
+        .guide-content ul, .guide-content ol {
+            margin-bottom: 1.5rem;
+            padding-left: 2.5rem;
+            line-height: 1.8;
+        }
+        
+        .guide-content li {
+            margin-bottom: 0.75rem;
+        }
+        
+        .guide-content code {
+            background: #2d2d2d;
+            color: #f0f0f0;
+            padding: 0.3em 0.6em;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 1rem;
+        }
+        
+        .guide-content pre {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 2rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 2rem 0;
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+        
+        .guide-footer {
+            margin-top: 4rem;
+            padding-top: 2rem;
+            border-top: 2px solid var(--border-color);
+            text-align: center;
+        }
+        
+        .btn-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem 2rem;
+            background: var(--primary-color);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s;
+        }
+        
+        .btn-back:hover {
+            background: var(--accent-hover);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+        
+        /* Override any conflicting styles */
+        .container {
+            max-width: none !important;
+            width: 100%;
+        }
+        
+        /* Make header full width too */
+        .site-header .container {
+            max-width: 95%;
+            width: 95%;
+        }
+        
+        .breadcrumbs .container {
+            max-width: 95%;
+            width: 95%;
+        }
+    </style>
+</head>
+<body>
+    <div class="reading-progress-bar"></div>
+
+    <header class="site-header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-atom"></i>
+                    <span>Quantum Repository</span>
+                </div>
+                <nav class="main-nav">
+                    <a href="../index.html">Home</a>
+                    <a href="../index.html#guides">Guides</a>
+                    <a class="btn-donate" href="https://donate.stripe.com/5kQaEX2kMgnB85ia4ycZa00" target="_blank" rel="noopener noreferrer" aria-label="Donate – opens in a new tab"><i class="fas fa-heart" aria-hidden="true"></i><span>Donate</span></a>
+                    <button class="theme-toggle" id="themeToggle">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <div class="breadcrumbs">
+        <div class="container">
+            <a href="../index.html">Home</a>
+            <span>/</span>
+            <span class="category-badge">Networking</span>
+            <span>/</span>
+            <span>CISCO DNS</span>
+        </div>
+    </div>
+
+    <div class="guide-container">
+        <main class="guide-content">
+            <article>
+<h2 id="cisco-configuring-dns">CISCO Configuring DNS</h2>
+            <p>Imagine having to remember IP addresses such as 192.168.200.3 instead of a domain name such as www.google.com. One IP address we could probably remember, but times this by the amount of the websites you visit daily and now remember IP addresses for EACH one... I certainly could not. This is where Domain Name System (DNS) assists us in using human-readable names instead of computer understood IP addresses. DNS is ultimately going to do this translation automatically so the computer knows where we are directing it.</p>
+            
+            <h2 id="lab-setup">Lab setup</h2>
+            <ul>
+                <li>GNS3 as the network emulation software.</li>
+                <img src="topology.png" alt="topology">
+            <li>I have my PC (host1).</li>
+                <li>A CISCO router on IOSv 15.7 (Router - Cisco Modelling Labs Personal $199).</li>
+                <li>One additional PC (host2) which is going to host a webserver.</li>
+                <li>A CISCO layer 2 switch (Switch).</li>
+                <li>A NAT node representing external connectivity to the internet.</li>
+                <li>Additional learning: Internal DNS server using free software DNSMASQ.</li>
+            </ul>
+
+            <h2 id="ip-schema">IP Schema</h2>
+            <p>The IP schema for this lab will be 10.10.10.0/24. This will give us 254 usable addresses (256 - broadcast address - network address). The subnet mask will be 255.255.255.0.</p>
+
+            <h2 id="dns-configuration">DNS Configuration</h2>
+            <p>In this lab we want to configure the following DNS options:</p>
+            <ul>
+                <li>The routers internal facing interface is to be IP addressed with 10.10.10.254.</li>
+                <li>The routers external facing interface is to be set to DHCP which will allow it to receive an IP address from my host machine.</li>
+                <li>The router is to provide a primary DNS service to the internal network, with unknown requests being further forwarded for resolution (this would be your home router in reality).</li>
+                <li>Host2 (the webserver) will use IP address 10.10.10.200 and will be hosting a simple webpage. The router is to hold a DNS record pointing to this webserver; the domain name is to be slash-root.com</li>
+                <li>When we enter http://slash-root.local in a browser on host1, it will use the router as its primary DNS to resolve the domain name to IP address and display the website.</li>
+            </ul>
+
+            <h2 id="router-configuration">Router Configuration</h2>
+            <p>The routers interfaces are configured with IP addresses:</p>
+
+            <img src="gi00.png" alt="inside interface"> The inside interface Gi0/0 is configured with an internal address within the selected schema; in this case 10.10.10.254.
+                <img src="gi01.png" alt="outside interface"> The outside interface, the interface representing connectivity to my ISP is set to DHCP to receive an external IP from my ISP. I know in this case it is a private network address, but just imagine this being a public IP assigned by your ISP. At this stage trying to PING the outside world will fail as domain-lookup has not been enabled:
+                <img src="dnserror.png" alt="dnserror">
+
+            To enable DNS, simply enter: <img src="enabledns.png" alt="enabledns"> Trying to PING the outside world (www.google.com in this case) now yields results.
+                <img src="pingsuccess.png" alt="ping success"> Something to bear in mind at this stage, my recursive nameserver in this instance is the DNS settings provided by my DHCP on the external interface. This can be seen here: <img src="dnsettings.png" alt="dnssettings">
+
+            If we wanted to change our recursive nameserver to something different, we can using the following process:
+                <img src="changenameserver.png" alt="changenameserver">
+
+            What we have done here; first we have removed the DHCP provided nameserver of 192.168.122.1 and then added 8.8.8.8 (Googles DNS service), confirmed the change by viewing our DNS settings and then ensuring it 
+                is working by using PING to an external domain (wwww.slash-root.com). At this stage we can now enable a DNS service to serve our internal network:
+                <img src="enablednsserver.png" alt="enablednsserver">
+
+            <h2 id="configuring-the-hosts">Configuring the hosts and fixing issues</h2>
+                <p>The next step is to configure host1 and host2 to use our router as their default-gateway and DNS server:</p>
+
+            <img src="host1dns.png" alt="host1dns"> Once configured we can attempt to PING the default-gateway and then an external domain name to ensure our DNS service is working correctly.
+                <img src="dnsissue1.png" alt="dnsissue1"> You will notice we could PING the default-gateway (our router) but we could not PING an external domain name. The issue we have run into here is; when our router receives a packet from host1 with the source IP address of 10.10.10.1 (private address) it refuses to route it any further without explicit instruction. The solution is address translation (Overload in CISCO speak).
+                You will notice we could PING the default-gateway (our router) but we could not PING an external domain name. The issue we have run into here is; when our router receives a packet from host1 with the source 
+                IP address of 10.10.10.1 (private address) it refuses to route it any further without explicit instruction. The solution is address translation (Overload in CISCO speak).
+                The first step is to identify which interfaces are inside and outside; we do this using the following commands:
+                <img src="natinterfaces.png" alt="natinterfaces">
+
+            Here we have said the internal interface Gi0/0 (the one connected to our LAN) is the NAT inside. We've also said interface Gi0/1 is the NAT outside. To link this together we now run the following commands:
+                <img src="overload.png" alt="overload">
+
+            All this command is doing, is first creating a list of IPs we want to include in this address translation (10.10.10.0/24) and then applying this address translation from the inside to the outside interface Gi0/1. Once executed 
+                we save the configuration, restart the hosts and test our DNS service again:
+                <img src="host1success.png" alt="host1success">
+
+            If you are interested in seeing the actual translations this is performing, you can view them by running the following command:
+                <br><br><code>show ip nat translations</code><br><br>
+                The next step as per the specification for this lab is to create an internal webserver on host2 and map a domain name to its IP address so host1 can access it using this name. To this we first need to IP address and create a simple 
+                webserver on host2:
+                <img src="pythonwebserver.png" alt="pythonwebserver">
+
+            The above command is run on host2; it simply starts a very simple Python webserver on the port desigated. The file it is hosting is index.html I created as below:
+                <img src="simpleindex.png" alt="simpleindex">
+
+            Just a reminder, the Python simple webserver will serve the files in its executed directory. As a check at this point, lets try and access the webserver now running on host2 using a browser on host1.
+                <img src="host1access.png" alt="host1access">
+
+            It all seems good so far, however, if we were to try and access http://slash-root.local now in our browser, it would fail. Basically, our recursive nameserver doesn't know where slash-root.local is (what IP address to point us to!). 
+                To add a record to our DNS service running on our router, all we need to do is the following:
+                <img src="addrecord.png" alt="addrecord">
+
+            At this stage, lets just do a quick PING check from our router to slash-root.local to ensure its correct:
+                <img src="pingcheck.png" alt="pingcheck">
+
+            Finally, lets now try to access http://slash-root.local using a browser on host1:
+                <img src="slashrootlocal.png" alt="slashrootlocal">
+
+            When accessing slash-root.local in our browser, host1 will make a DNS query for slash-root.local, because we've added a record to point that domain name to the address 10.10.10.200 (host2), host1 can make a successful connection to the webserver using 
+                a memorable domain name rather than host2's IP address.
+                <br><br>As a final point, we would not normally run our internal DNS solution on our CISCO router, these are usually separate machines dealing purely with DNS. 
+            </p1>
+            </article>
+
+            <div class="guide-footer">
+                <a href="../index.html" class="btn-back">
+                    <i class="fas fa-arrow-left"></i> Back to Guides
+                </a>
+            </div>
+        </main>
+    </div>
+
+    <button class="back-to-top" id="backToTop">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p><i class="fas fa-atom"></i> Quantum Repository</p>
+            <p>Technical guides for system administrators and developers</p>
+            <p>alex@slash-root.com | &copy; 2025</p>
+        </div>
+    </footer>
+
+    <script src="../guide.js"></script>
+</body>
+</html>

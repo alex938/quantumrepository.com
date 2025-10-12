@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Docker Guide | Quantum Repository</title>
+    <link rel="stylesheet" href="../main.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.1/css/all.css">
+    <style>
+        /* FULL WIDTH - Override all max-width restrictions */
+        body {
+            margin: 0;
+            padding: 0;
+        }
+        
+        .guide-container {
+            width: 95%;
+            max-width: none !important;
+            margin: 2rem auto;
+            padding: 0 2.5%;
+        }
+        
+        .guide-content {
+            width: 100%;
+            max-width: none !important;
+        }
+        
+        .guide-content article {
+            line-height: 1.8;
+            font-size: 1.15rem;
+            width: 100%;
+        }
+        
+        .guide-content img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 2rem auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+        }
+        
+        .guide-content h2 {
+            margin-top: 3rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 3px solid var(--primary-color);
+            font-size: 2rem;
+        }
+        
+        .guide-content h3 {
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+        
+        .guide-content p {
+            margin-bottom: 1.5rem;
+            line-height: 1.8;
+        }
+        
+        .guide-content ul, .guide-content ol {
+            margin-bottom: 1.5rem;
+            padding-left: 2.5rem;
+            line-height: 1.8;
+        }
+        
+        .guide-content li {
+            margin-bottom: 0.75rem;
+        }
+        
+        .guide-content code {
+            background: #2d2d2d;
+            color: #f0f0f0;
+            padding: 0.3em 0.6em;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 1rem;
+        }
+        
+        .guide-content pre {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 2rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 2rem 0;
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+        
+        .guide-footer {
+            margin-top: 4rem;
+            padding-top: 2rem;
+            border-top: 2px solid var(--border-color);
+            text-align: center;
+        }
+        
+        .btn-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem 2rem;
+            background: var(--primary-color);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s;
+        }
+        
+        .btn-back:hover {
+            background: var(--accent-hover);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+        
+        /* Override any conflicting styles */
+        .container {
+            max-width: none !important;
+            width: 100%;
+        }
+        
+        /* Make header full width too */
+        .site-header .container {
+            max-width: 95%;
+            width: 95%;
+        }
+        
+        .breadcrumbs .container {
+            max-width: 95%;
+            width: 95%;
+        }
+    </style>
+</head>
+<body>
+    <div class="reading-progress-bar"></div>
+
+    <header class="site-header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-atom"></i>
+                    <span>Quantum Repository</span>
+                </div>
+                <nav class="main-nav">
+                    <a href="../index.html">Home</a>
+                    <a href="../index.html#guides">Guides</a>
+                    <a class="btn-donate" href="https://donate.stripe.com/5kQaEX2kMgnB85ia4ycZa00" target="_blank" rel="noopener noreferrer" aria-label="Donate – opens in a new tab"><i class="fas fa-heart" aria-hidden="true"></i><span>Donate</span></a>
+                    <button class="theme-toggle" id="themeToggle">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <div class="breadcrumbs">
+        <div class="container">
+            <a href="../index.html">Home</a>
+            <span>/</span>
+            <span class="category-badge">Docker</span>
+            <span>/</span>
+            <span>Docker Guide</span>
+        </div>
+    </div>
+
+    <div class="guide-container">
+        <main class="guide-content">
+            <article>
+                <h2>Introduction</h2>
+                <p>
+                    This guide covers setting up Docker Swarm and deploying a small example application using Docker services. 
+                    We'll initialise the swarm, create overlay networks, and deploy services for a simple voting application.
+                </p>
+
+                <h2>Step 1: Verify Docker Installation</h2>
+                <p>Before initialising Docker Swarm, check your Docker installation:</p>
+                <pre><code class="language-bash">docker info</code></pre>
+                <p>This command provides system details and confirms that Docker is installed correctly.</p>
+
+                <h2>Step 2: Initialise Docker Swarm</h2>
+                <p>To enable Docker Swarm, initialise it with the following command:</p>
+                <pre><code class="language-bash">docker swarm init</code></pre>
+                <p>This makes the current node the swarm manager. To view swarm nodes, run:</p>
+                <pre><code class="language-bash">docker node ls</code></pre>
+
+                <h2>Step 3: Create Overlay Networks</h2>
+                <p>Set up overlay networks to enable communication between services:</p>
+                <pre><code class="language-bash">sudo docker network create -d overlay frontend
+sudo docker network create -d overlay backend</code></pre>
+
+                <h2>Step 4: Deploy the Voting App Services</h2>
+                <p>Deploy individual services for the voting app. Start with the frontend voting app:</p>
+                <pre><code class="language-bash">sudo docker service create --name vote -p 80:80 --network frontend --replicas 2 dockersamples/examplevotingapp_vote:before</code></pre>
+                <p>Then deploy Redis as the backend cache:</p>
+                <pre><code class="language-bash">sudo docker service create --name redis --network frontend --replicas 2 redis:3.2</code></pre>
+                <p>Deploy the worker service to process votes:</p>
+                <pre><code class="language-bash">sudo docker service create --name worker --network frontend --network backend dockersamples/examplevotingapp_worker</code></pre>
+
+                <h2>Step 5: Deploy the Database Service</h2>
+                <p>Create the database service using a volume for persistent storage:</p>
+                <pre><code class="language-bash">sudo docker service create \
+--name db \
+--mount type=volume,source=db-data,target=/var/lib/postgresql/data \
+--network backend \
+postgres:9.4</code></pre>
+                <p>The volume <code>db-data</code> is created in <code>/var/lib/docker/volumes/db-data/_data</code>.</p>
+                <p>Alternatively, use a bind mount for more control over data storage:</p>
+                <pre><code class="language-bash">sudo docker service create \
+--name db \
+--mount type=bind,source=/home/user/data,target=/var/lib/postgresql/data \
+--network backend \
+postgres:9.4</code></pre>
+
+                <h2>Step 6: Deploy the Results Service</h2>
+                <p>Deploy the results service for the voting app:</p>
+                <pre><code class="language-bash">sudo docker service create --name result --network frontend -p 50001:80 dockersamples/examplevotingapp_result:before</code></pre>
+
+                <h2>Step 7: Verify Services</h2>
+                <p>List all running services to verify the deployment:</p>
+                <pre><code class="language-bash">docker service ls</code></pre>
+                <p>Check the task allocation for specific services:</p>
+                <pre><code class="language-bash">docker service ps result</code></pre>
+                <p>Repeat for other services like <code>redis</code> and <code>worker</code>.</p>
+            </article>
+
+            <div class="guide-footer">
+                <a href="../index.html" class="btn-back">
+                    <i class="fas fa-arrow-left"></i> Back to Guides
+                </a>
+            </div>
+        </main>
+    </div>
+
+    <button class="back-to-top" id="backToTop">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p><i class="fas fa-atom"></i> Quantum Repository</p>
+            <p>Technical guides for system administrators and developers</p>
+            <p>alex@slash-root.com | &copy; 2025</p>
+        </div>
+    </footer>
+
+    <script src="../guide.js"></script>
+</body>
+</html>

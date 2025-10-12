@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Docker Guide | Quantum Repository</title>
+    <link rel="stylesheet" href="../main.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.1/css/all.css">
+    <style>
+        /* FULL WIDTH - Override all max-width restrictions */
+        body {
+            margin: 0;
+            padding: 0;
+        }
+        
+        .guide-container {
+            width: 95%;
+            max-width: none !important;
+            margin: 2rem auto;
+            padding: 0 2.5%;
+        }
+        
+        .guide-content {
+            width: 100%;
+            max-width: none !important;
+        }
+        
+        .guide-content article {
+            line-height: 1.8;
+            font-size: 1.15rem;
+            width: 100%;
+        }
+        
+        .guide-content img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 2rem auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+        }
+        
+        .guide-content h2 {
+            margin-top: 3rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 3px solid var(--primary-color);
+            font-size: 2rem;
+        }
+        
+        .guide-content h3 {
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+        
+        .guide-content p {
+            margin-bottom: 1.5rem;
+            line-height: 1.8;
+        }
+        
+        .guide-content ul, .guide-content ol {
+            margin-bottom: 1.5rem;
+            padding-left: 2.5rem;
+            line-height: 1.8;
+        }
+        
+        .guide-content li {
+            margin-bottom: 0.75rem;
+        }
+        
+        .guide-content code {
+            background: #2d2d2d;
+            color: #f0f0f0;
+            padding: 0.3em 0.6em;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 1rem;
+        }
+        
+        .guide-content pre {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 2rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 2rem 0;
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+        
+        .guide-footer {
+            margin-top: 4rem;
+            padding-top: 2rem;
+            border-top: 2px solid var(--border-color);
+            text-align: center;
+        }
+        
+        .btn-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem 2rem;
+            background: var(--primary-color);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s;
+        }
+        
+        .btn-back:hover {
+            background: var(--accent-hover);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+        
+        /* Override any conflicting styles */
+        .container {
+            max-width: none !important;
+            width: 100%;
+        }
+        
+        /* Make header full width too */
+        .site-header .container {
+            max-width: 95%;
+            width: 95%;
+        }
+        
+        .breadcrumbs .container {
+            max-width: 95%;
+            width: 95%;
+        }
+    </style>
+</head>
+<body>
+    <div class="reading-progress-bar"></div>
+
+    <header class="site-header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-atom"></i>
+                    <span>Quantum Repository</span>
+                </div>
+                <nav class="main-nav">
+                    <a href="../index.html">Home</a>
+                    <a href="../index.html#guides">Guides</a>
+                    <a class="btn-donate" href="https://donate.stripe.com/5kQaEX2kMgnB85ia4ycZa00" target="_blank" rel="noopener noreferrer" aria-label="Donate – opens in a new tab"><i class="fas fa-heart" aria-hidden="true"></i><span>Donate</span></a>
+                    <button class="theme-toggle" id="themeToggle">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <div class="breadcrumbs">
+        <div class="container">
+            <a href="../index.html">Home</a>
+            <span>/</span>
+            <span class="category-badge">Docker</span>
+            <span>/</span>
+            <span>Docker Guide</span>
+        </div>
+    </div>
+
+    <div class="guide-container">
+        <main class="guide-content">
+            <article>
+                <h2>Introduction</h2>
+                <p>
+                    This guide explains how to obtain Let's Encrypt certificates using Docker and the 
+                    <a href="https://certbot.eff.org/" target="_blank" rel="noopener noreferrer">Certbot</a> image. 
+                    The process uses DNS validation with a generic DNS provider (e.g., Cloudflare).
+                </p>
+
+                <h2>Step 1: Create Credential File</h2>
+                <p>Prepare the DNS API credentials required for Certbot to perform DNS-based domain validation.</p>
+                <pre><code class="language-bash">sudo mkdir -p /path/to/certs
+sudo nano /path/to/certs/provider.ini</code></pre>
+                <p>Add the following content to the <code>provider.ini</code> file:</p>
+                <pre><code class="language-bash">dns_provider_email = example@email
+dns_provider_api_key = your_api_key_here</code></pre>
+                <p>Adjust the keys and email according to your DNS provider's API requirements.</p>
+                <p>Secure the credential file:</p>
+                <pre><code class="language-bash">sudo chmod 700 /path/to/certs
+sudo chmod 600 /path/to/certs/provider.ini</code></pre>
+
+                <h2>Step 2: Obtain Certificates</h2>
+                <p>Use the following Docker command to obtain the certificates:</p>
+                <pre><code class="language-bash">docker run --rm \
+-v /path/to/certs:/etc/letsencrypt \
+-v /path/to/certs/provider.ini:/etc/letsencrypt/provider.ini \
+certbot/dns-cloudflare \
+certonly \
+--dns-cloudflare \
+--dns-cloudflare-credentials /etc/letsencrypt/provider.ini \
+--non-interactive \
+--agree-tos \
+--email your-email@example.com \
+-d yourdomain.com</code></pre>
+                <p>Replace the following placeholders:</p>
+                <ul>
+                    <li><code>/path/to/certs</code>: Path to store certificates and configuration files.</li>
+                    <li><code>provider.ini</code>: Credentials file for your DNS provider.</li>
+                    <li><code>your-email@example.com</code>: Your email address for certificate expiry notifications.</li>
+                    <li><code>yourdomain.com</code>: The domain for which you are requesting certificates.</li>
+                </ul>
+
+                <h2>Step 3: Certificate Details</h2>
+                <p>The certificates will be stored in:</p>
+                <pre><code class="language-bash">/path/to/certs/live/yourdomain.com/</code></pre>
+                <p>This directory contains the following files:</p>
+                <ul>
+                    <li><code>cert.pem</code>: The domain certificate.</li>
+                    <li><code>privkey.pem</code>: The private key for the certificate.</li>
+                    <li><code>chain.pem</code>: The intermediate certificates.</li>
+                    <li><code>fullchain.pem</code>: The certificate chain (certificate + intermediates).</li>
+                </ul>
+
+                <h2>Troubleshooting</h2>
+                <p>If the process fails, check the following:</p>
+                <ul>
+                    <li>Ensure your DNS provider API credentials are correct.</li>
+                    <li>Verify that the domain's DNS records allow updates via API.</li>
+                    <li>Check Docker logs for errors:</li>
+                    <pre><code class="language-bash">docker logs <container_id></code></pre>
+                </ul>
+
+                <h2>Renewing Certificates</h2>
+                <p>To renew certificates, run the same Docker command as in Step 2. Certbot will detect existing certificates and renew them if necessary.</p>
+
+                <h2>Official Documentation</h2>
+                <p>
+                    You have successfully obtained Let's Encrypt certificates using Docker and DNS-based validation. 
+                    Refer to the 
+                    <a href="https://eff-certbot.readthedocs.io/en/stable/" target="_blank" rel="noopener noreferrer">Certbot documentation</a> 
+                    for further details and advanced configurations.
+                </p>
+            </article>
+
+            <div class="guide-footer">
+                <a href="../index.html" class="btn-back">
+                    <i class="fas fa-arrow-left"></i> Back to Guides
+                </a>
+            </div>
+        </main>
+    </div>
+
+    <button class="back-to-top" id="backToTop">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p><i class="fas fa-atom"></i> Quantum Repository</p>
+            <p>Technical guides for system administrators and developers</p>
+            <p>alex@slash-root.com | &copy; 2025</p>
+        </div>
+    </footer>
+
+    <script src="../guide.js"></script>
+</body>
+</html>

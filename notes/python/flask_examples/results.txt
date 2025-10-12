@@ -1,0 +1,3 @@
+{"name": "john", "result": 40, "location": "US", "details": {"sex": "m"}}
+{"name": "ant", "result": 76, "location": "US", "details": {"sex": "m"}}
+{"name": "lou", "result": 53, "location": "US", "details": {"sex": "f"}}

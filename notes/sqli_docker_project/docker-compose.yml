@@ -1,0 +1,46 @@
+version: '3'
+services:
+
+  database:
+    image: mysql:latest
+    environment:
+      MYSQL_DATABASE: users
+      MYSQL_USER: alex
+      MYSQL_PASSWORD: napierassignment
+      MYSQL_ROOT_PASSWORD: 1mp0ssi813
+    volumes:
+      - "./dbusers:/docker-entrypoint-initdb.d"
+      - "./:/var/www/html"
+    ports:
+      - 3306:3306
+    networks:
+      - app-docker
+
+  www:
+    depends_on:
+      - database
+    build:
+      context: ./php
+      dockerfile: Dockerfile
+    volumes: 
+      - "./:/var/www/html"
+    ports: 
+      - 80:80
+    networks:
+      - app-docker
+
+  phpmyadmin:
+    depends_on:
+        - database 
+    image: phpmyadmin/phpmyadmin
+    ports: 
+      - 8080:80
+    environment:
+      - PMA_HOST=database
+      - PMW_PORT=3306
+    networks:
+      - app-docker
+
+networks:
+  app-docker:
+    driver: bridge

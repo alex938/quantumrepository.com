@@ -1,0 +1,45 @@
+# server.py
+from http.server import SimpleHTTPRequestHandler, HTTPServer
+import os
+import time
+from abc import ABC, abstractmethod
+
+class handler_template(SimpleHTTPRequestHandler, ABC):
+    
+    @abstractmethod
+    def do_GET(self):
+        pass
+
+class handler(handler_template):
+    def do_GET(self):
+        if self.path == '/hg.elf':
+            # Check if file exists
+            time.sleep(2)
+            if os.path.exists('hg.elf'):
+                # Set headers
+                self.send_response(200)
+                #self.send_header('Content-type', 'application/octet-stream')
+                self.end_headers()
+
+                # Read and send file content
+                with open('hg.elf', 'rb') as file:
+                    self.wfile.write(file.read())
+            else:
+                self.send_response(404)
+                self.end_headers()
+                self.wfile.write(b'File not found')
+        else:
+            SimpleHTTPRequestHandler.do_GET(self)
+
+#export HOST="192.168.231.158"
+#export PORT="8000"
+
+HOST = os.getenv("HOST", "192.168.231.158")
+PORT = int(os.getenv("PORT", 5000))
+
+server_address = (HOST, PORT)
+
+httpd = HTTPServer(server_address, handler)
+
+print('HTTP server on port {}...'.format(PORT))
+httpd.serve_forever()

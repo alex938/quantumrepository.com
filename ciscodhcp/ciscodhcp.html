@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CISCO Configuring DHCP | Quantum Repository</title>
+    <link rel="stylesheet" href="../main.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.1/css/all.css">
+    <style>
+        /* FULL WIDTH - Override all max-width restrictions */
+        body {
+            margin: 0;
+            padding: 0;
+        }
+        
+        .guide-container {
+            width: 95%;
+            max-width: none !important;
+            margin: 2rem auto;
+            padding: 0 2.5%;
+        }
+        
+        .guide-content {
+            width: 100%;
+            max-width: none !important;
+        }
+        
+        .guide-content article {
+            line-height: 1.8;
+            font-size: 1.15rem;
+            width: 100%;
+        }
+        
+        .guide-content img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 2rem auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+        }
+        
+        .guide-content h2 {
+            margin-top: 3rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 3px solid var(--primary-color);
+            font-size: 2rem;
+        }
+        
+        .guide-content h3 {
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+        
+        .guide-content p {
+            margin-bottom: 1.5rem;
+            line-height: 1.8;
+        }
+        
+        .guide-content ul, .guide-content ol {
+            margin-bottom: 1.5rem;
+            padding-left: 2.5rem;
+            line-height: 1.8;
+        }
+        
+        .guide-content li {
+            margin-bottom: 0.75rem;
+        }
+        
+        .guide-content code {
+            background: #2d2d2d;
+            color: #f0f0f0;
+            padding: 0.3em 0.6em;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 1rem;
+        }
+        
+        .guide-content pre {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 2rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 2rem 0;
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+        
+        .guide-footer {
+            margin-top: 4rem;
+            padding-top: 2rem;
+            border-top: 2px solid var(--border-color);
+            text-align: center;
+        }
+        
+        .btn-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem 2rem;
+            background: var(--primary-color);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s;
+        }
+        
+        .btn-back:hover {
+            background: var(--accent-hover);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+        
+        /* Override any conflicting styles */
+        .container {
+            max-width: none !important;
+            width: 100%;
+        }
+        
+        /* Make header full width too */
+        .site-header .container {
+            max-width: 95%;
+            width: 95%;
+        }
+        
+        .breadcrumbs .container {
+            max-width: 95%;
+            width: 95%;
+        }
+    </style>
+</head>
+<body>
+    <div class="reading-progress-bar"></div>
+
+    <header class="site-header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-atom"></i>
+                    <span>Quantum Repository</span>
+                </div>
+                <nav class="main-nav">
+                    <a href="../index.html">Home</a>
+                    <a href="../index.html#guides">Guides</a>
+                    <a class="btn-donate" href="https://donate.stripe.com/5kQaEX2kMgnB85ia4ycZa00" target="_blank" rel="noopener noreferrer" aria-label="Donate – opens in a new tab"><i class="fas fa-heart" aria-hidden="true"></i><span>Donate</span></a>
+                    <button class="theme-toggle" id="themeToggle">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <div class="breadcrumbs">
+        <div class="container">
+            <a href="../index.html">Home</a>
+            <span>/</span>
+            <span class="category-badge">Networking</span>
+            <span>/</span>
+            <span>CISCO Configuring DHCP</span>
+        </div>
+    </div>
+
+    <div class="guide-container">
+        <main class="guide-content">
+            <article>
+<h2 id="cisco-dhcp">CISCO Configuring DHCP</h2>
+            <p>CISCO routers offer a service called Dynamic Host Configuration Protocol (DHCP). DHCP provides IP addresses to our hosts, along with configuration items such as default gateways, DNS servers, static routes, host names, and more (with over 200 options available). DHCP uses the following process, often referred to as DORA:</p>
+            <ol>
+                <li>Discover: A client asks for an IP address.</li>
+                <li>Offer: A DHCP server offers an IP address.</li>
+                <li>Request: The client requests the IP address offered by the DHCP server.</li>
+                <li>Acknowledgement: The DHCP server confirms the request and removes the allocated IP address from its pool.</li>
+            </ol>
+
+            <h2 id="lab-setup">Lab Setup</h2>
+            <ul>
+                <li>GNS3 as the network emulation software.</li>
+                <img src="setup.png" alt="topology">
+            <li>My PC (host1).</li>
+                <li>A CISCO router on IOSv 15.9 (Router - Dynamips Pack for $56).</li>
+                <li>Two additional PCs (host2 and host3).</li>
+                <li>A CISCO layer 2 switch (Switch).</li>
+            </ul>
+
+            <h2 id="ip-schema">IP Schema</h2>
+            <p>The IP schema for this lab will be 10.10.10.0/24. This provides us with 254 usable addresses (256 minus the broadcast address and network address). The subnet mask will be 255.255.255.0.</p>
+
+            <h2 id="ip-configuration">IP Configuration</h2>
+            <p>In this lab, we aim to achieve the following IP configuration, primarily using DHCP:</p>
+            <ol>
+                <li>The router will act as the DHCP server and will be on 10.10.10.254/24 (interface Gi0/0).</li>
+                <li>Host1 will serve as an internal webserver and must always receive the IP address 10.10.10.5 from the DHCP server.</li>
+                <li>Host2 will receive a DHCP-allocated IP address from the DHCP pool.</li>
+                <li>Host3 will have the IP address 10.10.10.200 statically assigned, so the DHCP server must not offer this IP to any host.</li>
+                <li>Finally, the DHCP pool will use the 10.10.10.0/24 subnet. Hosts should receive a default gateway and DNS server of 10.10.10.254, with a lease time of 30 days for dynamically assigned IPs.</li>
+            </ol>
+
+            <h2 id="dhcp-exclude">DHCP Excluding an IP</h2>
+            <p>We first need to assign the router's connected interface an IP address of 10.10.10.254 255.255.255.0. As we're statically assigning 10.10.10.200, we must exclude this from the DHCP allocations:</p>
+
+            <img src="routerip.png" alt="routerip">
+            <img src="excludeip.png" alt="excludeip">
+
+            <h2 id="dhcp-static">DHCP Statically Assigning an IP to a Host</h2>
+            <p>Host1 must receive IP 10.10.10.5 when it's connected. To achieve this, we need either its MAC address (for Linux) or client identifier (for Windows). We can inspect host1's properties in GNS3 to get this information:</p>
+
+            <img src="host1mac.png" alt="host1mac">
+
+            <p>Even though host1 is a Kali Linux machine, it's emulated by my Windows 11 host OS. So, we'll treat it as a Windows host for this emulation in GNS3. To convert this MAC address to a client identifier, we add "01" to the MAC address. We then input this into the router:</p>
+            <pre>
+                010c.3ef7.da00.00
+            </pre>
+            We now need to create a DHCP pool for this static assignment as follows:
+            <img src="host1dhcp.png" alt="host1dhcp">
+
+            You will notice I made a mistake in that assignment by not including the subnet mask with the IP address. Simply use the 'no' command to remove a setting. All going well host1 
+            should now receive the IP address 10.10.10.5 when connected.<br>
+            <h2 id="dhcp-dynamic">DHCP dynamically assign an IP to a host</h2>
+
+            Finally, we need to assign the remaining host (and any others that may be connected in the future) a dynamically allocated IP address from the remaining pool, with a lease time 
+            of 30 days. To create a dynamic pool we run the following:
+            <img src="host2dhcp2.png" alt="homedhcp">
+
+            At this point our DHCP server should be fully configured to meet our specification. We can switch host1 and host2 to DHCP IP address assignment and statically assign host3. Host1 is 
+            switched DHCP and picks up the correct 10.10.10.5 address:
+            <img src="host1ip.png" alt="host1ip">
+
+            Host2 is set to DHCP and should pick up a dynamic assignment from the pool (should be 10.10.10.1 as this is the first available address). This host is switched DHCP:
+            <img src="hostip.png" alt="host2ip">
+
+            You will notice the simple PC emulator at host2 shows the DORA process when you switch it to DHCP assigment, this reinforces the process mentioned earlier. We can view the DHCP bindings 
+            on the router by using the following command:
+            <img src="dhcpbinding.png" alt="bindings">
+
+            If you are wondering where host2's lease is, it won't appear as the PC emulator at host2 is just replicating a TELNET client with no hardware address, therefore does not show up. If this was a fully 
+            fledged machine it would be showing up in the bindings table. This concludes the demonstration, we've covered the key types of DHCP assignment you'll probably see/use but bear in mind the DHCP application 
+            itself has a lot more functionality.
+            </article>
+
+            <div class="guide-footer">
+                <a href="../index.html" class="btn-back">
+                    <i class="fas fa-arrow-left"></i> Back to Guides
+                </a>
+            </div>
+        </main>
+    </div>
+
+    <button class="back-to-top" id="backToTop">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p><i class="fas fa-atom"></i> Quantum Repository</p>
+            <p>Technical guides for system administrators and developers</p>
+            <p>alex@slash-root.com | &copy; 2025</p>
+        </div>
+    </footer>
+
+    <script src="../guide.js"></script>
+</body>
+</html>

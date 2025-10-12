@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CISCO Security | Quantum Repository</title>
+    <link rel="stylesheet" href="../main.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.1/css/all.css">
+    <style>
+        /* FULL WIDTH - Override all max-width restrictions */
+        body {
+            margin: 0;
+            padding: 0;
+        }
+        
+        .guide-container {
+            width: 95%;
+            max-width: none !important;
+            margin: 2rem auto;
+            padding: 0 2.5%;
+        }
+        
+        .guide-content {
+            width: 100%;
+            max-width: none !important;
+        }
+        
+        .guide-content article {
+            line-height: 1.8;
+            font-size: 1.15rem;
+            width: 100%;
+        }
+        
+        .guide-content img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 2rem auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+        }
+        
+        .guide-content h2 {
+            margin-top: 3rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 3px solid var(--primary-color);
+            font-size: 2rem;
+        }
+        
+        .guide-content h3 {
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+        
+        .guide-content p {
+            margin-bottom: 1.5rem;
+            line-height: 1.8;
+        }
+        
+        .guide-content ul, .guide-content ol {
+            margin-bottom: 1.5rem;
+            padding-left: 2.5rem;
+            line-height: 1.8;
+        }
+        
+        .guide-content li {
+            margin-bottom: 0.75rem;
+        }
+        
+        .guide-content code {
+            background: #2d2d2d;
+            color: #f0f0f0;
+            padding: 0.3em 0.6em;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 1rem;
+        }
+        
+        .guide-content pre {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 2rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 2rem 0;
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+        
+        .guide-footer {
+            margin-top: 4rem;
+            padding-top: 2rem;
+            border-top: 2px solid var(--border-color);
+            text-align: center;
+        }
+        
+        .btn-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem 2rem;
+            background: var(--primary-color);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s;
+        }
+        
+        .btn-back:hover {
+            background: var(--accent-hover);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+        
+        /* Override any conflicting styles */
+        .container {
+            max-width: none !important;
+            width: 100%;
+        }
+        
+        /* Make header full width too */
+        .site-header .container {
+            max-width: 95%;
+            width: 95%;
+        }
+        
+        .breadcrumbs .container {
+            max-width: 95%;
+            width: 95%;
+        }
+    </style>
+</head>
+<body>
+    <div class="reading-progress-bar"></div>
+
+    <header class="site-header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-atom"></i>
+                    <span>Quantum Repository</span>
+                </div>
+                <nav class="main-nav">
+                    <a href="../index.html">Home</a>
+                    <a href="../index.html#guides">Guides</a>
+                    <a class="btn-donate" href="https://donate.stripe.com/5kQaEX2kMgnB85ia4ycZa00" target="_blank" rel="noopener noreferrer" aria-label="Donate – opens in a new tab"><i class="fas fa-heart" aria-hidden="true"></i><span>Donate</span></a>
+                    <button class="theme-toggle" id="themeToggle">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <div class="breadcrumbs">
+        <div class="container">
+            <a href="../index.html">Home</a>
+            <span>/</span>
+            <span class="category-badge">Networking</span>
+            <span>/</span>
+            <span>CISCO Security</span>
+        </div>
+    </div>
+
+    <div class="guide-container">
+        <main class="guide-content">
+            <article>
+<h2 id="cisco-ssh">CISCO Configuring remote SSH access with AAA</h2>
+            <p>When remotely administering CISCO devices (or any device for that matter) we want to ensure confidentiality i.e. we are not giving away access information such as our 
+                passwords. We also do not want to give away any following session information that could then be leveraged in an attack. One of the key transport methods of remote administration 
+                is using Secure Shell Protocol (SSH). One of the best ways to do this is in combination with Authentication, Authorisation and Accounting (AAA) - an effective toolset for network management and security.</p>
+
+                <h2 id="lab-setup">Lab Setup</h2>
+                <ol>
+                    <li>GNS3 as the network emulation software.</li>
+                </ol>
+
+            <img src="topology.png" alt="topology">
+                <ol start="2">
+                    <li>I have my PC (host1).</li>
+                    <li>A CISCO router on IOSv 15.7 (Router - Cisco Modelling Labs Personal $199).</li>
+                    <li>One additional PCs (host2).</li>
+                    <li>A CISCO layer 2 switch (Switch).</li>
+                </ol>
+
+                <h2 id="ip-schema">IP Schema</h2>
+                <p>The IP schema for this lab will be 10.10.10.0/24. This will give us 254 useable addresses (256 - broadcast address - network address). The subnet mask will be 255.255.255.0.</p>
+    
+                <h2 id="security-configuration">Security Configuration</h2>
+                <p>In this lab we want to enforce the following security policy:</p>
+                <ol>
+                    <li>The router is to allow SSH connections for remote using the virtual lines 0-4.</li>
+                    <li>The router can only allow SSH connections from host1 (10.10.10.1), all others IPs should be denied. You should state 'No Unauthorised Access' as a warning.</li>
+                    <li>AAA should be used in conjuction with the LOCAL user database for remote authentication, followed by use of the enable secret for authorisation.</li>
+                    <li>The router should enforce a password length of at least 10 characters.</li>
+                    <li>The users passwords should be obfuscated using SCRYPT, with all users being given a privilege level of 15 (CISCO highest).</li>
+                    <li>The SSH server running on the router should use a RSA key of no less than 1024-bit strength.</li>
+                </ol>
+
+                <h2 id="router-configuration">Router Configuration</h2>
+                <p>The routers interface is configured with an IP address:
+                <img src="interface.png" alt="routerip">
+
+            We next enforce the password length of policy of 10 characters minimum:
+                <img src="minlength.png" alt="minlengthpasswords">
+
+            We set the enable secret as follows:
+                <img src="enablesecret.png" alt="enablesecret">
+
+            We add a user with a privilege level of 15 to the LOCAL database using SCRYPT password obfuscation:
+                <img src="passwordlengthcheck.png" alt="passwordlengthcheck">
+
+            Notice how I tried to circumvent my own password policy by entering a password of 4 characters - the router would not let me. To see what this obfuscation type looks like, we can view it by looking at the configuration:
+                <img src="passwordhashed.png" alt="scrypt">
+
+            The next task is to create a new AAA model that will reference the LOCAL database for authentication and display a warning message. To do this we will create a reference called 'auth-list'.
+                <img src="aaa new model.png" alt="aaa">
+
+            We are only permitted to allow the IP of host1 which will be 10.10.10.1 to SSH into the router. To do this we need to first create an Access Control List (ACL) specifying that host address:
+                <img src="acl2.png" alt="acl">
+
+            We are now ready to configure the VTY lines, to do so we run the following:
+                <img src="linevty.png" alt="vty">
+
+            What we are doing here is first accessing the correct lines (lines 0 to 4), setting the executive timeout to 5minutes 0seconds, attaching the AAA model (auth-list), allowing SSH as a transport method and finally attaching the ACL ('in' to the routers interface). The final step is to setup and enable a SSH service on the router.
+                <img src="enablessh.png" alt="enablessh">
+
+            To do this we need to rename the router, which we do with hostname. We create a domain name and generate 1024-bit RSA keys. To check the SSH server is running we do the following:
+                <img src="sshversion.png" alt="sshversion">
+
+            You may notice that SSH v2 is running compared to v1.99 in the earlier screenshot. To enable SSH v2 simply enter:
+                <br><br><code>ip ssh version 2</code>
+    
+                <h2 id="starting-ssh">Starting a SSH session</h2>
+                After configuring host1 (10.10.10.1) and host2 (10.10.10.2) we are now ready test our configuring. Lets try and SSH into the router from host2 first:
+                <img src="connectionrefused.png" alt="connectionrefused">
+
+            As expected, host2 which has an IP address of 10.10.10.2 is refused a SSH session (we are only allowing SSH sessions from 10.10.10.1). Let's start a SSH session from host1:
+                <img src="loggedin.png" alt="host1ssh">
+
+            You will notice that when initiated the SSH session I had to include some additional parameters, these were just used to force it to connect with the cipher suites the router supported. 
+                As expected host1 connects without issue as its IP address is 10.10.10.1. Entering the enable password and showing our privilege we can see we are assigned a level of 15 as setup on the router.
+            </article>
+
+            <div class="guide-footer">
+                <a href="../index.html" class="btn-back">
+                    <i class="fas fa-arrow-left"></i> Back to Guides
+                </a>
+            </div>
+        </main>
+    </div>
+
+    <button class="back-to-top" id="backToTop">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p><i class="fas fa-atom"></i> Quantum Repository</p>
+            <p>Technical guides for system administrators and developers</p>
+            <p>alex@slash-root.com | &copy; 2025</p>
+        </div>
+    </footer>
+
+    <script src="../guide.js"></script>
+</body>
+</html>

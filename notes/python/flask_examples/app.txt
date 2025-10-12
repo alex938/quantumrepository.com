@@ -1,0 +1,97 @@
+from flask import Flask, request, render_template, redirect, url_for, jsonify
+from json import loads
+
+app = Flask(__name__)
+app.config['DEBUG'] = True
+
+@app.route('/query')
+def query():
+    name = request.args.get('name')
+    location = request.args.get('location')
+    #http://127.0.0.1:5000/query?name=john&location=us
+    with open("info.txt", 'a') as file:
+        file.write(name)
+        file.write("\n")
+        file.write(location)
+    return '<h1>Hello {}, you are from {}</h1>'.format(name, location)
+
+@app.route('/theform')
+def form():
+    return  '''
+            <form method=POST action="/process>
+            <input type="text" name="name">
+            <input type="text" name="location">
+            <input type="submit" value="Submit">
+            </form>
+            '''
+
+@app.route('/process', methods=['POST'])
+def process():
+    name = request.form['name']
+    location = request.form['location']
+    return ('<h1>Hello {}, you are from {}.<br /><br />'
+            'Form submitted successfully</h1>').format(name, location)
+
+@app.route('/processjson', methods=['POST'])
+def processjson():
+    data = request.get_json() #convert json to python data structure
+    
+    name = data['name']
+    location = data['location']
+    randomlist = data['randomlist']
+    
+    return jsonify({'result':'Success', 'name': name, 'location': location, 'randominlist': randomlist[1]})
+
+
+@app.route('/results')
+def index():
+    return render_template('upload.html')
+
+@app.route('/upload', methods=['POST'])
+def upload_file():
+    if 'file' not in request.files:
+        return redirect(request.url)
+    file = request.files['file']
+    if file.filename == '':
+        return redirect(request.url)
+    if file:
+        content = file.read().decode('utf-8')
+        data = [loads(line) for line in content.strip().split('\n')]
+        passes_over_50 = sum(1 for d in data if d['result'] > 50)
+        return render_template('dashboard.html', data=data, passes_over_50=passes_over_50)
+
+
+@app.route('/json_test')
+def json():
+    return jsonify({'key':'value2','key2':[1,2,3]})
+'''
+@app.route('/<name>')
+def index(name):
+    return '<h1>Hello {}!</h1>'.format(name)
+'''
+
+
+@app.route('/home', methods=['GET', 'POST'], defaults={'name' : 'default_value'})
+@app.route('/home/<string:name>', methods=['GET', 'POST'])
+def home(name):
+    return '<h1>Hello and welcome {}</h1>'.format(name)
+
+@app.route('/theform2', methods=['GET', 'POST'])
+def form2():
+    if request.method == 'GET':
+        return  '''
+                <form method=POST action="/theform2">
+                <input type="text" name="name">
+                <input type="text" name="location">
+                <input type="submit" value="Submit">
+                </form>
+                '''
+    else:
+        name = request.form['name']
+        location = request.form['location']
+        return redirect(url_for('home', name=name, location=location))
+
+if __name__ == '__main__':
+    app.run()
+
+    

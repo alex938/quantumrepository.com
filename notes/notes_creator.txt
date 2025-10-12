@@ -1,0 +1,32 @@
+import os
+import os
+
+directory = "./notes"  
+
+with open("notes.html", "w") as notes_index:
+    notes_index.write('''
+    <html>
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.1/css/all.css">
+            <link rel="stylesheet" href="style.css">
+            <title>slash-root</title>
+        </head>
+        <title>Notes Index</title>
+        <body><h1>Notes Index</h1></body>      
+    ''')
+
+    for root, dirs, files in os.walk(directory):
+        for file in files:
+            if file.endswith('pdf' or 'txt'):
+                notes_index.write('<a href="notes/{}">{}</a><br>'.format(file, file))
+
+        for dir in dirs:
+            notes_index.write('<h2>{}</h2>'.format(dir))
+            dir_path = os.path.join(root, dir)
+            for file in os.listdir(dir_path):
+                full_file_path = os.path.join(dir_path, file)
+                if os.path.isfile(full_file_path):
+                    relative_file_path = os.path.relpath(full_file_path, directory)
+                    notes_index.write('<a href="{}">{}</a><br>\n'.format("notes\\" + relative_file_path, file))

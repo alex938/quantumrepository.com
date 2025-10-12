@@ -1,0 +1,418 @@
+/* ============================================
+   QUANTUM REPOSITORY - GUIDE PAGE STYLES
+   Fixed layout with proper spacing
+   ============================================ */
+
+/* Guide Container - Two-column layout */
+.guide-container {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 2rem;
+    max-width: 1400px;
+    margin: 2rem auto;
+    padding: 0 2rem;
+}
+
+/* Sidebar with TOC */
+.guide-sidebar {
+    position: sticky;
+    top: 120px;
+    align-self: start;
+    height: fit-content;
+    max-height: calc(100vh - 140px);
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.guide-sidebar::-webkit-scrollbar {
+    width: 0px;
+    background: transparent;
+}
+
+.sidebar-sticky {
+    background: var(--secondary-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1.5rem;
+}
+
+.toc-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.toc-header i {
+    color: var(--primary-color);
+    font-size: 1.25rem;
+}
+
+.toc-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: var(--heading-text);
+}
+
+.toc-nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.toc-nav li {
+    margin-bottom: 0.5rem;
+}
+
+.toc-nav a {
+    display: block;
+    padding: 0.5rem 0.75rem;
+    color: var(--primary-text);
+    text-decoration: none;
+    border-radius: 6px;
+    transition: all 0.2s;
+    font-size: 0.95rem;
+    border-left: 3px solid transparent;
+}
+
+.toc-nav a:hover {
+    background-color: var(--tertiary-bg);
+    color: var(--primary-color);
+    border-left-color: var(--primary-color);
+    padding-left: 1rem;
+}
+
+.toc-nav a.active {
+    background-color: var(--tertiary-bg);
+    color: var(--primary-color);
+    border-left-color: var(--primary-color);
+    font-weight: 600;
+}
+
+/* Main content area */
+.guide-content {
+    background-color: var(--secondary-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 2.5rem;
+    min-height: 60vh;
+}
+
+.guide-content article {
+    max-width: 100%;
+}
+
+/* Content Typography */
+.guide-content h2 {
+    font-size: 1.8rem;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid var(--border-color);
+    color: var(--heading-text);
+    scroll-margin-top: 120px;
+}
+
+.guide-content h2:first-child {
+    margin-top: 0;
+}
+
+.guide-content h3 {
+    font-size: 1.4rem;
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+    color: var(--heading-text);
+}
+
+.guide-content p {
+    line-height: 1.8;
+    margin-bottom: 1.25rem;
+    color: var(--primary-text);
+}
+
+.guide-content hr {
+    display: none;
+}
+
+.guide-content ul,
+.guide-content ol {
+    margin-bottom: 1.5rem;
+    padding-left: 1.75rem;
+    line-height: 1.8;
+}
+
+.guide-content li {
+    margin-bottom: 0.5rem;
+    color: var(--primary-text);
+}
+
+/* Image Spacing - CRITICAL FIX */
+.guide-content img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    margin: 1.5rem 0;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Images inside lists need special handling */
+.guide-content ul img,
+.guide-content ol img {
+    margin: 1rem 0;
+}
+
+/* Code blocks */
+.guide-content pre {
+    background: #1e1e1e;
+    color: #d4d4d4;
+    padding: 1.5rem;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin: 1.5rem 0;
+    border: 1px solid var(--border-color);
+}
+
+.guide-content code {
+    background: var(--tertiary-bg);
+    padding: 0.2rem 0.4rem;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9em;
+}
+
+.guide-content pre code {
+    background: none;
+    padding: 0;
+}
+
+/* Inline code in hilite.me divs */
+.guide-content div[style*="background: #202020"] {
+    margin: 1.5rem 0 !important;
+    border-radius: 8px !important;
+    border: 1px solid var(--border-color) !important;
+}
+
+/* Breadcrumbs */
+.breadcrumbs {
+    background: var(--secondary-bg);
+    border-bottom: 1px solid var(--border-color);
+    padding: 1rem 0;
+}
+
+.breadcrumbs .container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.breadcrumbs a {
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+.breadcrumbs a:hover {
+    text-decoration: underline;
+}
+
+.breadcrumbs span {
+    color: var(--secondary-text);
+}
+
+.category-badge {
+    background: var(--primary-color);
+    color: var(--primary-bg);
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+/* Guide Footer */
+.guide-footer {
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 2px solid var(--border-color);
+}
+
+.guide-actions {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.btn-primary,
+.btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.2s;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.btn-primary {
+    background: var(--primary-color);
+    color: var(--primary-bg);
+}
+
+.btn-primary:hover {
+    background: var(--accent-color);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 212, 255, 0.3);
+}
+
+.btn-secondary {
+    background: var(--secondary-bg);
+    color: var(--primary-text);
+    border: 1px solid var(--border-color);
+}
+
+.btn-secondary:hover {
+    background: var(--tertiary-bg);
+    border-color: var(--primary-color);
+    transform: translateY(-2px);
+}
+
+/* Back to Top Button */
+.back-to-top {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    width: 50px;
+    height: 50px;
+    background: var(--primary-color);
+    color: var(--primary-bg);
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s;
+    z-index: 999;
+}
+
+.back-to-top:hover {
+    background: var(--accent-color);
+    transform: translateY(-4px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+}
+
+.back-to-top.show {
+    display: flex;
+}
+
+/* Reading Progress Bar */
+.reading-progress-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 0%;
+    height: 4px;
+    background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+    z-index: 9999;
+    transition: width 0.2s;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .guide-container {
+        grid-template-columns: 1fr;
+        padding: 0 1.5rem;
+    }
+    
+    .guide-sidebar {
+        position: static;
+        max-height: none;
+        margin-bottom: 2rem;
+    }
+    
+    .guide-content {
+        padding: 2rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .guide-container {
+        padding: 0 1rem;
+        margin: 1rem auto;
+    }
+    
+    .guide-content {
+        padding: 1.5rem;
+    }
+    
+    .guide-content h2 {
+        font-size: 1.5rem;
+    }
+    
+    .guide-content h3 {
+        font-size: 1.2rem;
+    }
+    
+    .breadcrumbs .container {
+        padding: 0 1rem;
+    }
+    
+    .back-to-top {
+        bottom: 1rem;
+        right: 1rem;
+        width: 45px;
+        height: 45px;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .site-header,
+    .breadcrumbs,
+    .guide-sidebar,
+    .guide-footer,
+    .back-to-top,
+    .site-footer,
+    .reading-progress-bar {
+        display: none !important;
+    }
+    
+    .guide-container {
+        grid-template-columns: 1fr;
+        max-width: 100%;
+        margin: 0;
+        padding: 0;
+    }
+    
+    .guide-content {
+        border: none;
+        padding: 0;
+    }
+    
+    .guide-content img {
+        max-width: 80%;
+        page-break-inside: avoid;
+    }
+}
+
+/* Fix for white class used in content */
+.guide-content .white {
+    color: var(--heading-text) !important;
+}
+
+/* Fix for section-1 div if present */
+.guide-content .section-1 {
+    width: 100%;
+}

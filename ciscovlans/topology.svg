@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" style="background: #0d1117;">
+  <defs>
+    <!-- Gradients -->
+    <linearGradient id="switchGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#1f2937;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#111827;stop-opacity:1" />
+    </linearGradient>
+    
+    <linearGradient id="coreGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e3a5f;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0f2744;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Shadow filter -->
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
+      <feOffset dx="0" dy="3" result="offsetblur"/>
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.4"/>
+      </feComponentTransfer>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Title -->
+  <text x="600" y="35" font-family="'Segoe UI', Arial, sans-serif" font-size="26" font-weight="700" fill="#c9d1d9" text-anchor="middle">
+    TechCorp VLAN Network Topology
+  </text>
+  <text x="600" y="60" font-family="'Segoe UI', Arial, sans-serif" font-size="13" fill="#8b949e" text-anchor="middle">
+    Three department VLANs (10, 20, 30) with native VLAN 999 on all trunks
+  </text>
+  
+  <!-- ========== SWITCH 1 (Core) ========== -->
+  <g filter="url(#shadow)">
+    <rect x="475" y="110" width="250" height="100" rx="10" fill="url(#coreGrad)" stroke="#3b82f6" stroke-width="2.5"/>
+    <!-- Core badge -->
+    <rect x="520" y="118" width="160" height="28" rx="14" fill="#1e40af" opacity="0.5"/>
+    <text x="600" y="137" font-family="'Segoe UI', Arial, sans-serif" font-size="13" font-weight="600" fill="#60a5fa" text-anchor="middle">CORE SWITCH</text>
+    
+    <text x="600" y="165" font-family="'Segoe UI', Arial, sans-serif" font-size="20" font-weight="bold" fill="#e6edf3" text-anchor="middle">Switch1</text>
+    <text x="600" y="190" font-family="'Consolas', monospace" font-size="11" fill="#8b949e" text-anchor="middle">Gi0/0: Access  |  Gi0/2, Gi0/3: Trunks</text>
+  </g>
+  
+  <!-- ========== SWITCH 2 ========== -->
+  <g filter="url(#shadow)">
+    <rect x="850" y="350" width="230" height="90" rx="8" fill="url(#switchGrad)" stroke="#8b5cf6" stroke-width="2"/>
+    <text x="965" y="385" font-family="'Segoe UI', Arial, sans-serif" font-size="18" font-weight="bold" fill="#e6edf3" text-anchor="middle">Switch2</text>
+    <text x="965" y="407" font-family="'Consolas', monospace" font-size="10" fill="#8b949e" text-anchor="middle">Access Switch</text>
+    <text x="965" y="425" font-family="'Consolas', monospace" font-size="10" fill="#6e7681" text-anchor="middle">Gi0/0: Access  |  Gi0/2, Gi0/3: Trunks</text>
+  </g>
+  
+  <!-- ========== SWITCH 3 ========== -->
+  <g filter="url(#shadow)">
+    <rect x="120" y="350" width="230" height="90" rx="8" fill="url(#switchGrad)" stroke="#ec4899" stroke-width="2"/>
+    <text x="235" y="385" font-family="'Segoe UI', Arial, sans-serif" font-size="18" font-weight="bold" fill="#e6edf3" text-anchor="middle">Switch3</text>
+    <text x="235" y="407" font-family="'Consolas', monospace" font-size="10" fill="#8b949e" text-anchor="middle">Access Switch</text>
+    <text x="235" y="425" font-family="'Consolas', monospace" font-size="10" fill="#6e7681" text-anchor="middle">Gi0/0: Access  |  Gi0/2, Gi0/3: Trunks</text>
+  </g>
+  
+  <!-- ========== PCs ========== -->
+  <!-- PC1 (VLAN 10 - Sales) -->
+  <g filter="url(#shadow)">
+    <rect x="510" y="680" width="180" height="85" rx="8" fill="#0d1117" stroke="#22c55e" stroke-width="2.5"/>
+    <circle cx="600" cy="710" r="15" fill="#22c55e" opacity="0.2"/>
+    <text x="600" y="708" font-family="'Segoe UI', Arial, sans-serif" font-size="14" font-weight="bold" fill="#e6edf3" text-anchor="middle">💼 PC1</text>
+    <text x="600" y="730" font-family="'Segoe UI', Arial, sans-serif" font-size="12" font-weight="600" fill="#22c55e" text-anchor="middle">VLAN 10 - Sales</text>
+    <text x="600" y="750" font-family="'Consolas', monospace" font-size="11" fill="#8b949e" text-anchor="middle">192.168.10.5/24</text>
+  </g>
+  
+  <!-- PC2 (VLAN 20 - Engineering) -->
+  <g filter="url(#shadow)">
+    <rect x="875" y="680" width="180" height="85" rx="8" fill="#0d1117" stroke="#3b82f6" stroke-width="2.5"/>
+    <circle cx="965" cy="710" r="15" fill="#3b82f6" opacity="0.2"/>
+    <text x="965" y="708" font-family="'Segoe UI', Arial, sans-serif" font-size="14" font-weight="bold" fill="#e6edf3" text-anchor="middle">⚙️ PC2</text>
+    <text x="965" y="730" font-family="'Segoe UI', Arial, sans-serif" font-size="12" font-weight="600" fill="#3b82f6" text-anchor="middle">VLAN 20 - Engineering</text>
+    <text x="965" y="750" font-family="'Consolas', monospace" font-size="11" fill="#8b949e" text-anchor="middle">192.168.20.5/24</text>
+  </g>
+  
+  <!-- PC3 (VLAN 30 - Guest) -->
+  <g filter="url(#shadow)">
+    <rect x="145" y="680" width="180" height="85" rx="8" fill="#0d1117" stroke="#f59e0b" stroke-width="2.5"/>
+    <circle cx="235" cy="710" r="15" fill="#f59e0b" opacity="0.2"/>
+    <text x="235" y="708" font-family="'Segoe UI', Arial, sans-serif" font-size="14" font-weight="bold" fill="#e6edf3" text-anchor="middle">📱 PC3</text>
+    <text x="235" y="730" font-family="'Segoe UI', Arial, sans-serif" font-size="12" font-weight="600" fill="#f59e0b" text-anchor="middle">VLAN 30 - Guest</text>
+    <text x="235" y="750" font-family="'Consolas', monospace" font-size="11" fill="#8b949e" text-anchor="middle">192.168.30.5/24</text>
+  </g>
+  
+  <!-- ========== TRUNK LINKS ========== -->
+  <!-- Switch1 to Switch2 trunk -->
+  <line x1="660" y1="210" x2="920" y2="350" stroke="#ef4444" stroke-width="3.5" stroke-dasharray="10,5"/>
+  <rect x="750" y="260" width="140" height="55" rx="6" fill="#1c1917" stroke="#ef4444" stroke-width="1.5"/>
+  <text x="820" y="278" font-family="'Consolas', monospace" font-size="11" font-weight="bold" fill="#ef4444" text-anchor="middle">TRUNK</text>
+  <text x="820" y="294" font-family="'Consolas', monospace" font-size="9" fill="#c9d1d9" text-anchor="middle">Allowed: 10,20,30,999</text>
+  <text x="820" y="307" font-family="'Consolas', monospace" font-size="9" fill="#8b949e" text-anchor="middle">Native VLAN 999</text>
+  
+  <!-- Switch1 to Switch3 trunk -->
+  <line x1="540" y1="210" x2="280" y2="350" stroke="#ef4444" stroke-width="3.5" stroke-dasharray="10,5"/>
+  <rect x="360" y="260" width="140" height="55" rx="6" fill="#1c1917" stroke="#ef4444" stroke-width="1.5"/>
+  <text x="430" y="278" font-family="'Consolas', monospace" font-size="11" font-weight="bold" fill="#ef4444" text-anchor="middle">TRUNK</text>
+  <text x="430" y="294" font-family="'Consolas', monospace" font-size="9" fill="#c9d1d9" text-anchor="middle">Allowed: 10,20,30,999</text>
+  <text x="430" y="307" font-family="'Consolas', monospace" font-size="9" fill="#8b949e" text-anchor="middle">Native VLAN 999</text>
+  
+  <!-- Switch2 to Switch3 trunk -->
+  <line x1="350" y1="395" x2="850" y2="395" stroke="#ef4444" stroke-width="3.5" stroke-dasharray="10,5"/>
+  <rect x="540" y="375" width="140" height="55" rx="6" fill="#1c1917" stroke="#ef4444" stroke-width="1.5"/>
+  <text x="610" y="393" font-family="'Consolas', monospace" font-size="11" font-weight="bold" fill="#ef4444" text-anchor="middle">TRUNK</text>
+  <text x="610" y="409" font-family="'Consolas', monospace" font-size="9" fill="#c9d1d9" text-anchor="middle">Allowed: 10,20,30,999</text>
+  <text x="610" y="422" font-family="'Consolas', monospace" font-size="9" fill="#8b949e" text-anchor="middle">Native VLAN 999</text>
+  
+  <!-- ========== ACCESS LINKS ========== -->
+  <!-- Switch1 to PC1 (VLAN 10) -->
+  <line x1="600" y1="210" x2="600" y2="680" stroke="#22c55e" stroke-width="3"/>
+  <rect x="555" y="430" width="90" height="40" rx="5" fill="#065f46" stroke="#22c55e" stroke-width="1.5"/>
+  <text x="600" y="447" font-family="'Consolas', monospace" font-size="10" font-weight="bold" fill="#d1fae5" text-anchor="middle">ACCESS</text>
+  <text x="600" y="462" font-family="'Consolas', monospace" font-size="9" fill="#86efac" text-anchor="middle">VLAN 10</text>
+  
+  <!-- Switch2 to PC2 (VLAN 20) -->
+  <line x1="965" y1="440" x2="965" y2="680" stroke="#3b82f6" stroke-width="3"/>
+  <rect x="920" y="540" width="90" height="40" rx="5" fill="#1e3a8a" stroke="#3b82f6" stroke-width="1.5"/>
+  <text x="965" y="557" font-family="'Consolas', monospace" font-size="10" font-weight="bold" fill="#dbeafe" text-anchor="middle">ACCESS</text>
+  <text x="965" y="572" font-family="'Consolas', monospace" font-size="9" fill="#93c5fd" text-anchor="middle">VLAN 20</text>
+  
+  <!-- Switch3 to PC3 (VLAN 30) -->
+  <line x1="235" y1="440" x2="235" y2="680" stroke="#f59e0b" stroke-width="3"/>
+  <rect x="190" y="540" width="90" height="40" rx="5" fill="#78350f" stroke="#f59e0b" stroke-width="1.5"/>
+  <text x="235" y="557" font-family="'Consolas', monospace" font-size="10" font-weight="bold" fill="#fef3c7" text-anchor="middle">ACCESS</text>
+  <text x="235" y="572" font-family="'Consolas', monospace" font-size="9" fill="#fbbf24" text-anchor="middle">VLAN 30</text>
+  
+  <!-- ========== LEGEND ========== -->
+  <g filter="url(#shadow)">
+    <rect x="30" y="30" width="240" height="165" rx="8" fill="#161b22" stroke="#30363d" stroke-width="2"/>
+    <text x="150" y="55" font-family="'Segoe UI', Arial, sans-serif" font-size="14" font-weight="bold" fill="#c9d1d9" text-anchor="middle">Legend</text>
+    
+    <!-- Trunk line -->
+    <line x1="50" y1="75" x2="105" y2="75" stroke="#ef4444" stroke-width="3" stroke-dasharray="8,4"/>
+    <text x="115" y="79" font-family="'Segoe UI', Arial, sans-serif" font-size="11" fill="#c9d1d9">Trunk Link</text>
+    
+    <!-- Access VLAN 10 -->
+    <line x1="50" y1="100" x2="105" y2="100" stroke="#22c55e" stroke-width="3"/>
+    <text x="115" y="104" font-family="'Segoe UI', Arial, sans-serif" font-size="11" fill="#c9d1d9">Access (VLAN 10)</text>
+    
+    <!-- Access VLAN 20 -->
+    <line x1="50" y1="125" x2="105" y2="125" stroke="#3b82f6" stroke-width="3"/>
+    <text x="115" y="129" font-family="'Segoe UI', Arial, sans-serif" font-size="11" fill="#c9d1d9">Access (VLAN 20)</text>
+    
+    <!-- Access VLAN 30 -->
+    <line x1="50" y1="150" x2="105" y2="150" stroke="#f59e0b" stroke-width="3"/>
+    <text x="115" y="154" font-family="'Segoe UI', Arial, sans-serif" font-size="11" fill="#c9d1d9">Access (VLAN 30)</text>
+    
+    <!-- Note -->
+    <text x="150" y="180" font-family="'Segoe UI', Arial, sans-serif" font-size="9" font-style="italic" fill="#6e7681" text-anchor="middle">All trunks use 802.1Q tagging</text>
+  </g>
+</svg>
