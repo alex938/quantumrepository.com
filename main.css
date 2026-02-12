@@ -159,16 +159,8 @@ pre code {
    HEADER & NAVIGATION
    ============================================ */
 
+header,
 .site-header {
-    background: linear-gradient(135deg, var(--secondary-bg) 0%, var(--tertiary-bg) 100%);
-    border-bottom: 2px solid var(--primary-color);
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-    box-shadow: 0 4px 20px var(--shadow);
-}
-
-header {
     background: linear-gradient(135deg, var(--secondary-bg) 0%, var(--tertiary-bg) 100%);
     border-bottom: 2px solid var(--primary-color);
     position: sticky;
@@ -329,7 +321,7 @@ nav ul li a:hover {
 main {
     max-width: 1400px;
     margin: 0 auto;
-    padding: var(--spacing-2xl) var(--spacing-xl);
+    padding: var(--spacing-2xl) var(--spacing-xl) 0;
 }
 
 .container {
@@ -471,7 +463,7 @@ main {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
     gap: var(--spacing-xl);
-    margin-bottom: var(--spacing-2xl);
+    margin-bottom: var(--spacing-xl);
 }
 
 .card {
@@ -480,7 +472,6 @@ main {
     border-radius: var(--radius-lg);
     padding: var(--spacing-lg);
     transition: all var(--transition-normal);
-    cursor: pointer;
     position: relative;
     overflow: hidden;
 }
@@ -497,13 +488,17 @@ main {
     transition: transform var(--transition-normal);
 }
 
-.card:hover {
+.guides-grid .card {
+    cursor: pointer;
+}
+
+.guides-grid .card:hover {
     transform: translateY(-5px);
     box-shadow: 0 8px 24px var(--shadow);
     border-color: var(--accent-primary);
 }
 
-.card:hover::before {
+.guides-grid .card:hover::before {
     transform: scaleX(1);
 }
 
@@ -663,13 +658,49 @@ main {
     color: #ffffff;
 }
 
+/* Copy code button (injected by guide.js) */
+.copy-code-btn {
+    position: absolute;
+    top: var(--spacing-sm);
+    right: var(--spacing-sm);
+    background-color: var(--tertiary-bg);
+    border: 1px solid var(--border-color);
+    color: var(--primary-text);
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all var(--transition-fast);
+    opacity: 0;
+    z-index: 1;
+}
+
+.code-block {
+    position: relative;
+}
+
+.code-block:hover .copy-code-btn {
+    opacity: 1;
+}
+
+.copy-code-btn:hover {
+    background-color: var(--accent-primary);
+    color: #ffffff;
+}
+
+.copy-code-btn.copied {
+    background-color: var(--success);
+    color: #ffffff;
+    opacity: 1;
+}
+
 /* ============================================
    FOOTER
    ============================================ */
 
 footer {
     max-width: 1400px;
-    margin: var(--spacing-md) auto 0;
+    margin: var(--spacing-xl) auto 0;
     padding: 0 var(--spacing-xl) var(--spacing-2xl);
 }
 

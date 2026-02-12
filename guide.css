@@ -1,300 +1,232 @@
 /* ============================================
    QUANTUM REPOSITORY - GUIDE PAGE STYLES
-   Fixed layout with proper spacing
+   Consolidated from inline styles across all guide pages
    ============================================ */
 
-/* Guide Container - Two-column layout */
-.guide-container {
-    display: grid;
-    grid-template-columns: 280px 1fr;
-    gap: 2rem;
-    max-width: 1400px;
-    margin: 2rem auto;
-    padding: 0 2rem;
-}
-
-/* Sidebar with TOC */
-.guide-sidebar {
-    position: sticky;
-    top: 120px;
-    align-self: start;
-    height: fit-content;
-    max-height: calc(100vh - 140px);
-    overflow-y: auto;
-    overflow-x: hidden;
-}
-
-.guide-sidebar::-webkit-scrollbar {
-    width: 0px;
-    background: transparent;
-}
-
-.sidebar-sticky {
-    background: var(--secondary-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
-    padding: 1.5rem;
-}
-
-.toc-header {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    margin-bottom: 1.5rem;
-    padding-bottom: 1rem;
-    border-bottom: 2px solid var(--border-color);
-}
-
-.toc-header i {
-    color: var(--primary-color);
-    font-size: 1.25rem;
-}
-
-.toc-header h3 {
+/* Full-width layout */
+body {
     margin: 0;
-    font-size: 1.1rem;
-    color: var(--heading-text);
-}
-
-.toc-nav ul {
-    list-style: none;
     padding: 0;
-    margin: 0;
 }
 
-.toc-nav li {
-    margin-bottom: 0.5rem;
+.guide-container {
+    width: 95%;
+    max-width: none !important;
+    margin: 2rem auto;
+    padding: 0 2.5%;
 }
 
-.toc-nav a {
-    display: block;
-    padding: 0.5rem 0.75rem;
-    color: var(--primary-text);
-    text-decoration: none;
-    border-radius: 6px;
-    transition: all 0.2s;
-    font-size: 0.95rem;
-    border-left: 3px solid transparent;
-}
-
-.toc-nav a:hover {
-    background-color: var(--tertiary-bg);
-    color: var(--primary-color);
-    border-left-color: var(--primary-color);
-    padding-left: 1rem;
-}
-
-.toc-nav a.active {
-    background-color: var(--tertiary-bg);
-    color: var(--primary-color);
-    border-left-color: var(--primary-color);
-    font-weight: 600;
-}
-
-/* Main content area */
 .guide-content {
-    background-color: var(--secondary-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
-    padding: 2.5rem;
-    min-height: 60vh;
+    width: 100%;
+    max-width: none !important;
 }
 
 .guide-content article {
+    line-height: 1.8;
+    font-size: 1.15rem;
+    width: 100%;
+    padding-top: 1.5rem;
+}
+
+.guide-content img {
     max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 2rem auto;
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
 }
 
-/* Content Typography */
 .guide-content h2 {
-    font-size: 1.8rem;
-    margin-top: 2rem;
-    margin-bottom: 1rem;
+    margin-top: 3rem;
+    margin-bottom: 1.5rem;
     padding-bottom: 0.75rem;
-    border-bottom: 2px solid var(--border-color);
-    color: var(--heading-text);
-    scroll-margin-top: 120px;
-}
-
-.guide-content h2:first-child {
-    margin-top: 0;
+    border-bottom: 3px solid var(--primary-color);
+    font-size: 2rem;
 }
 
 .guide-content h3 {
-    font-size: 1.4rem;
-    margin-top: 1.5rem;
-    margin-bottom: 0.75rem;
-    color: var(--heading-text);
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
 }
 
 .guide-content p {
-    line-height: 1.8;
-    margin-bottom: 1.25rem;
-    color: var(--primary-text);
-}
-
-.guide-content hr {
-    display: none;
-}
-
-.guide-content ul,
-.guide-content ol {
     margin-bottom: 1.5rem;
-    padding-left: 1.75rem;
+    line-height: 1.8;
+}
+
+.guide-content ul, .guide-content ol {
+    margin-bottom: 1.5rem;
+    padding-left: 2.5rem;
     line-height: 1.8;
 }
 
 .guide-content li {
-    margin-bottom: 0.5rem;
-    color: var(--primary-text);
-}
-
-/* Image Spacing - CRITICAL FIX */
-.guide-content img {
-    display: block;
-    max-width: 100%;
-    height: auto;
-    margin: 1.5rem 0;
-    border-radius: 8px;
-    border: 1px solid var(--border-color);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-/* Images inside lists need special handling */
-.guide-content ul img,
-.guide-content ol img {
-    margin: 1rem 0;
-}
-
-/* Code blocks */
-.guide-content pre {
-    background: #1e1e1e;
-    color: #d4d4d4;
-    padding: 1.5rem;
-    border-radius: 8px;
-    overflow-x: auto;
-    margin: 1.5rem 0;
-    border: 1px solid var(--border-color);
+    margin-bottom: 0.75rem;
 }
 
 .guide-content code {
-    background: var(--tertiary-bg);
-    padding: 0.2rem 0.4rem;
+    background: #2d2d2d;
+    color: #f0f0f0;
+    padding: 0.3em 0.6em;
     border-radius: 4px;
-    font-family: 'Courier New', monospace;
-    font-size: 0.9em;
-}
-
-.guide-content pre code {
-    background: none;
-    padding: 0;
-}
-
-/* Inline code in hilite.me divs */
-.guide-content div[style*="background: #202020"] {
-    margin: 1.5rem 0 !important;
-    border-radius: 8px !important;
-    border: 1px solid var(--border-color) !important;
-}
-
-/* Breadcrumbs */
-.breadcrumbs {
-    background: var(--secondary-bg);
-    border-bottom: 1px solid var(--border-color);
-    padding: 1rem 0;
-}
-
-.breadcrumbs .container {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 0 2rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.9rem;
-}
-
-.breadcrumbs a {
-    color: var(--primary-color);
-    text-decoration: none;
-}
-
-.breadcrumbs a:hover {
-    text-decoration: underline;
-}
-
-.breadcrumbs span {
-    color: var(--secondary-text);
-}
-
-.category-badge {
-    background: var(--primary-color);
-    color: var(--primary-bg);
-    padding: 0.25rem 0.75rem;
-    border-radius: 12px;
-    font-size: 0.85rem;
-    font-weight: 600;
-}
-
-/* Guide Footer */
-.guide-footer {
-    margin-top: 3rem;
-    padding-top: 2rem;
-    border-top: 2px solid var(--border-color);
-}
-
-.guide-actions {
-    display: flex;
-    gap: 1rem;
-    flex-wrap: wrap;
-}
-
-.btn-primary,
-.btn-secondary {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.75rem 1.5rem;
-    border-radius: 8px;
-    text-decoration: none;
-    font-weight: 600;
-    transition: all 0.2s;
-    border: none;
-    cursor: pointer;
+    font-family: 'Consolas', 'Monaco', monospace;
     font-size: 1rem;
 }
 
-.btn-primary {
+.guide-content pre {
+    background: #1e1e1e;
+    color: #d4d4d4;
+    padding: 2rem;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin: 2rem 0;
+    font-size: 1rem;
+    line-height: 1.6;
+}
+
+.guide-footer {
+    margin-top: 4rem;
+    padding-top: 2rem;
+    border-top: 2px solid var(--border-color);
+    text-align: center;
+}
+
+.btn-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 2rem;
     background: var(--primary-color);
-    color: var(--primary-bg);
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 1.1rem;
+    transition: all 0.3s;
 }
 
-.btn-primary:hover {
-    background: var(--accent-color);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 212, 255, 0.3);
+.btn-back:hover {
+    background: var(--accent-hover);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.3);
 }
 
-.btn-secondary {
-    background: var(--secondary-bg);
-    color: var(--primary-text);
-    border: 1px solid var(--border-color);
+/* Override conflicting max-width from main.css */
+.guide-container .container {
+    max-width: none !important;
+    width: 100%;
 }
 
-.btn-secondary:hover {
-    background: var(--tertiary-bg);
-    border-color: var(--primary-color);
-    transform: translateY(-2px);
+.site-header .container {
+    max-width: 95%;
+    width: 95%;
 }
 
-/* Back to Top Button */
+.breadcrumbs .container {
+    max-width: 95%;
+    width: 95%;
+}
+
+/* ============================================
+   Python code block styles
+   (used by code/*.html pages)
+   ============================================ */
+
+.guide-content .code-block,
+.guide-content .output-block {
+    background: #202020;
+    overflow: auto;
+    width: auto;
+    border: solid gray;
+    border-width: .1em .1em .1em .8em;
+    padding: .2em .6em;
+    margin: 1.5rem 0;
+    border-radius: 4px;
+}
+
+.guide-content .code-block pre,
+.guide-content .output-block pre {
+    margin: 0;
+    line-height: 125%;
+    color: #d0d0d0;
+}
+
+/* ============================================
+   Scenario & command box styles
+   (used by advanced CISCO guide pages)
+   ============================================ */
+
+.scenario-box {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: 12px;
+    margin: 2rem 0;
+    box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
+}
+
+.scenario-box h3 {
+    margin-top: 0;
+    color: white;
+    font-size: 1.8rem;
+}
+
+.scenario-box p {
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+}
+
+.scenario-box ul {
+    margin: 1rem 0;
+}
+
+.scenario-box li {
+    margin-bottom: 0.75rem;
+}
+
+.command-box {
+    background: #1e1e1e;
+    border-left: 4px solid #4CAF50;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+    border-radius: 4px;
+}
+
+.command-box h4 {
+    color: #4CAF50;
+    margin-top: 0;
+    font-size: 1.2rem;
+}
+
+/* ============================================
+   Reading Progress Bar
+   ============================================ */
+
+.reading-progress-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 0%;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+    z-index: 10000;
+    transition: width 0.2s;
+}
+
+/* ============================================
+   Back to Top Button
+   ============================================ */
+
 .back-to-top {
     position: fixed;
     bottom: 2rem;
     right: 2rem;
     width: 50px;
     height: 50px;
-    background: var(--primary-color);
-    color: var(--primary-bg);
+    background: var(--accent-primary);
+    color: #ffffff;
     border: none;
     border-radius: 50%;
     cursor: pointer;
@@ -308,67 +240,37 @@
 }
 
 .back-to-top:hover {
-    background: var(--accent-color);
+    background: var(--accent-hover);
     transform: translateY(-4px);
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
 }
 
-.back-to-top.show {
+.back-to-top.visible {
     display: flex;
 }
 
-/* Reading Progress Bar */
-.reading-progress-bar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 0%;
-    height: 4px;
-    background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
-    z-index: 9999;
-    transition: width 0.2s;
-}
-
-/* Responsive Design */
-@media (max-width: 1024px) {
-    .guide-container {
-        grid-template-columns: 1fr;
-        padding: 0 1.5rem;
-    }
-    
-    .guide-sidebar {
-        position: static;
-        max-height: none;
-        margin-bottom: 2rem;
-    }
-    
-    .guide-content {
-        padding: 2rem;
-    }
-}
+/* ============================================
+   Responsive Design
+   ============================================ */
 
 @media (max-width: 768px) {
     .guide-container {
         padding: 0 1rem;
         margin: 1rem auto;
     }
-    
-    .guide-content {
-        padding: 1.5rem;
-    }
-    
+
     .guide-content h2 {
         font-size: 1.5rem;
     }
-    
+
     .guide-content h3 {
         font-size: 1.2rem;
     }
-    
+
     .breadcrumbs .container {
         padding: 0 1rem;
     }
-    
+
     .back-to-top {
         bottom: 1rem;
         right: 1rem;
@@ -377,42 +279,38 @@
     }
 }
 
-/* Print Styles */
+/* ============================================
+   Print Styles
+   ============================================ */
+
 @media print {
     .site-header,
     .breadcrumbs,
-    .guide-sidebar,
     .guide-footer,
     .back-to-top,
     .site-footer,
     .reading-progress-bar {
         display: none !important;
     }
-    
+
     .guide-container {
-        grid-template-columns: 1fr;
         max-width: 100%;
         margin: 0;
         padding: 0;
     }
-    
+
     .guide-content {
         border: none;
         padding: 0;
     }
-    
+
     .guide-content img {
         max-width: 80%;
         page-break-inside: avoid;
     }
 }
 
-/* Fix for white class used in content */
+/* Fix for white class used in older content */
 .guide-content .white {
     color: var(--heading-text) !important;
-}
-
-/* Fix for section-1 div if present */
-.guide-content .section-1 {
-    width: 100%;
 }
