@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VLAN Trunking and Inter-VLAN Routing | Quantum Repository</title>
+    <meta name="description" content="A deep look at 802.1Q trunking, DTP, VTP, native VLAN security, router-on-a-stick, and Layer-3 switch SVIs, with a worked Cisco lab.">
+    <link rel="stylesheet" href="../main.css">
+    <link rel="stylesheet" href="../guide.css">
+    <link rel="stylesheet" href="../accessibility.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.1/css/all.css">
+</head>
+<body>
+    <div class="reading-progress-bar"></div>
+
+    <header class="site-header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-atom"></i>
+                    <span>Quantum Repository</span>
+                </div>
+                <nav class="main-nav">
+                    <a href="../index.html">Home</a>
+                    <a href="../index.html#guides">Guides</a>
+                    <a class="btn-donate" href="https://donate.stripe.com/5kQaEX2kMgnB85ia4ycZa00" target="_blank" rel="noopener noreferrer" aria-label="Donate – opens in a new tab"><i class="fas fa-heart" aria-hidden="true"></i><span>Donate</span></a>
+                    <button class="theme-toggle" id="themeToggle">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <div class="breadcrumbs">
+        <div class="container">
+            <a href="../index.html">Home</a>
+            <span>/</span>
+            <span class="category-badge">Networking</span>
+            <span>/</span>
+            <span>VLAN Trunking and Inter-VLAN Routing</span>
+        </div>
+    </div>
+
+    <div class="guide-container">
+        <main class="guide-content">
+            <article>
+<h2 id="vlan-trunking">VLAN Trunking and Inter-VLAN Routing</h2>
+
+<p>This guide picks up where our <a href="../ciscovlans/ciscovlans.html">CISCO VLANs Configuration</a> guide left off. There, we created VLANs and isolated three departments. Here, we'll look at how trunks actually carry multiple VLANs over a single link, how to lock those trunks down against common attacks, and then we'll let the traffic <em>between</em> VLANs flow safely through a router or a Layer-3 switch.</p>
+
+<div class="scenario-box">
+    <h3><i class="fas fa-network-wired"></i> Real-World Scenario</h3>
+    <p><strong>Sales (VLAN 10) needs to reach the internal Confluence wiki living in the Server VLAN (VLAN 50), but Guest (VLAN 30) must not.</strong> The switches keep the broadcast domains apart; we'll let a router (or a Layer-3 switch) selectively route between them and an ACL decide who can talk to whom.</p>
+</div>
+
+<h2 id="dot1q-tagging">802.1Q Tagging in Detail</h2>
+<p>IEEE 802.1Q (the canonical reference is the IEEE 802.1Q-2018 standard) defines how multiple VLANs share a single Ethernet link. When a switch sends a frame onto a trunk, it inserts a <strong>4-byte VLAN tag</strong> between the source MAC address and the EtherType/length field of the original frame. The tag breaks down like this:</p>
+
+<pre>
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|  TPID = 0x8100 (16 bits)      | PCP |D|       VID (12 bits) |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+</pre>
+
+<ul>
+    <li><strong>TPID — Tag Protocol Identifier (16 bits, 0x8100)</strong> tells the receiver "what follows is a 802.1Q tag."</li>
+    <li><strong>PCP — Priority Code Point (3 bits)</strong> carries 802.1p class-of-service (0 best-effort, 7 highest).</li>
+    <li><strong>DEI — Drop Eligible Indicator (1 bit)</strong> marks a frame as droppable under congestion.</li>
+    <li><strong>VID — VLAN Identifier (12 bits)</strong> gives 2<sup>12</sup> = <strong>4096</strong> possible VLAN IDs (0 and 4095 are reserved, leaving 4094 usable).</li>
+</ul>
+
+<p>The tag adds 4 bytes to the frame, which is why trunk-capable switches accept a slightly larger MTU on trunks (1522 bytes baseline frame size). The frame's CRC is recomputed after insertion. Crucially, <strong>the original IP packet is not modified</strong> — VLAN tagging happens entirely at Layer 2.</p>
+
+<h2 id="native-vlan">Native VLAN: Behavior and Pitfalls</h2>
+<p>On a trunk, one VLAN is special: the <strong>native VLAN</strong>. Frames in the native VLAN are sent <em>untagged</em>. This exists for backward compatibility with hubs and unmanaged devices that don't understand 802.1Q. It also creates two problems we need to solve.</p>
+
+<h3>Pitfall 1: Native VLAN Mismatch</h3>
+<p>If two ends of a trunk disagree on the native VLAN, frames traveling untagged from one side will be silently dropped or, worse, leak into the wrong VLAN on the other side. Cisco's CDP/LLDP will emit a log line, but only periodically:</p>
+
+<pre style="background: #2d2d2d; color: #ff6b6b; padding: 1rem;">
+%CDP-4-NATIVE_VLAN_MISMATCH: Native VLAN mismatch discovered on
+GigabitEthernet0/1 (999), with PeerSwitch GigabitEthernet0/1 (1).
+</pre>
+
+<h3>Pitfall 2: Native VLAN Hopping (Double Tagging)</h3>
+<p>An attacker on an <em>access port</em> in the native VLAN can craft a frame with <em>two</em> 802.1Q tags stacked. The first switch strips the outer tag (because the frame was on the native VLAN) and forwards what's left over the trunk. The inner tag (pointing at a victim VLAN) now reaches the next switch, which delivers the frame inside that VLAN. This is a one-way attack — replies don't come back — but it's enough for malicious broadcasts, ARP poisoning, or sending crafted packets to victims.</p>
+
+<p><strong>The defence:</strong></p>
+<ol>
+    <li>Pick an unused, "parked" VLAN as the native VLAN on every trunk (we like 999, labelled <code>BLACKHOLE</code>).</li>
+    <li>Make sure no access port is ever assigned to that native VLAN.</li>
+    <li>Force the switch to tag the native VLAN too — that defeats the double-tagging trick entirely.</li>
+</ol>
+
+<div class="command-box">
+    <h4>Pin and tag the native VLAN</h4>
+    <pre>
+! Global: tag the native VLAN on all dot1q trunks
+Switch(config)# vlan dot1q tag native
+
+! Per-trunk
+Switch(config)# interface Gi0/1
+Switch(config-if)# switchport mode trunk
+Switch(config-if)# switchport trunk encapsulation dot1q   ! On platforms that support multiple encaps
+Switch(config-if)# switchport trunk native vlan 999
+Switch(config-if)# switchport trunk allowed vlan 10,20,30,999
+Switch(config-if)# switchport nonegotiate
+</pre>
+</div>
+
+<h2 id="dtp">DTP and Why You Should Disable It</h2>
+<p>Dynamic Trunking Protocol is a Cisco-proprietary feature that lets two switches negotiate whether a link becomes a trunk. On default Cisco switchports it leaves you exposed to <strong>switch spoofing</strong>: an attacker plugs into a "dynamic auto" or "dynamic desirable" port, sends DTP packets pretending to be a switch, the port flips to trunk, and the attacker now sees every VLAN on the box.</p>
+
+<p>Always hardcode each port:</p>
+
+<div class="command-box">
+    <h4>Disable DTP and pin port mode</h4>
+    <pre>
+! Trunk ports
+Switch(config-if)# switchport mode trunk
+Switch(config-if)# switchport nonegotiate     ! stops DTP frames
+
+! Access ports
+Switch(config-if)# switchport mode access
+Switch(config-if)# switchport access vlan 10
+Switch(config-if)# switchport nonegotiate
+</pre>
+</div>
+
+<h2 id="allowed-vlans">The Allowed VLAN List</h2>
+<p>By default a trunk carries every VLAN that exists on the switch. That's noise we don't want — broadcasts from unrelated VLANs eat trunk bandwidth and widen the failure domain. Always prune to the minimum set:</p>
+
+<div class="command-box">
+    <h4>Restricting a trunk to known VLANs</h4>
+    <pre>
+Switch(config-if)# switchport trunk allowed vlan 10,20,30,999
+
+! Add to the existing list (don't replace it)
+Switch(config-if)# switchport trunk allowed vlan add 50
+
+! Remove one
+Switch(config-if)# switchport trunk allowed vlan remove 30
+
+! Verify
+Switch# show interfaces trunk
+Switch# show interfaces Gi0/1 trunk
+</pre>
+</div>
+
+<h2 id="vtp">VTP: Safest in Transparent or Off Mode</h2>
+<p>VLAN Trunking Protocol synchronizes the VLAN database across all switches in a VTP domain. It can be convenient on small networks; on larger ones it has historically been a footgun — a newly added switch with a higher configuration revision number can overwrite the entire domain's VLAN database, wiping VLANs across the whole network.</p>
+
+<p><strong>VTP modes:</strong></p>
+<ul>
+    <li><strong>Server</strong> – Can create/modify/delete VLANs and propagates them to clients (default on older IOS).</li>
+    <li><strong>Client</strong> – Receives VLAN updates only, cannot edit locally.</li>
+    <li><strong>Transparent</strong> – Ignores incoming VTP, has its own local VLAN database, forwards VTP traffic. <em>This is what we usually want.</em></li>
+    <li><strong>Off (VTPv3 only)</strong> – Doesn't process or forward VTP at all. Even safer where supported.</li>
+</ul>
+
+<div class="command-box">
+    <h4>Use VTP transparent (or off)</h4>
+    <pre>
+Switch(config)# vtp mode transparent
+Switch(config)# vtp domain LAB
+
+! On VTPv3-capable IOS:
+Switch(config)# vtp version 3
+Switch(config)# vtp mode off
+</pre>
+</div>
+
+<h2 id="lab-topology">Lab Topology for Inter-VLAN Routing</h2>
+<p>We'll keep the three department VLANs from the previous guide (Sales 10, Engineering 20, Guest 30) and add an internal server VLAN (50) on a Layer-3 device. We're going to compare two ways of doing the inter-VLAN routing: <em>router-on-a-stick</em> and a <em>Layer-3 switch with SVIs</em>.</p>
+
+<pre>
+                  +---------------------+
+                  |  Router / L3 Switch |
+                  |       (R1)          |
+                  +----------+----------+
+                             | Gi0/0  (Trunk: 10,20,30,50,999 native)
+                  +----------+----------+
+                  |       Switch1       |
+                  +----+----+-----+-----+
+                       |    |     |
+                    Gi0/1 Gi0/2  Gi0/3 (access)
+                    V10  V20    V30
+                     |    |      |
+                    PC1  PC2    PC3
+</pre>
+
+<p>Address plan:</p>
+<ul>
+    <li><strong>VLAN 10 (Sales):</strong> 192.168.10.0/24, gateway <code>.1</code>, PC1 = <code>.5</code></li>
+    <li><strong>VLAN 20 (Engineering):</strong> 192.168.20.0/24, gateway <code>.1</code>, PC2 = <code>.5</code></li>
+    <li><strong>VLAN 30 (Guest):</strong> 192.168.30.0/24, gateway <code>.1</code>, PC3 = <code>.5</code></li>
+    <li><strong>VLAN 50 (Servers):</strong> 192.168.50.0/24, gateway <code>.1</code></li>
+</ul>
+
+<h2 id="router-on-stick">Router-on-a-Stick (Subinterfaces)</h2>
+<p>A traditional Cisco IOS router with one physical interface can route between VLANs by carving its physical interface into <strong>subinterfaces</strong>, each tagged with a different VLAN. The switch sees the link as a trunk; the router sees N virtual interfaces.</p>
+
+<p>On the switch (Switch1):</p>
+
+<div class="command-box">
+    <h4>Switch side: trunk up to the router</h4>
+    <pre>
+Switch1(config)# interface Gi0/0
+Switch1(config-if)# description TRUNK to R1 Gi0/0
+Switch1(config-if)# switchport trunk encapsulation dot1q
+Switch1(config-if)# switchport mode trunk
+Switch1(config-if)# switchport trunk native vlan 999
+Switch1(config-if)# switchport trunk allowed vlan 10,20,30,50,999
+Switch1(config-if)# switchport nonegotiate
+</pre>
+</div>
+
+<p>On the router (R1):</p>
+
+<div class="command-box">
+    <h4>Router side: subinterfaces per VLAN</h4>
+    <pre>
+R1(config)# interface Gi0/0
+R1(config-if)# no shutdown
+R1(config-if)# exit
+
+R1(config)# interface Gi0/0.10
+R1(config-subif)# description Sales
+R1(config-subif)# encapsulation dot1q 10
+R1(config-subif)# ip address 192.168.10.1 255.255.255.0
+
+R1(config)# interface Gi0/0.20
+R1(config-subif)# description Engineering
+R1(config-subif)# encapsulation dot1q 20
+R1(config-subif)# ip address 192.168.20.1 255.255.255.0
+
+R1(config)# interface Gi0/0.30
+R1(config-subif)# description Guest
+R1(config-subif)# encapsulation dot1q 30
+R1(config-subif)# ip address 192.168.30.1 255.255.255.0
+
+R1(config)# interface Gi0/0.50
+R1(config-subif)# description Servers
+R1(config-subif)# encapsulation dot1q 50
+R1(config-subif)# ip address 192.168.50.1 255.255.255.0
+</pre>
+</div>
+
+<p><strong>Why this works:</strong> the router treats each subinterface as a real Layer-3 interface. When PC1 (VLAN 10) sends a frame to its default gateway 192.168.10.1, the switch tags the frame for VLAN 10, the router receives it on <code>Gi0/0.10</code>, looks up the destination IP in its routing table, then sends the frame out (for example) <code>Gi0/0.50</code> with a VLAN 50 tag. The switch delivers it to the server.</p>
+
+<p>Each PC sets its default gateway to the matching <code>.1</code>. We don't need a routing protocol; the connected routes are enough.</p>
+
+<h2 id="svi">Layer-3 Switch with SVIs</h2>
+<p>On a multilayer (L3) switch, we don't need a router at all. We enable IP routing and create a Switch Virtual Interface (SVI) per VLAN:</p>
+
+<div class="command-box">
+    <h4>L3 switch: routed SVIs</h4>
+    <pre>
+L3Switch(config)# ip routing                  ! Enable Layer-3 forwarding
+
+L3Switch(config)# vlan 10
+L3Switch(config-vlan)# name SALES
+L3Switch(config-vlan)# exit
+L3Switch(config)# vlan 20
+L3Switch(config-vlan)# name ENGINEERING
+L3Switch(config-vlan)# exit
+L3Switch(config)# vlan 30
+L3Switch(config-vlan)# name GUEST
+L3Switch(config-vlan)# exit
+L3Switch(config)# vlan 50
+L3Switch(config-vlan)# name SERVERS
+L3Switch(config-vlan)# exit
+
+L3Switch(config)# interface vlan 10
+L3Switch(config-if)# ip address 192.168.10.1 255.255.255.0
+L3Switch(config-if)# no shutdown
+
+L3Switch(config)# interface vlan 20
+L3Switch(config-if)# ip address 192.168.20.1 255.255.255.0
+L3Switch(config-if)# no shutdown
+
+L3Switch(config)# interface vlan 30
+L3Switch(config-if)# ip address 192.168.30.1 255.255.255.0
+L3Switch(config-if)# no shutdown
+
+L3Switch(config)# interface vlan 50
+L3Switch(config-if)# ip address 192.168.50.1 255.255.255.0
+L3Switch(config-if)# no shutdown
+</pre>
+</div>
+
+<p>An SVI comes up only when at least one switchport in that VLAN is in the spanning-tree forwarding state. Plug a host in or leave at least one access port assigned and active. With <code>ip routing</code> on, the switch's hardware ASIC handles inter-VLAN forwarding at line rate — generally much faster than router-on-a-stick.</p>
+
+<h2 id="default-gateway">Where Do End Hosts Point Their Default Gateway?</h2>
+<p>Each host's default gateway is the IP of the SVI (or subinterface) in <em>its own VLAN</em>:</p>
+<ul>
+    <li>PC1 (VLAN 10) gateway → <code>192.168.10.1</code></li>
+    <li>PC2 (VLAN 20) gateway → <code>192.168.20.1</code></li>
+    <li>PC3 (VLAN 30) gateway → <code>192.168.30.1</code></li>
+</ul>
+
+<p>Hosts never know about the other VLANs — they just send any non-local traffic to their gateway, and the router/L3 switch handles the rest.</p>
+
+<h2 id="verification">Verification</h2>
+
+<div class="command-box">
+    <h4>Switch side</h4>
+    <pre>
+Switch# show vlan brief
+Switch# show interfaces trunk
+Switch# show interfaces Gi0/0 switchport
+Switch# show interfaces Gi0/0 trunk
+</pre>
+</div>
+
+<div class="command-box">
+    <h4>Router / L3 switch</h4>
+    <pre>
+R1# show ip interface brief
+R1# show ip route
+R1# show ip route connected
+R1# show interfaces Gi0/0.10
+R1# show vlans                        ! On routers running subinterfaces
+</pre>
+</div>
+
+<div class="command-box">
+    <h4>From the PCs</h4>
+    <pre>
+PC1&gt; ping 192.168.10.1            ! Should succeed (its own gateway)
+PC1&gt; ping 192.168.50.10           ! Should succeed (cross-VLAN, via R1)
+PC1&gt; tracert 192.168.50.10        ! First hop should be 192.168.10.1
+</pre>
+</div>
+
+<h2 id="acls">Restricting Who Can Talk to Whom</h2>
+<p>Once we enable inter-VLAN routing, <em>everyone</em> can talk to <em>everyone</em>. That's rarely the policy we want. Apply an ACL on the gateway interface to allow only what we mean to allow. The Guest VLAN, for instance, should reach the internet but not the server VLAN.</p>
+
+<div class="command-box">
+    <h4>Sample Guest ACL on the L3 switch</h4>
+    <pre>
+L3Switch(config)# ip access-list extended GUEST-IN
+L3Switch(config-ext-nacl)#  deny ip any 192.168.10.0 0.0.0.255
+L3Switch(config-ext-nacl)#  deny ip any 192.168.20.0 0.0.0.255
+L3Switch(config-ext-nacl)#  deny ip any 192.168.50.0 0.0.0.255
+L3Switch(config-ext-nacl)#  permit ip any any
+L3Switch(config-ext-nacl)# exit
+
+L3Switch(config)# interface vlan 30
+L3Switch(config-if)# ip access-group GUEST-IN in
+</pre>
+</div>
+
+<p>Apply it <code>in</code> on the Guest SVI: that filters traffic <em>entering the router from the Guest VLAN</em>, which is the only direction we need to restrict.</p>
+
+<h2 id="troubleshooting">Common Troubleshooting</h2>
+
+<h3>Hosts can ping their gateway but not across VLANs</h3>
+<ul>
+    <li>Confirm <code>ip routing</code> is enabled (L3 switch).</li>
+    <li>Confirm the SVI or subinterface is up: <code>show ip interface brief</code>.</li>
+    <li>Look for ACLs that might drop the traffic: <code>show access-lists</code>, <code>show ip interface vlan 10</code>.</li>
+    <li>From the host, run <code>tracert</code> — the first hop should be the local gateway, not the host's own address.</li>
+</ul>
+
+<h3>Some VLANs reach the router but others don't</h3>
+<ul>
+    <li>The trunk's allowed list is probably missing those VLAN IDs. Check <code>show interfaces Gi0/0 trunk</code>.</li>
+    <li>The subinterface may be missing or have the wrong <code>encapsulation dot1q</code> tag.</li>
+</ul>
+
+<h3>Intermittent drops, native VLAN warnings in logs</h3>
+<ul>
+    <li>Almost always a native-VLAN mismatch. Match both ends and prefer to <code>vlan dot1q tag native</code> globally.</li>
+</ul>
+
+<h2 id="summary">Summary</h2>
+<p>802.1Q gives us 4094 usable VLAN IDs on a single physical link, but the defaults are unsafe: DTP-negotiated trunks, VLAN 1 as the native, and a wide-open allowed list. The hardened recipe is the same every time — hardcode trunk mode, pin native VLAN to an unused ID and tag it, prune the allowed list, and either drop a router-on-a-stick or an L3 switch into the topology when we need to route between VLANs. ACLs on the SVI then decide which conversations are allowed.</p>
+
+            </article>
+
+            <div class="guide-footer">
+                <a href="../index.html" class="btn-back">
+                    <i class="fas fa-arrow-left"></i> Back to Guides
+                </a>
+            </div>
+        </main>
+    </div>
+
+    <button class="back-to-top" id="backToTop">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p><i class="fas fa-atom"></i> Quantum Repository</p>
+            <p>Technical guides for system administrators and developers</p>
+            <p>alex@slash-root.com | &copy; 2025</p>
+        </div>
+    </footer>
+
+    <script src="../guide.js"></script>
+</body>
+</html>

@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TLS / HTTPS Deep Dive | Quantum Repository</title>
+    <meta name="description" content="A practical deep dive into TLS 1.2 vs TLS 1.3 handshakes, cipher suite naming, forward secrecy, certificate chains, SAN, OCSP, HSTS, and reading certificates with openssl.">
+    <link rel="stylesheet" href="../main.css">
+    <link rel="stylesheet" href="../guide.css">
+    <link rel="stylesheet" href="../accessibility.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.1/css/all.css">
+</head>
+<body>
+    <div class="reading-progress-bar"></div>
+
+    <header class="site-header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-atom"></i>
+                    <span>Quantum Repository</span>
+                </div>
+                <nav class="main-nav">
+                    <a href="../index.html">Home</a>
+                    <a href="../index.html#guides">Guides</a>
+                    <a class="btn-donate" href="https://donate.stripe.com/5kQaEX2kMgnB85ia4ycZa00" target="_blank" rel="noopener noreferrer" aria-label="Donate – opens in a new tab"><i class="fas fa-heart" aria-hidden="true"></i><span>Donate</span></a>
+                    <button class="theme-toggle" id="themeToggle">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <div class="breadcrumbs">
+        <div class="container">
+            <a href="../index.html">Home</a>
+            <span>/</span>
+            <span class="category-badge">Security</span>
+            <span>/</span>
+            <span>TLS / HTTPS Deep Dive</span>
+        </div>
+    </div>
+
+    <div class="guide-container">
+        <main class="guide-content">
+            <article>
+<h2 id="tls-deep-dive">TLS / HTTPS Deep Dive</h2>
+
+<p>HTTPS is "the thing with the padlock" but the engineering behind it has changed significantly over the last decade. In this guide we'll walk through the TLS handshake (1.2 versus 1.3), what's actually in a cipher suite name, why forward secrecy matters, how certificate trust works in practice, and how to read a real certificate chain with <code>openssl</code>. The canonical reference for TLS 1.3 is <strong>RFC 8446</strong>; for the older TLS 1.2 it's <strong>RFC 5246</strong>.</p>
+
+<div class="scenario-box">
+    <h3><i class="fas fa-lock"></i> Real-World Scenario</h3>
+    <p><strong>A monitoring page is throwing certificate warnings.</strong> Is it the chain (intermediate not served)? Is it the SAN (cert covers <code>example.com</code> but the browser asked for <code>api.example.com</code>)? Is it the trust store (corporate proxy injecting its own CA)? After this guide we'll be able to diagnose all three with a single <code>openssl s_client</code> command.</p>
+</div>
+
+<h2 id="handshake">The Handshake: TLS 1.2 vs TLS 1.3</h2>
+<p>The handshake's job is to (1) prove the server's identity, (2) agree on cryptographic parameters, and (3) derive symmetric keys for the rest of the conversation. TLS 1.3 changed how it does this and cut a round-trip out of the process.</p>
+
+<h3>TLS 1.2 — Two Round Trips</h3>
+<pre>
+Client                                              Server
+  | --- ClientHello (versions, cipher list, ----&gt;    |
+  |     random nonce, extensions, SNI)               |
+  |                                                  |
+  | &lt;--- ServerHello (chosen cipher, random) -----   |
+  | &lt;--- Certificate (server chain)                  |
+  | &lt;--- ServerKeyExchange (ECDHE params, signature) |
+  | &lt;--- ServerHelloDone                             |
+  |                                                  |
+  | --- ClientKeyExchange (ECDHE public) ---------&gt;  |
+  | --- ChangeCipherSpec, Finished -----------------&gt;|
+  |                                                  |
+  | &lt;--- ChangeCipherSpec, Finished -----------------|
+  |                                                  |
+  | === Encrypted application data === both ways === |
+</pre>
+
+<h3>TLS 1.3 — One Round Trip</h3>
+<p>TLS 1.3 collapses the handshake. The client guesses the key-share parameters in the first message; the server responds with everything it needs to derive session keys. By the second flight the client can already send encrypted data.</p>
+
+<pre>
+Client                                              Server
+  | --- ClientHello (versions, ciphers, ---------&gt;   |
+  |     key_share, signature_algorithms,             |
+  |     SNI, ALPN, ...)                              |
+  |                                                  |
+  | &lt;--- ServerHello (chosen suite, key_share) -----|
+  | &lt;--- {EncryptedExtensions}                       |
+  | &lt;--- {Certificate}                               |
+  | &lt;--- {CertificateVerify}                         |
+  | &lt;--- {Finished}                                  |
+  |                                                  |
+  | --- {Finished} ---------------------------------&gt;|
+  | === Encrypted application data === both ways === |
+</pre>
+
+<p>Curly braces mean "encrypted under the handshake key." Everything after <code>ServerHello</code> is hidden from on-path observers — including the server's certificate, which used to be in cleartext in TLS 1.2.</p>
+
+<h3>0-RTT and the Replay Risk</h3>
+<p>TLS 1.3 also supports <strong>0-RTT</strong> ("early data") — the client can append application data to its very first message, encrypted with a pre-shared key from a previous session. The catch is that 0-RTT data is not protected against replay: an attacker who captures the request can resend it. Use 0-RTT only for idempotent operations (GETs that don't mutate state), and never for anything that creates orders, charges cards, or changes state.</p>
+
+<h2 id="cipher-suites">Cipher Suite Anatomy</h2>
+<p>A cipher suite is the package of cryptographic primitives both ends agree to use. The naming conventions are very different between TLS 1.2 and TLS 1.3.</p>
+
+<h3>TLS 1.2 names</h3>
+<p>Example: <code>ECDHE-RSA-AES256-GCM-SHA384</code></p>
+<ul>
+    <li><strong>ECDHE</strong> — Elliptic-Curve Diffie-Hellman Ephemeral key exchange (provides forward secrecy)</li>
+    <li><strong>RSA</strong> — the server's certificate uses an RSA key for authentication (signing the handshake)</li>
+    <li><strong>AES256-GCM</strong> — symmetric cipher: AES with a 256-bit key in Galois/Counter mode (authenticated encryption)</li>
+    <li><strong>SHA384</strong> — the HMAC/PRF hash for handshake integrity</li>
+</ul>
+
+<h3>TLS 1.3 names</h3>
+<p>Example: <code>TLS_AES_256_GCM_SHA384</code></p>
+<p>TLS 1.3 only negotiates the symmetric cipher and PRF hash in the suite name. The key exchange method is negotiated separately (<code>supported_groups</code>) and the signature algorithm is negotiated separately (<code>signature_algorithms</code>). This is a cleaner separation. There are only five named suites in TLS 1.3:</p>
+<ul>
+    <li><code>TLS_AES_128_GCM_SHA256</code></li>
+    <li><code>TLS_AES_256_GCM_SHA384</code></li>
+    <li><code>TLS_CHACHA20_POLY1305_SHA256</code></li>
+    <li><code>TLS_AES_128_CCM_SHA256</code></li>
+    <li><code>TLS_AES_128_CCM_8_SHA256</code></li>
+</ul>
+
+<h2 id="forward-secrecy">Forward Secrecy and Why ECDHE Matters</h2>
+<p>If an attacker records today's TLS traffic and later steals the server's private key, can they decrypt the recorded sessions? With old <strong>RSA key exchange</strong>, yes — the session key was encrypted to the server's RSA public key, so anyone with the private key can recover it. With <strong>ECDHE</strong> (or DHE), every session uses an ephemeral keypair that is thrown away after the handshake. Even if the long-term private key leaks tomorrow, today's recorded session is still safe.</p>
+
+<p>TLS 1.3 makes this non-negotiable: every TLS 1.3 connection has forward secrecy. In TLS 1.2 we have to explicitly disable RSA key exchange and require an ECDHE/DHE-based suite.</p>
+
+<h2 id="certificates">Certificates and the Chain</h2>
+<p>A server certificate is just a signed assertion that "this public key belongs to this hostname." The signature comes from an <strong>intermediate CA</strong>, which is itself signed by a <strong>root CA</strong> already trusted by the client. Browsers and OSes ship a list of root CAs. The chain is leaf → intermediate(s) → root.</p>
+
+<pre>
+[Root CA: ISRG Root X1]              (in OS/browser trust store)
+            |
+            v signs
+[Intermediate CA: R10 / R11]         (served by your web server)
+            |
+            v signs
+[Leaf certificate for example.com]   (served by your web server)
+</pre>
+
+<p><strong>Important:</strong> the server must send the leaf <em>and</em> the intermediate(s). It must <em>not</em> send the root — the client already has it. The classic "works in Chrome, breaks in curl" bug is a missing intermediate.</p>
+
+<h2 id="san-vs-cn">SAN, Not CN: Hostname Validation</h2>
+<p>The <em>Subject Common Name</em> (CN) field of a certificate is deprecated for hostname matching. Modern clients ignore it. Hostname matching is done against the <strong>Subject Alternative Name</strong> (SAN) extension, as specified in <strong>RFC 6125 §6.4</strong> and reinforced by CA/Browser Forum baseline requirements. Chrome enforced SAN-only matching from version 58 onward (2017).</p>
+
+<p>This means a certificate that says <code>CN=example.com</code> but lists only <code>SAN: api.example.com</code> will validate for <code>api.example.com</code> and fail for <code>example.com</code>. Always request your certs with the exact SAN list you intend to use.</p>
+
+<h2 id="trust-stores">Trust Stores</h2>
+<p>Different runtimes consult different trust stores. When a connection works in one place and fails in another, this is often why:</p>
+<ul>
+    <li><strong>System trust store</strong> — On Windows, the Certificate Store (managed by certlm.msc and crypt32). On macOS, the system keychain. On Linux distros, <code>/etc/ssl/certs/ca-certificates.crt</code> (Debian/Ubuntu) or <code>/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem</code> (RHEL/Rocky). <code>curl</code>, <code>wget</code>, and most CLI tools use this by default.</li>
+    <li><strong>Mozilla NSS</strong> — Firefox and some other Mozilla-derived tools ship their own root list. Mozilla's CA list is the de-facto upstream for the trust bundles that go into other distros.</li>
+    <li><strong>Java cacerts</strong> — <code>$JAVA_HOME/lib/security/cacerts</code>. Java applications get their own list and you import with <code>keytool -import</code>. This is one of the most common gotchas: <code>curl</code> works, the Java service doesn't.</li>
+    <li><strong>Language-specific bundles</strong> — Python's <code>certifi</code> package, Node.js's bundled certs (overridden by <code>NODE_EXTRA_CA_CERTS</code>), Go's <code>x509.SystemCertPool()</code>. Each may differ slightly.</li>
+</ul>
+
+<h2 id="ct-logs">Certificate Transparency</h2>
+<p>Certificate Transparency (CT) requires CAs to publish every certificate they issue to public, append-only logs. The browser then refuses certificates that don't appear in two or more logs (with Signed Certificate Timestamps, SCTs, stapled in the cert or via OCSP). CT lets domain owners monitor what's been issued in their name — sites like <code>crt.sh</code> let us search the logs.</p>
+
+<p>The <code>Expect-CT</code> HTTP header was the mechanism for opting into stricter CT enforcement during the rollout; it has been deprecated now that CT is mandatory for all publicly-trusted certs in major browsers.</p>
+
+<h2 id="ocsp">Revocation: OCSP and OCSP Stapling</h2>
+<p>If a private key is compromised, the CA needs a way to mark the certificate as revoked. The original answer was <strong>CRLs</strong> (Certificate Revocation Lists, RFC 5280) — large files the client downloaded. <strong>OCSP</strong> (Online Certificate Status Protocol, RFC 6960) replaced them with a real-time query, but that meant every TLS connection caused a side-channel HTTP request to the CA, leaking what the client was visiting.</p>
+
+<p><strong>OCSP stapling</strong> (RFC 6066) fixes the privacy and performance problems: the server fetches the OCSP response itself, caches it, and "staples" it into the TLS handshake. The client doesn't need to talk to the CA.</p>
+
+<p><strong>OCSP Must-Staple</strong> is a TLS feature extension (RFC 7633) added to the certificate itself: it tells the client "if you don't see a stapled OCSP response in the handshake, reject the connection." Without Must-Staple, a missing OCSP response is treated as soft-fail, which is what attackers count on.</p>
+
+<h2 id="hsts">HSTS and Preload</h2>
+<p>HTTP Strict Transport Security (RFC 6797) is a server-sent header that tells the browser "never connect to me over plain HTTP again." It defends against SSL-strip and accidental downgrades.</p>
+
+<div class="command-box">
+    <h4>HSTS header</h4>
+    <pre>
+Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
+</pre>
+</div>
+
+<ul>
+    <li><strong>max-age</strong> — how long the browser should remember the policy (63072000 = 2 years).</li>
+    <li><strong>includeSubDomains</strong> — extend the policy to every subdomain. Don't add this if you have legacy HTTP-only subdomains.</li>
+    <li><strong>preload</strong> — request inclusion in the browser-shipped HSTS preload list (hstspreload.org). Once you're on the list and Chromium ships a release, you cannot easily get off. Treat it as a one-way door.</li>
+</ul>
+
+<h2 id="mkcert">Local Development with mkcert</h2>
+<p><code>mkcert</code> is a small utility that creates a local development CA, installs it into the system trust store and the major language runtimes, and then issues certificates signed by that CA for hostnames like <code>localhost</code>, <code>*.local</code>, or your dev domain. Browsers see "valid certificate" because they trust the local root.</p>
+
+<div class="command-box">
+    <h4>Install and use mkcert</h4>
+    <pre>
+# Install (macOS)
+brew install mkcert nss
+
+# Install the local CA into the trust store
+mkcert -install
+
+# Issue a cert for localhost + custom dev hostname
+mkcert localhost dev.example.test 127.0.0.1 ::1
+
+# Output:
+# ./localhost+3.pem        # leaf certificate
+# ./localhost+3-key.pem    # private key
+</pre>
+</div>
+
+<p>This avoids the bad habit of testing with self-signed certs and <code>--insecure</code> flags — which inevitably get copy-pasted into production.</p>
+
+<h2 id="openssl-client">Reading a Live Certificate with openssl s_client</h2>
+<p><code>openssl s_client</code> is the swiss army knife for diagnosing TLS. The flag combination we want most often is:</p>
+
+<div class="command-box">
+    <h4>Inspect a live TLS endpoint</h4>
+    <pre>
+openssl s_client -connect example.com:443 -servername example.com -showcerts &lt; /dev/null
+</pre>
+</div>
+
+<p>Flag by flag:</p>
+<ul>
+    <li><code>-connect host:port</code> — TCP target.</li>
+    <li><code>-servername host</code> — sends the SNI (Server Name Indication) extension. Modern web servers serve different certs based on SNI, so without this you'll get a default cert that often looks "wrong."</li>
+    <li><code>-showcerts</code> — print every certificate the server sends, in PEM format.</li>
+    <li><code>&lt; /dev/null</code> — close stdin so the command exits after the handshake. Otherwise it hangs waiting for HTTP input.</li>
+</ul>
+
+<p>The output (paraphrased example) looks like this:</p>
+
+<pre>
+CONNECTED(00000005)
+depth=2 C = US, O = Internet Security Research Group, CN = ISRG Root X1
+verify return:1
+depth=1 C = US, O = Let's Encrypt, CN = R10
+verify return:1
+depth=0 CN = example.com
+verify return:1
+---
+Certificate chain
+ 0 s:CN = example.com
+   i:C = US, O = Let's Encrypt, CN = R10
+ 1 s:C = US, O = Let's Encrypt, CN = R10
+   i:C = US, O = Internet Security Research Group, CN = ISRG Root X1
+---
+SSL handshake has read 4521 bytes and written 386 bytes
+---
+Protocol  : TLSv1.3
+Cipher    : TLS_AES_256_GCM_SHA384
+Verification: OK
+</pre>
+
+<p>Things to look at:</p>
+<ul>
+    <li><strong>depth=0/1/2</strong> — leaf, intermediate, root. If <code>depth=1</code> is missing, the server isn't sending the intermediate.</li>
+    <li><strong>Verification</strong> — <code>OK</code> means the chain validated against the client's trust store.</li>
+    <li><strong>Protocol &amp; Cipher</strong> — the negotiated parameters. If we see <code>TLSv1.0</code> or <code>TLSv1.1</code>, the server needs upgrading.</li>
+</ul>
+
+<h2 id="reading-cert">Reading a PEM with openssl x509</h2>
+<p>Save a certificate to a file and decode it:</p>
+
+<div class="command-box">
+    <h4>Inspect a PEM file</h4>
+    <pre>
+openssl x509 -in cert.pem -noout -text
+</pre>
+</div>
+
+<p>Useful fields:</p>
+<ul>
+    <li><strong>Subject:</strong> — the named entity (often only <code>CN=...</code> for legacy reasons).</li>
+    <li><strong>Issuer:</strong> — the CA that signed this certificate.</li>
+    <li><strong>Validity / Not Before / Not After</strong> — start and expiry timestamps.</li>
+    <li><strong>Subject Public Key Info</strong> — algorithm (e.g. <code>id-ecPublicKey</code> with curve <code>prime256v1</code>) and the public key bytes.</li>
+    <li><strong>X509v3 Subject Alternative Name</strong> — the actual hostnames the cert is valid for. This is the field that matters.</li>
+    <li><strong>X509v3 Extended Key Usage</strong> — <code>TLS Web Server Authentication</code> for server certs.</li>
+    <li><strong>Authority Information Access</strong> — URLs for OCSP and the issuer's certificate.</li>
+    <li><strong>CT Precertificate SCTs</strong> — the signed timestamps from CT logs.</li>
+</ul>
+
+<p>Quick one-liners:</p>
+
+<div class="command-box">
+    <h4>Common cert inspections</h4>
+    <pre>
+# Just the SAN
+openssl x509 -in cert.pem -noout -ext subjectAltName
+
+# Expiry only
+openssl x509 -in cert.pem -noout -enddate
+
+# Fingerprint (handy for comparing against trusted-pin lists)
+openssl x509 -in cert.pem -noout -fingerprint -sha256
+</pre>
+</div>
+
+<h2 id="reading-a-chain">Worked Example: Reading a Chain</h2>
+<p>Let's say <code>openssl s_client</code> printed two certificates. We split them into <code>leaf.pem</code> and <code>intermediate.pem</code> and want to verify the chain manually.</p>
+
+<div class="command-box">
+    <h4>Manual chain verification</h4>
+    <pre>
+# Confirm the issuer of the leaf matches the subject of the intermediate
+openssl x509 -in leaf.pem         -noout -issuer
+openssl x509 -in intermediate.pem -noout -subject
+
+# Build a chain file and verify against the system trust store
+cat leaf.pem intermediate.pem &gt; fullchain.pem
+openssl verify -CAfile /etc/ssl/certs/ca-certificates.crt fullchain.pem
+
+# Or verify with an explicit intermediate set:
+openssl verify -untrusted intermediate.pem leaf.pem
+</pre>
+</div>
+
+<p>If the verify step reports <code>unable to get local issuer certificate</code>, either the intermediate is missing or the root isn't in the trust store we passed in.</p>
+
+<h2 id="config">Picking Sensible Server Defaults</h2>
+<p>The Mozilla SSL Configuration Generator is the standard go-to: it generates ready-to-paste config blocks for Nginx, Apache, HAProxy, etc., at three opinionated levels (<strong>Modern</strong>, <strong>Intermediate</strong>, <strong>Old</strong>). Pick <em>Modern</em> when you can — TLS 1.3 only, three suites, ECDSA preferred. Pick <em>Intermediate</em> if you still need to support older clients. <em>Old</em> exists only for legacy systems and should be a deliberate choice.</p>
+
+<p>A modern Nginx baseline looks roughly like this:</p>
+
+<div class="command-box">
+    <h4>Nginx — modern TLS</h4>
+    <pre>
+ssl_certificate     /etc/letsencrypt/live/example.com/fullchain.pem;
+ssl_certificate_key /etc/letsencrypt/live/example.com/privkey.pem;
+
+ssl_protocols TLSv1.3;
+# If you need TLS 1.2 too, add TLSv1.2 and set:
+# ssl_ciphers "ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:...";
+# ssl_prefer_server_ciphers off;
+
+ssl_session_timeout 1d;
+ssl_session_cache shared:MozSSL:10m;
+ssl_session_tickets off;
+
+ssl_stapling on;
+ssl_stapling_verify on;
+resolver 1.1.1.1 8.8.8.8 valid=300s;
+
+add_header Strict-Transport-Security "max-age=63072000; includeSubDomains" always;
+</pre>
+</div>
+
+<h2 id="summary">Summary</h2>
+<p>TLS isn't magic, it's a layered protocol with surprisingly clear parts: a handshake, a chain, a cipher suite, and the side-channels that tell the client whether the cert was revoked. Get the chain right, enable HSTS, prefer TLS 1.3, and avoid 0-RTT for anything stateful. When something does go wrong, an <code>openssl s_client</code> session and an <code>openssl x509 -text</code> almost always tell you which knob to turn.</p>
+
+            </article>
+
+            <div class="guide-footer">
+                <a href="../index.html" class="btn-back">
+                    <i class="fas fa-arrow-left"></i> Back to Guides
+                </a>
+            </div>
+        </main>
+    </div>
+
+    <button class="back-to-top" id="backToTop">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p><i class="fas fa-atom"></i> Quantum Repository</p>
+            <p>Technical guides for system administrators and developers</p>
+            <p>alex@slash-root.com | &copy; 2025</p>
+        </div>
+    </footer>
+
+    <script src="../guide.js"></script>
+</body>
+</html>

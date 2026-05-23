@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OWASP Top 10 (2021) | Quantum Repository</title>
+    <meta name="description" content="A practical walkthrough of the OWASP Top 10 (2021) with vulnerable-and-fixed code snippets and a defensive checklist per category.">
+    <link rel="stylesheet" href="../main.css">
+    <link rel="stylesheet" href="../guide.css">
+    <link rel="stylesheet" href="../accessibility.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.1/css/all.css">
+</head>
+<body>
+    <div class="reading-progress-bar"></div>
+
+    <header class="site-header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-atom"></i>
+                    <span>Quantum Repository</span>
+                </div>
+                <nav class="main-nav">
+                    <a href="../index.html">Home</a>
+                    <a href="../index.html#guides">Guides</a>
+                    <a class="btn-donate" href="https://donate.stripe.com/5kQaEX2kMgnB85ia4ycZa00" target="_blank" rel="noopener noreferrer" aria-label="Donate – opens in a new tab"><i class="fas fa-heart" aria-hidden="true"></i><span>Donate</span></a>
+                    <button class="theme-toggle" id="themeToggle">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <div class="breadcrumbs">
+        <div class="container">
+            <a href="../index.html">Home</a>
+            <span>/</span>
+            <span class="category-badge">Security / AppSec</span>
+            <span>/</span>
+            <span>OWASP Top 10 (2021)</span>
+        </div>
+    </div>
+
+    <div class="guide-container">
+        <main class="guide-content">
+            <article>
+<h2 id="owasp-top10">OWASP Top 10 (2021)</h2>
+
+<div style="background: #1976d2; color: #fff; padding: 1.25rem; border-radius: 8px; margin: 1.5rem 0; border-left: 6px solid #0d47a1;">
+    <p style="color: #fff; margin: 0;"><strong>For learning and securing your own systems. Never test against systems you don't own.</strong> The "vulnerable" snippets in this guide are deliberately broken so we can study them. Do not deploy them, and do not use them to probe applications you don't have written permission to test.</p>
+</div>
+
+<p>The <strong>OWASP Top 10</strong> is the de-facto reference for the most common, most damaging classes of web application security risk. The 2021 list reorganized things — some categories were merged, new ones (like Insecure Design and SSRF) were added — and it remains the version many compliance frameworks point at. We'll walk each category with a clearly-labelled <em>vulnerable</em> snippet, a <em>fixed</em> version, and a short checklist of practices that prevent the whole class.</p>
+
+<h2 id="a01-bac">A01:2021 — Broken Access Control</h2>
+<p>Authorization decisions are wrong. The user is authenticated, but the server lets them perform actions or read data they shouldn't be able to — accessing another user's invoice by changing the ID in the URL, calling an admin endpoint without being an admin, escalating role flags, and so on. This is the #1 issue in the 2021 list.</p>
+
+<h3>Vulnerable (Node.js / Express)</h3>
+<pre>
+// ⚠️ Vulnerable: no ownership check, any authenticated user can read any invoice
+app.get('/api/invoices/:id', requireLogin, async (req, res) =&gt; {
+    const invoice = await db.invoice.findById(req.params.id);
+    res.json(invoice);
+});
+</pre>
+
+<h3>Fixed</h3>
+<pre>
+// ✅ Fixed: server-side ownership check
+app.get('/api/invoices/:id', requireLogin, async (req, res) =&gt; {
+    const invoice = await db.invoice.findById(req.params.id);
+    if (!invoice || invoice.ownerId !== req.user.id) {
+        return res.sendStatus(404); // 404, not 403 — don't leak existence
+    }
+    res.json(invoice);
+});
+</pre>
+
+<h3>Defensive checklist</h3>
+<ul>
+    <li>Deny by default; every endpoint requires an explicit allow rule.</li>
+    <li>Authorization checks live on the server. Never trust client-side gating.</li>
+    <li>Use object-level checks ("does this user own this resource?") for every record fetch.</li>
+    <li>Return 404 instead of 403 for objects the user can't access, to avoid leaking existence.</li>
+    <li>Log authorization failures and alert on bursts (probable enumeration).</li>
+</ul>
+
+<h2 id="a02-crypto">A02:2021 — Cryptographic Failures</h2>
+<p>Sensitive data is exposed because of weak or absent cryptography. The 2021 rename emphasizes the <em>root cause</em>: bad crypto or none at all, not just the resulting leak. Storing passwords as plain MD5, transmitting credentials over plain HTTP, hardcoding secrets, using deprecated algorithms (DES, RC4, SHA-1) all live here.</p>
+
+<h3>Vulnerable (Python)</h3>
+<pre>
+# ⚠️ Vulnerable: passwords stored as unsalted MD5
+import hashlib
+def store_password(user_id, password):
+    db.execute(
+        "UPDATE users SET pw_hash = %s WHERE id = %s",
+        (hashlib.md5(password.encode()).hexdigest(), user_id),
+    )
+</pre>
+
+<h3>Fixed</h3>
+<pre>
+# ✅ Fixed: bcrypt/argon2 with per-user salt, cost factor tuned for hardware
+import bcrypt
+def store_password(user_id, password):
+    hashed = bcrypt.hashpw(password.encode(), bcrypt.gensalt(rounds=12))
+    db.execute(
+        "UPDATE users SET pw_hash = %s WHERE id = %s",
+        (hashed.decode(), user_id),
+    )
+
+def verify_password(user_id, password):
+    row = db.fetchone("SELECT pw_hash FROM users WHERE id = %s", (user_id,))
+    return row and bcrypt.checkpw(password.encode(), row["pw_hash"].encode())
+</pre>
+
+<h3>Defensive checklist</h3>
+<ul>
+    <li>Hash passwords with <code>argon2id</code>, <code>bcrypt</code>, or <code>scrypt</code>. Never plain SHA-* or MD5.</li>
+    <li>Use TLS 1.2+ (prefer 1.3) for every channel. See our <a href="../tlsdeepdive/tlsdeepdive.html">TLS deep dive</a>.</li>
+    <li>For symmetric encryption, use an authenticated mode (AES-GCM, ChaCha20-Poly1305). Never ECB.</li>
+    <li>Generate random material with <code>secrets</code>/<code>crypto.randomBytes</code>/<code>/dev/urandom</code>, not <code>random.random()</code>.</li>
+    <li>Store secrets in a vault (HashiCorp Vault, AWS Secrets Manager, Azure Key Vault), not in source.</li>
+</ul>
+
+<h2 id="a03-injection">A03:2021 — Injection</h2>
+<p>Untrusted input crosses an interpreter boundary unsanitized: SQL, OS commands, LDAP, XPath, NoSQL, template engines. The fix is the same in every flavour: don't concatenate; parameterize.</p>
+
+<h3>Vulnerable (PHP, SQL injection)</h3>
+<pre>
+&lt;?php
+// ⚠️ Vulnerable: classic SQL injection via string concatenation
+$user = $_GET['user'];
+$result = mysqli_query($conn, "SELECT id, email FROM users WHERE name = '$user'");
+?&gt;
+</pre>
+
+<h3>Fixed</h3>
+<pre>
+&lt;?php
+// ✅ Fixed: prepared statement with bound parameter
+$stmt = $conn-&gt;prepare("SELECT id, email FROM users WHERE name = ?");
+$stmt-&gt;bind_param("s", $_GET['user']);
+$stmt-&gt;execute();
+$result = $stmt-&gt;get_result();
+?&gt;
+</pre>
+
+<h3>Defensive checklist</h3>
+<ul>
+    <li>Parameterized queries / prepared statements for every database call.</li>
+    <li>For ORMs, use the query builder; do not stitch user input into raw SQL fragments.</li>
+    <li>For shell commands, use <code>execve</code>-style APIs that take an argv array, not a shell string.</li>
+    <li>Validate input against an allow-list where possible (especially for column names and ORDER BY targets that <em>cannot</em> be bound).</li>
+    <li>Run with a least-privilege database user — the web app shouldn't be using a DBA account.</li>
+</ul>
+
+<h2 id="a04-design">A04:2021 — Insecure Design</h2>
+<p>Insecure Design is the 2021 list's nod to architecture-level issues — features that are <em>working as designed</em> but the design itself is the problem. Examples: a password-reset flow with no rate limit, a "remember me" cookie that never expires, a checkout flow that trusts a hidden price field from the browser.</p>
+
+<h3>Vulnerable (Python / Flask)</h3>
+<pre>
+# ⚠️ Vulnerable: server trusts a "price" field submitted by the client
+@app.route('/checkout', methods=['POST'])
+def checkout():
+    item_id = request.form['item_id']
+    price   = float(request.form['price'])    # ← client-supplied price!
+    charge_card(current_user.card, amount=price)
+    create_order(current_user.id, item_id, price)
+    return "OK"
+</pre>
+
+<h3>Fixed</h3>
+<pre>
+# ✅ Fixed: derive price server-side from the trusted product catalog
+@app.route('/checkout', methods=['POST'])
+def checkout():
+    item_id = request.form['item_id']
+    item    = Item.query.get_or_404(item_id)
+    price   = item.price                       # ← authoritative source
+
+    if not user_can_purchase(current_user, item):
+        abort(403)
+
+    charge_card(current_user.card, amount=price)
+    create_order(current_user.id, item.id, price)
+    return "OK"
+</pre>
+
+<h3>Defensive checklist</h3>
+<ul>
+    <li>Do threat modeling early (STRIDE, attack trees). Write down what each feature is and is not supposed to allow.</li>
+    <li>Never trust client-controlled fields for security or pricing decisions. Re-derive on the server.</li>
+    <li>Apply rate limits to anything that can be brute forced or enumerated (login, password reset, signup).</li>
+    <li>Define abuse cases alongside use cases. "What happens if 1000 of these run in parallel?"</li>
+</ul>
+
+<h2 id="a05-misconfig">A05:2021 — Security Misconfiguration</h2>
+<p>Defaults left on, debug pages exposed, verbose stack traces shown to end users, unnecessary services running, S3 buckets world-readable, CORS set to <code>*</code> with credentials.</p>
+
+<h3>Vulnerable (Python / Flask)</h3>
+<pre>
+# ⚠️ Vulnerable: debug mode in production, stack traces leak source &amp; secrets
+from flask import Flask
+app = Flask(__name__)
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', debug=True)   # ← debug=True in prod
+</pre>
+
+<h3>Fixed</h3>
+<pre>
+# ✅ Fixed: debug only when explicitly opted-in; serve behind a real WSGI/ASGI server
+import os
+from flask import Flask
+app = Flask(__name__)
+app.config['DEBUG'] = os.environ.get('FLASK_DEBUG') == '1'
+
+# In production, run with gunicorn / uvicorn / waitress, e.g.:
+#   gunicorn -w 4 -b 127.0.0.1:8000 myapp:app
+</pre>
+
+<h3>Defensive checklist</h3>
+<ul>
+    <li>Disable debug modes, directory listings, default sample apps in production.</li>
+    <li>Add hardening headers: <code>Content-Security-Policy</code>, <code>X-Content-Type-Options: nosniff</code>, <code>Strict-Transport-Security</code>, <code>Referrer-Policy</code>, <code>Permissions-Policy</code>.</li>
+    <li>Lock down CORS — explicit origin list, not <code>*</code> with credentials.</li>
+    <li>Run automated configuration scans (CIS benchmarks, Lynis, AWS Config rules) on every environment.</li>
+    <li>Keep dev/staging/prod configs separate; secrets out of source control.</li>
+</ul>
+
+<h2 id="a06-components">A06:2021 — Vulnerable and Outdated Components</h2>
+<p>Using a library or runtime with a known CVE. This is what struck Equifax in 2017 (Struts), Log4Shell in 2021, and dozens of less famous incidents in between. The fix isn't glamorous: maintain a software bill of materials (SBOM), patch promptly, automate the boring parts.</p>
+
+<h3>Vulnerable (Node.js / npm)</h3>
+<pre>
+// ⚠️ Vulnerable: pinned to an old, known-bad version
+{
+  "dependencies": {
+    "express": "^3.0.0",       // EOL, multiple CVEs
+    "lodash": "4.17.10"        // CVE-2019-10744 prototype pollution
+  }
+}
+</pre>
+
+<h3>Fixed</h3>
+<pre>
+// ✅ Fixed: current major, scanned by CI
+{
+  "dependencies": {
+    "express": "^4.19.2",
+    "lodash": "^4.17.21"
+  },
+  "scripts": {
+    "audit": "npm audit --omit=dev --audit-level=high"
+  }
+}
+</pre>
+
+<h3>Defensive checklist</h3>
+<ul>
+    <li>Maintain an inventory of every dependency, language runtime, and OS package in production. Generate an SBOM (SPDX or CycloneDX).</li>
+    <li>Subscribe to vulnerability feeds for your stack (GitHub Dependabot, npm audit, pip-audit, OSV, distro security advisories).</li>
+    <li>Block CI on high/critical vulnerabilities; track medium for remediation.</li>
+    <li>Remove unused dependencies — every one is an attack-surface line item.</li>
+    <li>Avoid pinning to a single old version "because it works." Pin a range and update on a schedule.</li>
+</ul>
+
+<h2 id="a07-authn">A07:2021 — Identification and Authentication Failures</h2>
+<p>Weak password handling, predictable session tokens, no rate limiting on login, missing MFA, credential stuffing protection absent.</p>
+
+<h3>Vulnerable (Python / Flask)</h3>
+<pre>
+# ⚠️ Vulnerable: no rate limit; password comparison leaks via timing
+@app.route('/login', methods=['POST'])
+def login():
+    user = User.query.filter_by(email=request.form['email']).first()
+    if user and user.password == request.form['password']:   # ← plaintext + ==
+        session['user_id'] = user.id
+        return redirect('/')
+    return "bad login", 401
+</pre>
+
+<h3>Fixed</h3>
+<pre>
+# ✅ Fixed: hashed password, constant-time check, rate-limited, generic error
+from werkzeug.security import check_password_hash
+from flask_limiter import Limiter
+limiter = Limiter(get_remote_address, app=app)
+
+@app.route('/login', methods=['POST'])
+@limiter.limit("5 per minute; 20 per hour")
+def login():
+    email    = request.form['email']
+    password = request.form['password']
+
+    user = User.query.filter_by(email=email).first()
+    # check_password_hash uses bcrypt/argon2 and a constant-time compare
+    if user and check_password_hash(user.pw_hash, password):
+        session.regenerate()                      # avoid fixation
+        session['user_id'] = user.id
+        return redirect('/')
+
+    return "Invalid email or password", 401       # generic, no enumeration
+</pre>
+
+<h3>Defensive checklist</h3>
+<ul>
+    <li>Modern password hashing (see A02). No plaintext, no MD5/SHA-1.</li>
+    <li>Constant-time comparisons (<code>hmac.compare_digest</code>, <code>crypto.timingSafeEqual</code>).</li>
+    <li>Rate-limit authentication endpoints and password resets.</li>
+    <li>Offer (and ideally enforce) MFA — TOTP, WebAuthn, or push-based.</li>
+    <li>Rotate the session ID on login and privilege change to defeat fixation.</li>
+    <li>Generic error messages on login; don't reveal whether the email exists.</li>
+    <li>Check passwords against the Have I Been Pwned breach list on registration / change.</li>
+</ul>
+
+<h2 id="a08-integrity">A08:2021 — Software and Data Integrity Failures</h2>
+<p>Unverified updates, unsigned plugins, deserialization of untrusted data, pulling third-party scripts from CDNs without subresource integrity. The 2021 category absorbed the old "insecure deserialization."</p>
+
+<h3>Vulnerable (HTML)</h3>
+<pre>
+&lt;!-- ⚠️ Vulnerable: third-party script with no integrity check --&gt;
+&lt;script src="https://cdn.example.org/somelib.js"&gt;&lt;/script&gt;
+</pre>
+
+<h3>Fixed</h3>
+<pre>
+&lt;!-- ✅ Fixed: Subresource Integrity (SRI) pin + crossorigin --&gt;
+&lt;script
+  src="https://cdn.example.org/somelib.js"
+  integrity="sha384-oqVuAfXRKap7fdgcCY5uykM6+R9GqQ8K/uxy9rx7HNQlGYl1kPzQho1wx4JwY8wC"
+  crossorigin="anonymous"&gt;&lt;/script&gt;
+</pre>
+
+<h3>Vulnerable (Python, untrusted deserialization)</h3>
+<pre>
+# ⚠️ Vulnerable: pickle.loads on untrusted input executes arbitrary code
+import pickle, base64
+data = base64.b64decode(request.cookies['state'])
+state = pickle.loads(data)   # ← attacker-controlled bytes → RCE
+</pre>
+
+<h3>Fixed</h3>
+<pre>
+# ✅ Fixed: JSON-only, schema-validated, with signed/encrypted state if needed
+import json
+from itsdangerous import URLSafeTimedSerializer
+
+s = URLSafeTimedSerializer(app.config['SECRET_KEY'])
+state = s.loads(request.cookies['state'], max_age=3600)
+# state is now a verified, JSON-safe dict — never executable code
+</pre>
+
+<h3>Defensive checklist</h3>
+<ul>
+    <li>Sign and verify software updates and plugin packages.</li>
+    <li>Use SRI for every external script you don't control.</li>
+    <li>Never deserialize untrusted binary formats (pickle, Java serialization, PHP <code>unserialize</code>). Use JSON with a schema.</li>
+    <li>Lock CI/CD: signed commits (commit signing or sigstore), branch protection, separate prod release credentials.</li>
+    <li>Audit dependency-confusion risk: private package names should be reserved on public registries.</li>
+</ul>
+
+<h2 id="a09-logging">A09:2021 — Security Logging and Monitoring Failures</h2>
+<p>The bug isn't in the application — the bug is that nobody noticed when it was attacked. Average dwell time between breach and detection is still measured in months.</p>
+
+<h3>Vulnerable (Node.js)</h3>
+<pre>
+// ⚠️ Vulnerable: failed logins are silently dropped
+app.post('/login', async (req, res) =&gt; {
+    const user = await db.user.findOne({ email: req.body.email });
+    if (!user || !verify(req.body.password, user.pwHash)) {
+        return res.sendStatus(401);  // ← no log, no metric
+    }
+    req.session.userId = user.id;
+    res.sendStatus(200);
+});
+</pre>
+
+<h3>Fixed</h3>
+<pre>
+// ✅ Fixed: structured log, counter increment, alertable
+app.post('/login', async (req, res) =&gt; {
+    const user = await db.user.findOne({ email: req.body.email });
+    if (!user || !verify(req.body.password, user.pwHash)) {
+        log.warn({
+            event: 'auth.login.failed',
+            email: req.body.email,
+            ip: req.ip,
+            userAgent: req.headers['user-agent']
+        });
+        metrics.increment('auth.login.failed');
+        return res.sendStatus(401);
+    }
+
+    log.info({ event: 'auth.login.success', userId: user.id, ip: req.ip });
+    req.session.userId = user.id;
+    res.sendStatus(200);
+});
+</pre>
+
+<h3>Defensive checklist</h3>
+<ul>
+    <li>Log authentication events (success and failure), authorization denials, validation failures, and admin actions.</li>
+    <li>Logs are structured (JSON), centralised (SIEM / log platform), retained per compliance requirements, and tamper-resistant.</li>
+    <li>Never log passwords, full card numbers, or full session tokens — only hashes or last-4.</li>
+    <li>Alert on patterns: brute-force bursts, geo-anomalies, sudden spikes in 403/404.</li>
+    <li>Practice incident response. The first time you read the runbook should not be during an incident.</li>
+</ul>
+
+<h2 id="a10-ssrf">A10:2021 — Server-Side Request Forgery (SSRF)</h2>
+<p>The application takes a URL from the user and fetches it server-side. The attacker points it at <code>http://169.254.169.254/</code> (the cloud metadata service), <code>http://localhost:6379</code> (an internal Redis), or an internal admin panel that only the application server can reach. SSRF was added as its own category in 2021 because of its real-world impact (Capital One, 2019).</p>
+
+<h3>Vulnerable (Python / Flask)</h3>
+<pre>
+# ⚠️ Vulnerable: user-controlled URL fetched verbatim
+import requests
+@app.route('/fetch')
+def fetch():
+    url = request.args['url']
+    return requests.get(url).text
+</pre>
+
+<h3>Fixed</h3>
+<pre>
+# ✅ Fixed: allow-list of hosts; resolve once, refuse private IPs; no redirects
+import ipaddress, socket
+from urllib.parse import urlparse
+import requests
+
+ALLOWED_HOSTS = {'images.example.com', 'cdn.example.com'}
+
+def _is_public_ip(host: str) -&gt; bool:
+    try:
+        ip = ipaddress.ip_address(socket.gethostbyname(host))
+    except (ValueError, socket.gaierror):
+        return False
+    return not (ip.is_private or ip.is_loopback or ip.is_link_local
+                or ip.is_reserved or ip.is_multicast)
+
+@app.route('/fetch')
+def fetch():
+    parsed = urlparse(request.args['url'])
+    if parsed.scheme not in ('http', 'https'):
+        abort(400)
+    if parsed.hostname not in ALLOWED_HOSTS or not _is_public_ip(parsed.hostname):
+        abort(400)
+    return requests.get(parsed.geturl(), timeout=5, allow_redirects=False).text
+</pre>
+
+<h3>Defensive checklist</h3>
+<ul>
+    <li>Allow-list the destinations the server is permitted to fetch.</li>
+    <li>Block private, loopback, link-local, reserved, and multicast IP ranges (RFC 1918 plus IPv6 equivalents and cloud metadata 169.254.169.254 / fd00:ec2::254).</li>
+    <li>Disable HTTP redirects, or re-validate the target after each redirect (a redirect can shift to an internal address).</li>
+    <li>Use a separate egress proxy with strict ACLs for outbound HTTP from your app servers.</li>
+    <li>Lock down cloud metadata: on AWS, require IMDSv2 with hop-limit 1.</li>
+</ul>
+
+<h2 id="summary">Summary</h2>
+<p>The OWASP Top 10 is not the entire universe of web security, but it covers the cases that show up over and over again. Categories like A01 (Broken Access Control) and A03 (Injection) are almost entirely avoidable by following two habits: <em>never trust the client</em> and <em>never concatenate untrusted input into another language</em>. The rest is about hygiene — patching, hashing, logging — and treating security as a first-class design concern rather than something to add at the end.</p>
+
+            </article>
+
+            <div class="guide-footer">
+                <a href="../index.html" class="btn-back">
+                    <i class="fas fa-arrow-left"></i> Back to Guides
+                </a>
+            </div>
+        </main>
+    </div>
+
+    <button class="back-to-top" id="backToTop">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p><i class="fas fa-atom"></i> Quantum Repository</p>
+            <p>Technical guides for system administrators and developers</p>
+            <p>alex@slash-root.com | &copy; 2025</p>
+        </div>
+    </footer>
+
+    <script src="../guide.js"></script>
+</body>
+</html>
