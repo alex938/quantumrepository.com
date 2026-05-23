@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Docker Compose Deep Dive | Quantum Repository</title>
+    <meta name="description" content="A modern Docker Compose guide covering the Compose Specification, services, networks, volumes, healthchecks, profiles, secrets, and override files — with worked examples.">
+    <link rel="stylesheet" href="../main.css">
+    <link rel="stylesheet" href="../guide.css">
+    <link rel="stylesheet" href="../accessibility.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.1/css/all.css">
+</head>
+<body>
+    <div class="reading-progress-bar"></div>
+
+    <header class="site-header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-atom"></i>
+                    <span>Quantum Repository</span>
+                </div>
+                <nav class="main-nav">
+                    <a href="../index.html">Home</a>
+                    <a href="../index.html#guides">Guides</a>
+                    <a class="btn-donate" href="https://donate.stripe.com/5kQaEX2kMgnB85ia4ycZa00" target="_blank" rel="noopener noreferrer" aria-label="Donate – opens in a new tab"><i class="fas fa-heart" aria-hidden="true"></i><span>Donate</span></a>
+                    <button class="theme-toggle" id="themeToggle">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <div class="breadcrumbs">
+        <div class="container">
+            <a href="../index.html">Home</a>
+            <span>/</span>
+            <span class="category-badge">Development</span>
+            <span>/</span>
+            <span>Docker Compose Deep Dive</span>
+        </div>
+    </div>
+
+    <div class="guide-container">
+        <main class="guide-content">
+            <article>
+<h2 id="docker-compose">Docker Compose Deep Dive</h2>
+
+<p>Docker Compose lets us declare a multi-container application in one YAML file and bring it up with a single command. In this guide we'll cover the modern <a href="https://github.com/compose-spec/compose-spec" target="_blank" rel="noopener noreferrer">Compose Specification</a> as implemented by Docker Compose v2 — meaning we use the <code>docker compose</code> command (space, not hyphen) and we <strong>do not</strong> put a <code>version:</code> key at the top of the file. The <code>version</code> field is obsolete and silently ignored by Compose v2.</p>
+
+<div class="scenario-box">
+    <h3><i class="fas fa-cubes"></i> Real-World Scenario</h3>
+    <p><strong>Spinning up a realistic dev environment.</strong></p>
+    <p>You're onboarding a new engineer. Instead of a 30-step README about installing Postgres, Redis, the app, and an Nginx proxy, you hand them <code>git clone</code> and <code>docker compose up</code>. The same Compose file (with a small override) also runs in CI for integration tests. That's the workflow we'll build up to in this guide.</p>
+</div>
+
+<h2 id="top-level-keys">Top-Level Keys</h2>
+<p>A Compose file is structured around four main top-level keys:</p>
+<ul>
+    <li><strong><code>services</code></strong> — the containers that make up your application.</li>
+    <li><strong><code>networks</code></strong> — user-defined networks the services attach to.</li>
+    <li><strong><code>volumes</code></strong> — named volumes for persistent data.</li>
+    <li><strong><code>secrets</code></strong> — secret values mounted into services (file-based outside of Swarm).</li>
+</ul>
+
+<p>A minimal file looks like this:</p>
+
+<div class="command-box">
+    <h4>compose.yaml — minimum viable</h4>
+    <pre>
+services:
+  web:
+    image: nginx:1.27-alpine
+    ports:
+      - "8080:80"
+</pre>
+</div>
+
+<p><strong>Filename note:</strong> Compose v2 looks for <code>compose.yaml</code>, <code>compose.yml</code>, <code>docker-compose.yaml</code>, or <code>docker-compose.yml</code> in the current directory, in that order. The modern preferred name is <code>compose.yaml</code>.</p>
+
+<h2 id="build-vs-image">build vs image</h2>
+<p>A service can either <strong>pull</strong> a pre-built image (<code>image:</code>) or <strong>build</strong> one from a Dockerfile (<code>build:</code>). You can use both: <code>build</code> tells Compose how to construct the image, and <code>image</code> names the resulting tag.</p>
+
+<div class="command-box">
+    <h4>Build patterns</h4>
+    <pre>
+services:
+  api:
+    # Build from ./api/Dockerfile and tag as myorg/api:dev
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+      args:
+        APP_ENV: development
+      target: dev          # multi-stage: stop at the `dev` stage
+    image: myorg/api:dev   # name for the built image (useful for `docker push`)
+
+  cache:
+    # Pure pull, no build
+    image: redis:7-alpine
+</pre>
+</div>
+
+<h2 id="ports-vs-expose">ports vs expose (and the security implication)</h2>
+<p>This trips people up constantly. They are <em>not</em> the same.</p>
+<ul>
+    <li><strong><code>ports:</code></strong> publishes a container port on the host. Anyone who can reach the host on that port can reach the container.</li>
+    <li><strong><code>expose:</code></strong> only declares that a port is available <em>to other containers on the same Compose network</em>. It is not published on the host.</li>
+</ul>
+
+<p>By default, <code>ports: "5432:5432"</code> binds to <strong>all interfaces</strong> (<code>0.0.0.0</code>) on the host. That means your database is reachable from the network — including from the internet if the host has a public IP and no firewall. <strong>Always bind to localhost</strong> for anything that should not leave the host:</p>
+
+<div class="command-box">
+    <h4>Bind a database port to localhost only</h4>
+    <pre>
+services:
+  db:
+    image: postgres:16
+    ports:
+      - "127.0.0.1:5432:5432"   # localhost-only — safe for dev
+    # NOT: "5432:5432"  ← publishes on 0.0.0.0, reachable from LAN
+</pre>
+</div>
+
+<p>If the database only needs to be reached by other services in the Compose file, drop <code>ports</code> entirely and use <code>expose</code> (or rely on the default — services on the same network can reach each other on any port without <code>expose</code>; it's mostly documentation).</p>
+
+<h2 id="environment-and-env-file">environment vs env_file</h2>
+<p>Two ways to inject environment variables. Both work; the difference is where the values live.</p>
+
+<div class="command-box">
+    <h4>Inline vs file-based env</h4>
+    <pre>
+services:
+  api:
+    image: myorg/api:dev
+    environment:
+      LOG_LEVEL: info
+      DATABASE_URL: postgres://app:app@db:5432/app
+      # Pull from host env if it's set, otherwise empty:
+      SENTRY_DSN: ${SENTRY_DSN:-}
+
+  worker:
+    image: myorg/api:dev
+    env_file:
+      - ./.env.worker        # KEY=value per line, no quotes needed
+</pre>
+</div>
+
+<p>Compose also automatically loads variables from a top-level <code>.env</code> file for substitution into the Compose file itself (e.g. <code>${IMAGE_TAG}</code>). That is <em>different</em> from <code>env_file</code>, which injects variables into the container.</p>
+
+<h2 id="depends-on-and-healthchecks">depends_on with healthchecks</h2>
+<p>The classic mistake: declaring <code>depends_on: [db]</code> and assuming the database is ready when the API starts. It isn't — <code>depends_on</code> by itself only waits for the container to <em>start</em>, not for the service inside to be <em>healthy</em>.</p>
+
+<p>The fix is to declare a <code>healthcheck</code> on the dependency and use the long form of <code>depends_on</code>:</p>
+
+<div class="command-box">
+    <h4>Wait until Postgres is actually accepting queries</h4>
+    <pre>
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: app
+      POSTGRES_DB: app
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app -d app"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+
+  api:
+    image: myorg/api:dev
+    depends_on:
+      db:
+        condition: service_healthy
+</pre>
+</div>
+
+<p>Healthcheck fields:</p>
+<ul>
+    <li><strong><code>test</code></strong> — command run inside the container. <code>CMD-SHELL</code> runs it through <code>/bin/sh -c</code>.</li>
+    <li><strong><code>interval</code></strong> — how often to run the check after it has started.</li>
+    <li><strong><code>timeout</code></strong> — how long a single check may take before counting as a failure.</li>
+    <li><strong><code>retries</code></strong> — consecutive failures before the container is marked <em>unhealthy</em>.</li>
+    <li><strong><code>start_period</code></strong> — grace period at startup during which failures don't count toward <code>retries</code>. Critical for slow-starting services like databases or JVM apps.</li>
+</ul>
+
+<h2 id="restart-policies">Restart Policies</h2>
+<p>Tell Docker what to do when a container exits.</p>
+
+<div class="command-box">
+    <h4>Restart options</h4>
+    <pre>
+services:
+  api:
+    image: myorg/api:dev
+    restart: unless-stopped   # restart on failure or daemon restart; honor manual stop
+    # other values:
+    #   no            — never restart (default)
+    #   always        — restart even if you `docker compose stop`-ed it (rare for dev)
+    #   on-failure    — restart only on non-zero exit; supports max-retries
+</pre>
+</div>
+
+<p>For typical long-running services, <code>unless-stopped</code> is the safest default: it survives daemon restarts but still respects an explicit <code>docker compose stop</code>.</p>
+
+<h2 id="volumes">Volumes — Named vs Bind Mounts</h2>
+<p>Two distinct mount types. Use the right one for the job.</p>
+<ul>
+    <li><strong>Named volume</strong> (<code>my_volume:/var/lib/postgres</code>) — managed by Docker, lives under <code>/var/lib/docker/volumes/</code>, survives <code>docker compose down</code> (but not <code>down -v</code>). Use for <em>persistent data</em> (databases, uploads).</li>
+    <li><strong>Bind mount</strong> (<code>./src:/app/src</code>) — a host path mounted into the container. Use for <em>source code in development</em> so edits are reflected live.</li>
+</ul>
+
+<div class="command-box">
+    <h4>Both kinds in one file</h4>
+    <pre>
+services:
+  api:
+    image: myorg/api:dev
+    volumes:
+      - ./src:/app/src                 # bind mount for live reload in dev
+      - api_node_modules:/app/node_modules  # named volume, opaque to the host
+
+  db:
+    image: postgres:16
+    volumes:
+      - db_data:/var/lib/postgresql/data  # named volume — persistent
+
+volumes:
+  api_node_modules:
+  db_data:
+</pre>
+</div>
+
+<p><strong>⚠️ Destructive:</strong> <code>docker compose down -v</code> deletes named volumes too. Reach for it only when you want a clean slate.</p>
+
+<h2 id="networks">Multiple Networks for Isolation</h2>
+<p>By default, Compose creates one network and attaches every service to it. For better isolation (especially in production-shaped setups), declare multiple networks and attach services only where they need to talk.</p>
+
+<div class="command-box">
+    <h4>Frontend / backend network split</h4>
+    <pre>
+services:
+  proxy:
+    image: nginx:1.27-alpine
+    ports:
+      - "443:443"
+    networks: [frontend]
+
+  api:
+    image: myorg/api:dev
+    networks: [frontend, backend]   # proxy can reach api; api can reach db
+
+  db:
+    image: postgres:16
+    networks: [backend]             # NOT on frontend — proxy can't reach it
+
+networks:
+  frontend:
+  backend:
+</pre>
+</div>
+
+<p>Containers on the same network resolve each other by service name (e.g. the api can connect to <code>postgres://db:5432</code>). Containers on different networks cannot reach each other at all — exactly what we want for a database.</p>
+
+<h2 id="profiles">Profiles — Optional Services</h2>
+<p>Profiles let you mark services as optional and start them only when explicitly requested. Great for things like a debug shell, a one-off seed job, or a heavy monitoring stack.</p>
+
+<div class="command-box">
+    <h4>Define and use a profile</h4>
+    <pre>
+services:
+  api:
+    image: myorg/api:dev
+    # no profile — always started
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.57
+    profiles: ["tracing"]   # only started when 'tracing' profile is active
+    ports:
+      - "16686:16686"
+
+# Start the default set only:
+#   docker compose up
+#
+# Start including tracing:
+#   docker compose --profile tracing up
+</pre>
+</div>
+
+<h2 id="secrets">Secrets (file-based)</h2>
+<p>Compose secrets in non-Swarm mode are just files mounted read-only into the container at <code>/run/secrets/&lt;name&gt;</code>. They're cleaner than putting passwords in <code>environment</code> (which leaks into <code>docker inspect</code> and process listings).</p>
+
+<div class="command-box">
+    <h4>File-based secret</h4>
+    <pre>
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_DB: app
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+    secrets:
+      - db_password
+
+secrets:
+  db_password:
+    file: ./secrets/db_password.txt   # keep this out of git: add to .gitignore
+</pre>
+</div>
+
+<p><strong>Note:</strong> the full <code>secrets</code> feature (encrypted at rest, distributed across nodes) only applies to Swarm. In plain Compose this is essentially a tidy way to mount a file.</p>
+
+<h2 id="override-files">Override Files</h2>
+<p>Compose automatically merges <code>compose.yaml</code> with <code>compose.override.yaml</code> (or <code>docker-compose.override.yml</code>) if present. This is the canonical pattern for "same base, different environment."</p>
+
+<p>The classic pattern: the base file is production-shaped, and the override turns on dev conveniences (bind mounts, exposed debug ports, looser env vars).</p>
+
+<div class="command-box">
+    <h4>compose.yaml (base — production-shaped)</h4>
+    <pre>
+services:
+  api:
+    image: myorg/api:1.4.2
+    restart: unless-stopped
+    environment:
+      LOG_LEVEL: info
+</pre>
+</div>
+
+<div class="command-box">
+    <h4>compose.override.yaml (auto-merged in dev)</h4>
+    <pre>
+services:
+  api:
+    build:
+      context: ./api
+      target: dev
+    image: myorg/api:dev
+    ports:
+      - "127.0.0.1:3000:3000"
+    volumes:
+      - ./api:/app
+    environment:
+      LOG_LEVEL: debug
+      DEBUG: "*"
+</pre>
+</div>
+
+<p>For non-default override files (e.g. CI), pass them explicitly:</p>
+
+<pre>
+docker compose -f compose.yaml -f compose.ci.yaml up --abort-on-container-exit
+</pre>
+
+<h2 id="worked-example-1">Worked Example 1: nginx + app + postgres</h2>
+<p>A realistic small stack: an Nginx reverse proxy in front of a Node-style app, talking to a Postgres database. Both networks are isolated; the database is only reachable from the backend network and has a healthcheck.</p>
+
+<div class="command-box">
+    <h4>compose.yaml</h4>
+    <pre>
+services:
+  proxy:
+    image: nginx:1.27-alpine
+    ports:
+      - "127.0.0.1:8080:80"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      app:
+        condition: service_healthy
+    networks: [frontend]
+    restart: unless-stopped
+
+  app:
+    build:
+      context: ./app
+    image: myorg/app:dev
+    environment:
+      DATABASE_URL: postgres://app:app@db:5432/app
+      PORT: "3000"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/healthz"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 15s
+    depends_on:
+      db:
+        condition: service_healthy
+    networks: [frontend, backend]
+    restart: unless-stopped
+
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_DB: app
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+    secrets:
+      - db_password
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app -d app"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+    networks: [backend]
+    restart: unless-stopped
+
+networks:
+  frontend:
+  backend:
+
+volumes:
+  db_data:
+
+secrets:
+  db_password:
+    file: ./secrets/db_password.txt
+</pre>
+</div>
+
+<p>Bring it up and watch the health states transition:</p>
+
+<pre>
+docker compose up -d
+docker compose ps
+docker compose logs -f app
+docker compose down            # stop and remove containers/networks
+docker compose down -v         # also remove the named volume (DESTROYS db_data)
+</pre>
+
+<h2 id="worked-example-2">Worked Example 2: Minimal Dev Override</h2>
+<p>This is the smallest useful override pattern: the base file is what you'd deploy, and the override enables a local bind mount and a debugger port.</p>
+
+<div class="command-box">
+    <h4>compose.yaml (base)</h4>
+    <pre>
+services:
+  api:
+    image: myorg/api:1.4.2
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+</pre>
+</div>
+
+<div class="command-box">
+    <h4>compose.override.yaml (picked up automatically)</h4>
+    <pre>
+services:
+  api:
+    build:
+      context: ./api
+      target: dev
+    image: myorg/api:dev
+    command: npm run dev
+    volumes:
+      - ./api:/app
+      - /app/node_modules    # anonymous volume so host's node_modules doesn't clobber container's
+    ports:
+      - "127.0.0.1:3000:3000"
+      - "127.0.0.1:9229:9229"   # Node inspector
+    environment:
+      NODE_ENV: development
+</pre>
+</div>
+
+<p>To run the production-shaped base without the dev override (e.g. to test the production image locally):</p>
+
+<pre>
+docker compose -f compose.yaml up
+</pre>
+
+<h2 id="useful-commands">Useful Day-to-Day Commands</h2>
+
+<div class="command-box">
+    <h4>The Compose v2 cheat sheet</h4>
+    <pre>
+# Bring everything up in the background
+docker compose up -d
+
+# Rebuild images and restart
+docker compose up -d --build
+
+# See what's running and the health status
+docker compose ps
+
+# Stream logs (all services or a single one)
+docker compose logs -f
+docker compose logs -f api
+
+# Open a shell in a running container
+docker compose exec api sh
+
+# Run a one-off command (new container, removed afterwards)
+docker compose run --rm api npm test
+
+# Validate &amp; render the merged config (great for debugging overrides)
+docker compose config
+
+# Pull updated images for all services
+docker compose pull
+
+# Stop everything cleanly
+docker compose down
+
+# Nuke containers, networks, AND named volumes (DESTRUCTIVE)
+docker compose down -v
+</pre>
+</div>
+
+<h2 id="summary">Summary</h2>
+<ul>
+    <li>✓ Modern Compose: no <code>version:</code> key, use <code>docker compose</code> (v2).</li>
+    <li>✓ Top-level keys: <code>services</code>, <code>networks</code>, <code>volumes</code>, <code>secrets</code>.</li>
+    <li>✓ <code>ports</code> publishes on the host (default 0.0.0.0 — bind to <code>127.0.0.1</code> for dev DBs); <code>expose</code> is documentation only.</li>
+    <li>✓ Use <code>healthcheck</code> + <code>depends_on.condition: service_healthy</code> to wait for real readiness.</li>
+    <li>✓ Named volumes for persistent data, bind mounts for source code.</li>
+    <li>✓ Multiple networks isolate sensitive services from the public-facing ones.</li>
+    <li>✓ Profiles for optional services; overrides for environment-specific tweaks.</li>
+    <li>✓ Prefer file-based secrets over env vars for passwords.</li>
+</ul>
+
+<p>Compose is the right tool for local dev environments, integration tests, and small single-host deployments. For multi-host orchestration, graduate to Kubernetes or Swarm — but the mental model you build here transfers cleanly.</p>
+            </article>
+
+            <div class="guide-footer">
+                <a href="../index.html" class="btn-back">
+                    <i class="fas fa-arrow-left"></i> Back to Guides
+                </a>
+            </div>
+        </main>
+    </div>
+
+    <button class="back-to-top" id="backToTop">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p><i class="fas fa-atom"></i> Quantum Repository</p>
+            <p>Technical guides for system administrators and developers</p>
+            <p>alex@slash-root.com | &copy; 2025</p>
+        </div>
+    </footer>
+
+    <script src="../guide.js"></script>
+</body>
+</html>
