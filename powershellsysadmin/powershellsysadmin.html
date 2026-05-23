@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PowerShell for Sysadmins | Quantum Repository</title>
+    <meta name="description" content="A practical PowerShell guide for system administrators: cmdlets, pipelines, splatting, error handling, CIM/WMI, remoting, modules, execution policy, and reusable one-liners.">
+    <link rel="stylesheet" href="../main.css">
+    <link rel="stylesheet" href="../guide.css">
+    <link rel="stylesheet" href="../accessibility.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.1/css/all.css">
+</head>
+<body>
+    <div class="reading-progress-bar"></div>
+
+    <header class="site-header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-atom"></i>
+                    <span>Quantum Repository</span>
+                </div>
+                <nav class="main-nav">
+                    <a href="../index.html">Home</a>
+                    <a href="../index.html#guides">Guides</a>
+                    <a class="btn-donate" href="https://donate.stripe.com/5kQaEX2kMgnB85ia4ycZa00" target="_blank" rel="noopener noreferrer" aria-label="Donate – opens in a new tab"><i class="fas fa-heart" aria-hidden="true"></i><span>Donate</span></a>
+                    <button class="theme-toggle" id="themeToggle">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <div class="breadcrumbs">
+        <div class="container">
+            <a href="../index.html">Home</a>
+            <span>/</span>
+            <span class="category-badge">Windows / Sysadmin</span>
+            <span>/</span>
+            <span>PowerShell for Sysadmins</span>
+        </div>
+    </div>
+
+    <div class="guide-container">
+        <main class="guide-content">
+            <article>
+<h2 id="powershell-sysadmin">PowerShell for Sysadmins</h2>
+
+<p>PowerShell is the workhorse of modern Windows administration, and increasingly a viable cross-platform shell on macOS and Linux too. In this guide we'll walk through the things that actually matter when you're managing fleets of machines: the difference between Windows PowerShell and PowerShell 7+, how the object pipeline works, the cmdlets you'll lean on every day, how to write resilient scripts, and how to drive remote machines from your workstation.</p>
+
+<div class="scenario-box">
+    <h3><i class="fas fa-server"></i> Real-World Scenario</h3>
+    <p><strong>You manage 40 Windows Servers.</strong> Someone reports that a service is flapping on "one of the file servers, not sure which." With PowerShell remoting and a short pipeline, we can query all 40 hosts in parallel, filter on services in a stopped or non-running state, and have an answer in seconds rather than RDPing into each box.</p>
+</div>
+
+<h2 id="two-powershells">Windows PowerShell vs PowerShell 7+</h2>
+<p>There are <em>two</em> PowerShells in the wild, and the distinction matters because some modules only work on one of them:</p>
+<ul>
+    <li><strong>Windows PowerShell 5.1</strong> ships built into every modern Windows. It runs on the .NET Framework, the executable is <code>powershell.exe</code>, and Microsoft considers it feature-complete (no new functionality is being added). Many on-box modules (such as the older <code>ServerManager</code> and parts of <code>ActiveDirectory</code>) target it.</li>
+    <li><strong>PowerShell 7+</strong> is the modern cross-platform successor. It runs on .NET (Core), the executable is <code>pwsh</code> (or <code>pwsh.exe</code>), and it gets all the new language features (ternary operator, pipeline chain operators <code>&amp;&amp;</code> and <code>||</code>, parallel <code>ForEach-Object -Parallel</code>, and so on).</li>
+</ul>
+
+<p>Check what we're running with <code>$PSVersionTable</code>:</p>
+
+<div class="command-box">
+    <h4>Identify the host</h4>
+    <pre>
+PS&gt; $PSVersionTable.PSVersion
+PS&gt; $PSVersionTable.PSEdition   # "Desktop" = Windows PowerShell, "Core" = PowerShell 7+
+</pre>
+</div>
+
+<p>Installing PowerShell 7 alongside Windows PowerShell is safe — the two coexist. On Windows 10/11 and Server 2016+ we can use <code>winget</code>:</p>
+
+<div class="command-box">
+    <h4>Install PowerShell 7</h4>
+    <pre>
+# Windows (winget) — installs to "C:\Program Files\PowerShell\7\pwsh.exe"
+winget install --id Microsoft.PowerShell --source winget
+
+# macOS (Homebrew)
+brew install --cask powershell
+
+# Ubuntu/Debian (Microsoft repo)
+sudo apt-get install -y wget apt-transport-https software-properties-common
+wget -q https://packages.microsoft.com/config/ubuntu/$(lsb_release -rs)/packages-microsoft-prod.deb
+sudo dpkg -i packages-microsoft-prod.deb
+sudo apt-get update
+sudo apt-get install -y powershell
+</pre>
+</div>
+
+<h2 id="verb-noun">Verb-Noun Naming and Discoverability</h2>
+<p>Every cmdlet is named <code>Verb-Noun</code>: <code>Get-Process</code>, <code>Set-Item</code>, <code>Restart-Service</code>, <code>Test-NetConnection</code>. The verbs are not arbitrary — they're drawn from an approved list. We can see it ourselves:</p>
+
+<div class="command-box">
+    <h4>Discover commands</h4>
+    <pre>
+Get-Verb                       # Approved verbs grouped by use case
+Get-Command -Noun Service      # All cmdlets that operate on services
+Get-Command Get-*Net*          # Wildcards work in command names
+Get-Help Get-Process -Examples # Examples from the help system
+Update-Help                    # Pull the latest help text down once (run elevated)
+</pre>
+</div>
+
+<p>This is one of the better arguments for PowerShell: a brand-new tool you've never touched will almost always have a guessable name and a usable <code>-Help</code> output.</p>
+
+<h2 id="pipeline-objects">The Pipeline Passes Objects, Not Text</h2>
+<p>This is the single biggest mental shift coming from bash. In a Unix shell, every command emits text, and the next command parses that text with tools like <code>awk</code>, <code>cut</code>, <code>grep</code>. In PowerShell, each command emits <em>objects</em> with named properties, and the next command receives those objects directly.</p>
+
+<div class="command-box">
+    <h4>Object pipeline in action</h4>
+    <pre>
+# Top 5 processes by working set, showing only name and memory in MB
+Get-Process |
+    Sort-Object -Property WorkingSet -Descending |
+    Select-Object -First 5 -Property Name,
+        @{Name='MemoryMB';Expression={[math]::Round($_.WorkingSet/1MB,1)}}
+</pre>
+</div>
+
+<p>Notice we never parsed a column of text. <code>Sort-Object</code> sorted on a real numeric property, and <code>Select-Object</code> built a tiny custom object with a calculated property. That's the pipeline doing its real job.</p>
+
+<h2 id="core-cmdlets">Cmdlets You'll Use Every Day</h2>
+
+<h3>Inspecting state</h3>
+<div class="command-box">
+    <h4>Read-only investigation</h4>
+    <pre>
+Get-Process                          # All running processes
+Get-Process -Name chrome             # Filter by name
+Get-Service                          # All services + state
+Get-Service -Name 'W32Time','Spooler'
+Get-ChildItem C:\Logs -Recurse -Filter *.log
+Get-Item C:\Windows\System32\drivers\etc\hosts | Select-Object FullName, Length, LastWriteTime
+Get-Content .\app.log -Tail 50       # Like `tail -n 50`
+Get-Content .\app.log -Wait          # Like `tail -f`
+</pre>
+</div>
+
+<h3>Shaping data</h3>
+<div class="command-box">
+    <h4>Filter, project, sort, group, measure</h4>
+    <pre>
+# Where-Object: filter rows
+Get-Service | Where-Object { $_.Status -eq 'Stopped' -and $_.StartType -eq 'Automatic' }
+
+# Short syntax (PS 3.0+): no script block needed for simple comparisons
+Get-Service | Where-Object Status -EQ 'Running'
+
+# Select-Object: project columns
+Get-Process | Select-Object Name, Id, CPU -First 10
+
+# Sort-Object
+Get-ChildItem C:\Logs | Sort-Object Length -Descending
+
+# Group-Object: like SQL GROUP BY
+Get-Process | Group-Object -Property Company | Sort-Object Count -Descending
+
+# Measure-Object: aggregate
+Get-ChildItem C:\Logs -Recurse | Measure-Object -Property Length -Sum -Average -Maximum
+
+# ForEach-Object: per-row action
+Get-Service | Where-Object Status -EQ 'Stopped' | ForEach-Object { "$($_.Name) is stopped" }
+</pre>
+</div>
+
+<h2 id="splatting">Parameter Splatting</h2>
+<p>Long parameter lists get ugly fast. Splatting lets us build a hashtable of parameters once and pass it to a cmdlet with <code>@</code>:</p>
+
+<div class="command-box">
+    <h4>Splatting a hashtable</h4>
+    <pre>
+$params = @{
+    Path        = 'C:\Backups\db.bak'
+    Destination = '\\fileserver01\backups\sql\'
+    Force       = $true
+    Verbose     = $true
+}
+Copy-Item @params
+</pre>
+</div>
+
+<p>Splatting is also the cleanest way to conditionally include parameters. Build the hashtable, then add keys only when they apply.</p>
+
+<h2 id="error-handling">Error Handling: -ErrorAction, try/catch, $ErrorActionPreference</h2>
+<p>PowerShell distinguishes between <em>terminating</em> errors (which stop the pipeline) and <em>non-terminating</em> errors (which print red text but let the pipeline continue). For scripting, we usually want to promote non-terminating errors so we can catch them.</p>
+
+<div class="command-box">
+    <h4>Promote and catch errors</h4>
+    <pre>
+try {
+    Get-Item 'C:\definitely-not-there.txt' -ErrorAction Stop
+}
+catch [System.Management.Automation.ItemNotFoundException] {
+    Write-Warning "File missing: $($_.Exception.Message)"
+}
+catch {
+    Write-Error "Unexpected: $($_.Exception.Message)"
+    throw   # Re-raise so the caller knows
+}
+finally {
+    Write-Verbose 'Cleanup block always runs'
+}
+</pre>
+</div>
+
+<p>Set the default for an entire script with <code>$ErrorActionPreference</code>. <code>'Stop'</code> is the safest for scripts you want to be reliable:</p>
+
+<div class="command-box">
+    <h4>Script-wide error preference</h4>
+    <pre>
+# Top of script
+$ErrorActionPreference = 'Stop'
+
+# Now every cmdlet errors terminally and try/catch will see it
+</pre>
+</div>
+
+<h2 id="cim-wmi">CIM/WMI: Querying System Inventory</h2>
+<p>Common Information Model (CIM) is the modern replacement for the older WMI cmdlets (<code>Get-WmiObject</code>). <code>Get-CimInstance</code> uses WS-Man rather than DCOM, plays nicely with PowerShell remoting, and is the supported path going forward.</p>
+
+<div class="command-box">
+    <h4>Common CIM queries</h4>
+    <pre>
+# Operating system info
+Get-CimInstance -ClassName Win32_OperatingSystem |
+    Select-Object Caption, Version, OSArchitecture, LastBootUpTime
+
+# Disk free space
+Get-CimInstance -ClassName Win32_LogicalDisk -Filter "DriveType=3" |
+    Select-Object DeviceID,
+        @{N='SizeGB'; E={[math]::Round($_.Size/1GB,1)}},
+        @{N='FreeGB';E={[math]::Round($_.FreeSpace/1GB,1)}}
+
+# Installed software (slower; reads from the WMI provider)
+Get-CimInstance -ClassName Win32_Product | Select-Object Name, Version, Vendor
+</pre>
+</div>
+
+<p><em>Note:</em> <code>Win32_Product</code> triggers a Windows Installer integrity check on every machine it touches. For a faster, less invasive inventory, query the uninstall registry keys (<code>HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall</code>) directly.</p>
+
+<h2 id="remoting">Remote Management with PowerShell Remoting</h2>
+<p>PowerShell remoting uses WS-Management (WinRM) over HTTP/5985 or HTTPS/5986. On a domain network the server side is typically already enabled. To enable it manually:</p>
+
+<div class="command-box">
+    <h4>Enable remoting (on the target, elevated)</h4>
+    <pre>
+Enable-PSRemoting -Force
+# Optionally restrict to specific subnets / IPs:
+Set-Item WSMan:\localhost\Client\TrustedHosts -Value 'fileserver01,fileserver02'
+</pre>
+</div>
+
+<p>From our admin workstation we can then enter a single remote session or fan out to many machines in parallel:</p>
+
+<div class="command-box">
+    <h4>Interactive session and fan-out</h4>
+    <pre>
+# Interactive: drop into a remote prompt
+$cred = Get-Credential CONTOSO\admin
+Enter-PSSession -ComputerName fileserver01 -Credential $cred
+# ... run commands as if you were local ...
+Exit-PSSession
+
+# Fan-out: same command on many machines, results stream back
+$servers = 'web01','web02','web03'
+Invoke-Command -ComputerName $servers -Credential $cred -ScriptBlock {
+    Get-Service -Name w3svc | Select-Object MachineName, Name, Status
+}
+
+# Persistent session for repeated commands
+$s = New-PSSession -ComputerName web01 -Credential $cred
+Invoke-Command -Session $s -ScriptBlock { Get-Service }
+Remove-PSSession $s
+</pre>
+</div>
+
+<p>When the source and target are not in the same Active Directory forest, prefer HTTPS (5986) with a real certificate over HTTP, and use <code>-Authentication Negotiate</code> or Kerberos rather than CredSSP unless you specifically need delegated credentials.</p>
+
+<h2 id="modules">Modules and PowerShellGet</h2>
+<p>Modules ship cmdlets, functions, and DSC resources. Microsoft and the community publish to the PowerShell Gallery, and we install from there with <code>Install-Module</code>:</p>
+
+<div class="command-box">
+    <h4>Working with modules</h4>
+    <pre>
+Get-Module                                # Currently loaded
+Get-Module -ListAvailable                 # Installed but not loaded
+Find-Module -Name PSReadLine              # Search the Gallery
+Install-Module -Name PSReadLine -Scope CurrentUser
+Update-Module -Name PSReadLine
+Import-Module ActiveDirectory             # Usually auto-imports when you call a cmdlet
+</pre>
+</div>
+
+<p><strong>Best practice:</strong> install with <code>-Scope CurrentUser</code> unless the module needs to be available to every user on the host. Always inspect what you're installing — <code>Find-Module Foo | Select-Object Name, Version, Author, ProjectUri</code> — before trusting it.</p>
+
+<h2 id="execution-policy">Execution Policy</h2>
+<p>Execution policy is a <em>safety net</em>, not a security boundary. It stops accidental double-clicks of malicious <code>.ps1</code> files; it does not stop a determined attacker. The values worth knowing:</p>
+<ul>
+    <li><strong>Restricted</strong> – No scripts run. Default on client OS.</li>
+    <li><strong>RemoteSigned</strong> – Local scripts run; downloaded scripts must be signed. A sensible default for workstations.</li>
+    <li><strong>AllSigned</strong> – Every script must be signed. Best for tightly-controlled servers.</li>
+    <li><strong>Bypass</strong> – Nothing is blocked, no warnings. Useful for one-off automation runners (e.g. CI agents) where the script source is trusted.</li>
+    <li><strong>Unrestricted</strong> – Avoid. It still warns on remote scripts but encourages bad habits.</li>
+</ul>
+
+<div class="command-box">
+    <h4>Setting execution policy</h4>
+    <pre>
+Get-ExecutionPolicy -List
+Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
+
+# One-off override for a single invocation (does not persist)
+pwsh -ExecutionPolicy Bypass -File .\deploy.ps1
+</pre>
+</div>
+
+<h2 id="script-structure">Script Structure: param() and Comment-Based Help</h2>
+<p>A well-formed PowerShell script looks like a cmdlet from the outside: typed parameters, validation attributes, and help text the user can read with <code>Get-Help</code>.</p>
+
+<div class="command-box">
+    <h4>A skeleton script</h4>
+    <pre>
+&lt;#
+.SYNOPSIS
+    Restarts a Windows service on one or more remote computers.
+.DESCRIPTION
+    Connects to each computer over PowerShell remoting, restarts the named
+    service, and reports the result.
+.PARAMETER ComputerName
+    One or more computers to target. Defaults to the local host.
+.PARAMETER ServiceName
+    The short name of the service (e.g. 'Spooler').
+.EXAMPLE
+    .\Restart-RemoteService.ps1 -ComputerName web01,web02 -ServiceName w3svc
+.NOTES
+    Author: Quantum Repository
+#&gt;
+[CmdletBinding(SupportsShouldProcess = $true)]
+param(
+    [Parameter(Mandatory = $false)]
+    [string[]] $ComputerName = $env:COMPUTERNAME,
+
+    [Parameter(Mandatory = $true)]
+    [ValidateNotNullOrEmpty()]
+    [string] $ServiceName
+)
+
+$ErrorActionPreference = 'Stop'
+
+foreach ($name in $ComputerName) {
+    if ($PSCmdlet.ShouldProcess($name, "Restart service $ServiceName")) {
+        try {
+            Invoke-Command -ComputerName $name -ScriptBlock {
+                param($svc) Restart-Service -Name $svc -Force
+            } -ArgumentList $ServiceName
+            Write-Output "OK: $name"
+        }
+        catch {
+            Write-Warning "FAIL: $name - $($_.Exception.Message)"
+        }
+    }
+}
+</pre>
+</div>
+
+<p><code>SupportsShouldProcess</code> gives us <code>-WhatIf</code> and <code>-Confirm</code> for free. That is a real lifesaver when a script is about to do something destructive against 200 machines.</p>
+
+<h2 id="profiles">Profiles</h2>
+<p>Profiles are scripts that run automatically when a PowerShell session starts. Common uses: aliases, prompt customization, frequently-loaded modules. The path lives in the <code>$PROFILE</code> automatic variable.</p>
+
+<div class="command-box">
+    <h4>Editing your profile</h4>
+    <pre>
+# Each shows the file path PowerShell expects (it may not exist yet)
+$PROFILE                                # Current host, current user
+$PROFILE.AllUsersAllHosts               # All users, every host
+
+# Create + open
+if (-not (Test-Path $PROFILE)) { New-Item -Type File -Path $PROFILE -Force }
+notepad $PROFILE
+</pre>
+</div>
+
+<p>A small profile that earns its keep:</p>
+
+<div class="command-box">
+    <h4>Example $PROFILE contents</h4>
+    <pre>
+Set-Alias ll Get-ChildItem
+Import-Module PSReadLine
+Set-PSReadLineOption -PredictionSource History -EditMode Windows
+function Get-PublicIP { (Invoke-RestMethod 'https://api.ipify.org?format=json').ip }
+</pre>
+</div>
+
+<h2 id="one-liners">Five One-Liners Worth Memorizing</h2>
+
+<div class="command-box">
+    <h4>1. Top 10 largest files under a path</h4>
+    <pre>
+Get-ChildItem C:\ -Recurse -File -ErrorAction SilentlyContinue |
+    Sort-Object Length -Descending |
+    Select-Object -First 10 FullName,
+        @{N='SizeMB'; E={[math]::Round($_.Length/1MB,2)}}
+</pre>
+</div>
+
+<div class="command-box">
+    <h4>2. Find listening TCP ports and the owning process</h4>
+    <pre>
+Get-NetTCPConnection -State Listen |
+    Select-Object LocalAddress, LocalPort,
+        @{N='Process'; E={(Get-Process -Id $_.OwningProcess).ProcessName}},
+        OwningProcess
+</pre>
+</div>
+
+<div class="command-box">
+    <h4>3. Check service health across many hosts</h4>
+    <pre>
+Invoke-Command -ComputerName (Get-Content .\servers.txt) -ScriptBlock {
+    Get-Service spooler, w32time | Select-Object PSComputerName, Name, Status
+}
+</pre>
+</div>
+
+<div class="command-box">
+    <h4>4. Tail an event log live for warnings/errors</h4>
+    <pre>
+Get-WinEvent -LogName System -MaxEvents 50 |
+    Where-Object { $_.LevelDisplayName -in 'Warning','Error' } |
+    Format-Table TimeCreated, Id, ProviderName, Message -Wrap
+</pre>
+</div>
+
+<div class="command-box">
+    <h4>5. Quick HTTP probe across a list of URLs</h4>
+    <pre>
+'https://example.com','https://google.com','https://does-not-exist.invalid' |
+    ForEach-Object {
+        try {
+            $r = Invoke-WebRequest -Uri $_ -Method Head -TimeoutSec 5 -UseBasicParsing
+            [pscustomobject]@{ Url = $_; Status = $r.StatusCode }
+        } catch {
+            [pscustomobject]@{ Url = $_; Status = "ERR: $($_.Exception.Message)" }
+        }
+    }
+</pre>
+</div>
+
+<h2 id="summary">Summary</h2>
+<p>The PowerShell mental model — verb-noun cmdlets, object pipeline, splatting, structured error handling, remoting — turns a lot of "click through MMC on 20 servers" work into a one-line query. Lean on <code>Get-Help</code>, lean on <code>Get-Command</code>, and remember: if a non-terminating error is biting your script, the answer is almost always <code>-ErrorAction Stop</code> plus a <code>try/catch</code>.</p>
+
+            </article>
+
+            <div class="guide-footer">
+                <a href="../index.html" class="btn-back">
+                    <i class="fas fa-arrow-left"></i> Back to Guides
+                </a>
+            </div>
+        </main>
+    </div>
+
+    <button class="back-to-top" id="backToTop">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p><i class="fas fa-atom"></i> Quantum Repository</p>
+            <p>Technical guides for system administrators and developers</p>
+            <p>alex@slash-root.com | &copy; 2025</p>
+        </div>
+    </footer>
+
+    <script src="../guide.js"></script>
+</body>
+</html>

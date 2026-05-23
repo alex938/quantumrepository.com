@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Active Directory Attacks &amp; Defenses | Quantum Repository</title>
+    <meta name="description" content="Defensive overview of common Active Directory attacks — Kerberoasting, AS-REP roasting, Pass-the-Hash, LLMNR poisoning, BloodHound — with detection signals and mitigations. For lab use only.">
+    <link rel="stylesheet" href="../main.css">
+    <link rel="stylesheet" href="../guide.css">
+    <link rel="stylesheet" href="../accessibility.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.1/css/all.css">
+</head>
+<body>
+    <div class="reading-progress-bar"></div>
+
+    <header class="site-header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-atom"></i>
+                    <span>Quantum Repository</span>
+                </div>
+                <nav class="main-nav">
+                    <a href="../index.html">Home</a>
+                    <a href="../index.html#guides">Guides</a>
+                    <a class="btn-donate" href="https://donate.stripe.com/5kQaEX2kMgnB85ia4ycZa00" target="_blank" rel="noopener noreferrer" aria-label="Donate – opens in a new tab"><i class="fas fa-heart" aria-hidden="true"></i><span>Donate</span></a>
+                    <button class="theme-toggle" id="themeToggle">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <div class="breadcrumbs">
+        <div class="container">
+            <a href="../index.html">Home</a>
+            <span>/</span>
+            <span class="category-badge">Security / Active Directory</span>
+            <span>/</span>
+            <span>AD Attacks &amp; Defenses</span>
+        </div>
+    </div>
+
+    <div class="guide-container">
+        <main class="guide-content">
+            <article>
+<h2 id="ad-attacks">Active Directory Attacks &amp; Defenses</h2>
+
+<div style="background: #b71c1c; color: #fff; padding: 1.5rem; border-radius: 8px; margin: 2rem 0; border-left: 6px solid #7f0000;">
+    <h3 style="margin-top: 0; color: #fff;"><i class="fas fa-exclamation-triangle"></i> LAB ONLY — Read This First</h3>
+    <p style="color: #fff; margin-bottom: 0.5rem;"><strong>The techniques described in this guide are for systems you own or have explicit written permission to test.</strong> Running any of them against systems you do not own — even systems your employer owns, if your role does not include offensive security and you do not have a written engagement letter — is illegal in most jurisdictions and gets people fired and prosecuted.</p>
+    <p style="color: #fff; margin-bottom: 0;">This guide is written from a <strong>defender's perspective</strong>. We describe how each attack works at a conceptual level, the signals it leaves behind, and how to prevent it. We deliberately do <em>not</em> include step-by-step exploit commands.</p>
+</div>
+
+<p>This guide is a continuation of our Active Directory lab series. By now, we have a working domain with a DC, a handful of users, and at least one member server. We're going to look at five techniques that show up in real AD compromises, and — more importantly — what to log, monitor, and configure to stop them.</p>
+
+<div class="scenario-box">
+    <h3><i class="fas fa-shield-alt"></i> Defender's Mindset</h3>
+    <p>Every section follows the same structure: <strong>theory</strong> (what the attack is), <strong>how it works</strong> (high-level, not a turnkey recipe), <strong>detection</strong> (event IDs and signals to alert on), and <strong>mitigation</strong> (configuration changes that remove the attack surface). Read it as "things to audit in our environment," not "things to run."</p>
+</div>
+
+<h2 id="kerberoasting">1. Kerberoasting</h2>
+
+<h3>Theory</h3>
+<p>Service accounts in AD have a <strong>Service Principal Name</strong> (SPN) so that Kerberos can issue service tickets to them. The service ticket (TGS) is encrypted with the service account's password hash. Any domain user — not just admins — can request a TGS for any SPN, by design.</p>
+
+<p>If the service account's password is weak, an attacker can request the TGS, take it offline, and brute-force the password from the encrypted ticket, never touching the DC again.</p>
+
+<h3>How it works</h3>
+<ol>
+    <li>Attacker authenticates as any normal domain user (a phished or compromised account, for example).</li>
+    <li>Enumerates accounts that have a non-null <code>servicePrincipalName</code> attribute. These are easy to list with vanilla LDAP — no special privilege required.</li>
+    <li>Requests a Kerberos service ticket (TGS-REQ) for one of those SPNs. The DC responds with a TGS-REP encrypted under the service account's NTLM-derived key (or AES key, depending on the configured encryption types).</li>
+    <li>Extracts the encrypted blob and runs it through an offline cracker. Weak passwords fall in minutes; long random ones don't.</li>
+</ol>
+
+<p>The public tooling commonly associated with this technique is <strong>Rubeus</strong> and <strong>Impacket's GetUserSPNs.py</strong>. We name them so defenders can write detection rules; we are not providing invocation strings.</p>
+
+<h3>Detection</h3>
+<ul>
+    <li><strong>Event ID 4769</strong> on the Domain Controller (Security log): "A Kerberos service ticket was requested." Look at the <em>Ticket Encryption Type</em> field. Modern domains negotiate <code>0x12</code> (AES-256). Requests for <code>0x17</code> (RC4-HMAC) for a privileged service account are highly suspicious — that's the classic Kerberoasting fingerprint, because RC4 hashes crack faster than AES.</li>
+    <li>One user requesting TGS for many SPNs in a short window.</li>
+    <li>TGS requests for SPNs from a host that has no business calling that service.</li>
+</ul>
+
+<h3>Mitigation</h3>
+<ul>
+    <li><strong>Use Group Managed Service Accounts (gMSAs)</strong> wherever possible. gMSAs use 240-character randomly-generated passwords rotated automatically every 30 days. They are functionally un-crackable.</li>
+    <li>For any SPN-bound account that <em>cannot</em> be a gMSA, set a long random password (25+ characters) and rotate it on a schedule.</li>
+    <li>Disable RC4 for Kerberos where you can. Set the user account flag "This account supports Kerberos AES 128/256 bit encryption" and enforce the domain-wide <em>Network security: Configure encryption types allowed for Kerberos</em> GPO to AES-only.</li>
+    <li>Audit who has SPNs set. Common AD lab one-liner (defensive enumeration): <code>Get-ADUser -Filter { ServicePrincipalName -like "*" } -Properties ServicePrincipalName, PasswordLastSet</code>.</li>
+</ul>
+
+<h2 id="asrep-roasting">2. AS-REP Roasting</h2>
+
+<h3>Theory</h3>
+<p>Kerberos pre-authentication is a step where the client encrypts a timestamp with its password-derived key and sends it to the DC. The DC tries to decrypt it; if it works, the DC then issues a TGT. Pre-auth makes offline brute force harder because the attacker needs to provoke the client to send something.</p>
+
+<p>If pre-authentication is <em>disabled</em> on an account (the <code>DONT_REQUIRE_PREAUTH</code> User Account Control flag, also called "Do not require Kerberos preauthentication" in the UI), <em>anyone</em> can ask the DC for an AS-REP for that user, and the AS-REP contains a chunk of data encrypted with the user's password hash. Offline crack follows.</p>
+
+<h3>How it works</h3>
+<p>Attacker sends an AS-REQ for a vulnerable account without pre-auth data. The DC returns an AS-REP. Crack the password offline.</p>
+
+<h3>Detection</h3>
+<ul>
+    <li><strong>Event ID 4768</strong> (Kerberos authentication ticket TGT requested) with <em>Pre-Authentication Type = 0</em> is the signature.</li>
+    <li>Periodically audit and alert on anyone with the <code>DONT_REQ_PREAUTH</code> flag set.</li>
+</ul>
+
+<h3>Mitigation</h3>
+<p>Find accounts with pre-auth disabled and re-enable it (or delete the account):</p>
+
+<div class="command-box">
+    <h4>Defensive audit query</h4>
+    <pre>
+# Find accounts with pre-auth disabled
+Get-ADUser -Filter 'useraccountcontrol -band 4194304' -Properties useraccountcontrol |
+    Select-Object SamAccountName, Enabled, useraccountcontrol
+
+# Re-enable pre-authentication on a single account
+Set-ADAccountControl -Identity 'someuser' -DoesNotRequirePreAuth $false
+</pre>
+</div>
+
+<p>(<code>4194304</code> is <code>0x400000</code>, the <code>DONT_REQ_PREAUTH</code> bit of the <code>userAccountControl</code> bitmask.) The accounts that legitimately need this flag set are extremely rare — usually none in a modern domain.</p>
+
+<h2 id="pass-the-hash">3. Pass-the-Hash (Concept)</h2>
+
+<h3>Theory</h3>
+<p>Windows authenticates over NTLM using the user's NT hash directly — the cleartext password is not required. If an attacker can read the NT hash (from LSASS memory on a machine where the user has logged on, from a SAM dump, or from a backup of <code>ntds.dit</code>), they can authenticate <em>as</em> that user to any service that accepts NTLM, without ever cracking the password.</p>
+
+<h3>How it works (concept only)</h3>
+<p>An attacker with local admin on Host A reads cached credential material out of LSASS. If a privileged account ever logged in to Host A (interactively, with RunAs, via RDP), its hash is now in attacker hands. The attacker then authenticates to Host B as that account by replaying the hash through an NTLM-aware client. From Host B they can move further into the network.</p>
+
+<p>This is the technique that turns "one compromised laptop" into "domain admin" if internal segmentation and credential hygiene are weak.</p>
+
+<h3>Detection</h3>
+<ul>
+    <li><strong>Event ID 4624</strong> (Successful logon) with <em>Logon Type 3 (Network)</em>, <em>Authentication Package = NTLM</em>, especially for privileged accounts logging in to non-admin workstations.</li>
+    <li><strong>Event ID 4648</strong> (Logon attempt with explicit credentials) from unexpected source hosts.</li>
+    <li>EDR or Sysmon process events showing <code>lsass.exe</code> being opened with <code>VM_READ</code> by an unusual process.</li>
+</ul>
+
+<h3>Mitigation</h3>
+<ul>
+    <li><strong>LAPS (Local Administrator Password Solution)</strong> — unique, randomized local-admin password per machine. This kills lateral movement using a shared local-admin hash.</li>
+    <li><strong>Credential Guard</strong> on Windows 10/11/Server 2016+ — uses virtualization-based security to isolate LSASS, making the hash unreachable from kernel and userland.</li>
+    <li><strong>Tiered admin model</strong> (see below): privileged accounts never log in to user workstations, so their hashes never end up there.</li>
+    <li>Disable NTLM where possible. Audit with <em>Network security: Restrict NTLM</em> GPOs in audit-only mode, then start blocking.</li>
+    <li><strong>Protected Users</strong> group — members do not cache credentials, cannot delegate, and cannot use NTLM/Digest/CredSSP for authentication.</li>
+</ul>
+
+<h2 id="llmnr-nbtns">4. LLMNR / NBT-NS Poisoning</h2>
+
+<h3>Theory</h3>
+<p>When a Windows host can't resolve a name via DNS (typo, expired record, misconfigured share path), it falls back to <strong>LLMNR</strong> (Link-Local Multicast Name Resolution, port UDP/5355) and then to <strong>NBT-NS</strong> (NetBIOS over TCP/IP, UDP/137). Both ask the local broadcast/multicast segment "does anyone know who <code>printerserver</code> is?"</p>
+
+<p>An attacker on the same subnet can answer "yes, that's me." The victim then attempts to authenticate to the attacker's machine, leaking an NTLMv2 hash challenge/response. That can be cracked offline, or — worse — <strong>relayed</strong> to another service the victim has access to (SMB relay, LDAPS relay) for instant impersonation without ever cracking anything.</p>
+
+<p>The publicly-known tool here is <strong>Responder</strong>. Again, named so detection rules can include it.</p>
+
+<h3>Detection</h3>
+<ul>
+    <li>Network IDS rules for UDP/5355 (LLMNR) and UDP/137 (NBNS) response traffic from unexpected hosts.</li>
+    <li>SMB authentication attempts with random/typo'd hostnames.</li>
+    <li>Sysmon Event ID 22 (DNSEvent) catching unusual fallback resolutions.</li>
+</ul>
+
+<h3>Mitigation</h3>
+<ul>
+    <li><strong>Disable LLMNR domain-wide</strong> via GPO: <em>Computer Configuration → Administrative Templates → Network → DNS Client → Turn off multicast name resolution</em> = Enabled.</li>
+    <li><strong>Disable NetBIOS over TCP/IP</strong> on each NIC. Either via DHCP scope option, GPO/PowerShell, or the adapter's WINS tab.</li>
+    <li><strong>Enable SMB Signing</strong> on all clients and servers (Group Policy: <em>Microsoft network client/server: Digitally sign communications (always)</em> = Enabled). SMB signing breaks the SMB relay attack path completely.</li>
+    <li>Enable <strong>Extended Protection for Authentication</strong> on LDAP, IIS, etc., to defeat LDAP/HTTP relay.</li>
+</ul>
+
+<h2 id="bloodhound">5. BloodHound for Attack Path Discovery</h2>
+
+<h3>Theory</h3>
+<p>BloodHound is a graph-based analysis tool. It models AD as a graph of objects (users, computers, groups, OUs, GPOs) and edges (memberships, ACLs, sessions, GPO links, delegations). Given the graph, it can compute the <em>shortest path</em> from any low-privilege starting point to a Domain Admin. The collector that gathers the data is called <strong>SharpHound</strong>.</p>
+
+<p>BloodHound is just as useful — arguably more useful — for defenders. We run it against our own domain, look at the paths, and remove edges that shouldn't exist.</p>
+
+<h3>How it's used (defender side)</h3>
+<ol>
+    <li>Run SharpHound from a regular domain-joined workstation under a regular domain user account. It enumerates the directory using normal LDAP queries that any user can make.</li>
+    <li>Output is one or more JSON files (in newer versions, a zip).</li>
+    <li>Stand up BloodHound (the Community Edition or BloodHound CE) with its Neo4j backend on an isolated analyst host.</li>
+    <li>Upload the JSON. Run the built-in query <strong>"Shortest Paths to Domain Admins"</strong>.</li>
+    <li>For each unwanted edge in the graph (an obscure ACL granting <code>GenericWrite</code>, an unintended group nesting, a forgotten <code>AdminCount=1</code>), remediate.</li>
+</ol>
+
+<h3>What to focus on</h3>
+<ul>
+    <li><strong>Sessions:</strong> privileged accounts that have active sessions on user-tier workstations. These are pass-the-hash time bombs.</li>
+    <li><strong>ACL edges:</strong> <code>GenericAll</code>, <code>GenericWrite</code>, <code>WriteDACL</code>, <code>ForceChangePassword</code>, <code>AddMember</code> on Tier-0 objects from non-Tier-0 principals.</li>
+    <li><strong>Delegations:</strong> Unconstrained delegation on any host; Resource-Based Constrained Delegation pointing to privileged groups.</li>
+    <li><strong>Kerberoastable accounts</strong> and <strong>AS-REP roastable accounts</strong> — the queries are built in.</li>
+</ul>
+
+<h3>Detection</h3>
+<ul>
+    <li>SharpHound itself is LDAP-heavy. Look for a single source making a very large number of LDAP <em>search</em> requests in a short window, especially querying <code>nTSecurityDescriptor</code>, which is unusual for benign software.</li>
+    <li>Microsoft Defender for Identity (formerly Azure ATP) and several SIEM content packs ship signatures for SharpHound enumeration patterns.</li>
+</ul>
+
+<h3>Mitigation</h3>
+<p>BloodHound itself isn't the threat — the attack paths it reveals are. The defensive use of BloodHound is to walk the graph and prune.</p>
+
+<h2 id="tiered-admin">The Strategic Defense: Tiered Admin Model</h2>
+<p>Microsoft's <strong>tiered administration model</strong> partitions privileged identities and the machines they may sign in to. The classic three tiers:</p>
+<ul>
+    <li><strong>Tier 0</strong> — Identity infrastructure. Domain controllers, AD CS, AD FS, Azure AD Connect, PAM/PIM solutions, backups of any of the above. Tier-0 accounts log in <em>only</em> to Tier-0 systems.</li>
+    <li><strong>Tier 1</strong> — Servers and server applications (file servers, app servers, SQL, web). Tier-1 admins manage Tier-1 systems but never Tier-0.</li>
+    <li><strong>Tier 2</strong> — User devices: workstations, laptops, helpdesk admin scope. Tier-2 accounts touch only Tier-2 hosts.</li>
+</ul>
+
+<p>Rules of the model:</p>
+<ol>
+    <li>A higher-tier account <em>never</em> authenticates to a lower-tier system. If a Domain Admin logs onto a laptop, the laptop now effectively has Domain Admin rights — its hash is reachable.</li>
+    <li>Each tier uses dedicated admin accounts (e.g. <code>j.smith.t0</code>, <code>j.smith.t1</code>, <code>j.smith</code>), separate from the human's day-to-day account.</li>
+    <li>Privileged access is performed from a <strong>Privileged Access Workstation (PAW)</strong> — a hardened, locked-down device dedicated to admin tasks, not used for email/browsing.</li>
+</ol>
+
+<p>This is the single change that flattens the attack surface against every technique above. Kerberoasting still happens, but the cracked service account doesn't unlock anything Tier-0. Hash dumping happens, but the cached hashes don't belong to Tier-0 principals.</p>
+
+<h2 id="defenders-checklist">Defender's Checklist</h2>
+
+<div class="command-box">
+    <h4>What to harden in the lab (and in production)</h4>
+    <pre>
+Identity hygiene
+  [ ] gMSAs for every service that can use one
+  [ ] Long random passwords on SPN-bound accounts that cannot be gMSAs
+  [ ] Audit and disable accounts with DONT_REQ_PREAUTH (UAC bit 0x400000)
+  [ ] Protected Users group for Tier-0 admins
+  [ ] LAPS deployed on every member workstation and member server
+  [ ] No password reuse between Tier 0 / Tier 1 / Tier 2 accounts
+
+Protocol hardening
+  [ ] LLMNR disabled (GPO)
+  [ ] NetBIOS over TCP/IP disabled
+  [ ] SMB signing required (client and server)
+  [ ] NTLM auditing on; NTLM blocked where feasible
+  [ ] Kerberos AES-only via "Configure encryption types allowed for Kerberos"
+  [ ] LDAP signing + LDAP channel binding required
+
+Logging and detection
+  [ ] Advanced Audit Policy enabled (Account Logon, Logon/Logoff,
+      Object Access, Account Management, DS Access, Privilege Use)
+  [ ] DC Security log forwarded to SIEM with 90+ day retention
+  [ ] SACLs on sensitive OUs / objects to log directory changes
+  [ ] Alert on 4769 with RC4 encryption (0x17) for privileged accounts
+  [ ] Alert on 4768 with PreAuthType=0 (AS-REP roasting fingerprint)
+  [ ] Alert on 4648 from non-admin hosts using admin credentials
+
+Architecture
+  [ ] Tiered admin model documented and enforced
+  [ ] Privileged Access Workstations (PAWs) for Tier-0 admins
+  [ ] Backups of ntds.dit treated as Tier-0 (anyone with the backup
+      effectively has every NTLM hash in the domain)
+  [ ] Run BloodHound periodically on your own domain, prune the graph
+</pre>
+</div>
+
+<h2 id="summary">Summary</h2>
+<p>None of these attacks are exotic — they're the standard playbook every internal penetration testing engagement runs through, and the standard playbook real intrusions follow. The good news is that the defences are well understood: gMSAs, LAPS, SMB signing, LLMNR off, AES-only Kerberos, and a tiered admin model. Walk the checklist, run BloodHound on your own domain, and most of the attack surface evaporates before anyone tries to use it.</p>
+
+<p><strong>Reminder:</strong> Everything in this guide is for defending and understanding systems you own or have written permission to test.</p>
+
+            </article>
+
+            <div class="guide-footer">
+                <a href="../index.html" class="btn-back">
+                    <i class="fas fa-arrow-left"></i> Back to Guides
+                </a>
+            </div>
+        </main>
+    </div>
+
+    <button class="back-to-top" id="backToTop">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p><i class="fas fa-atom"></i> Quantum Repository</p>
+            <p>Technical guides for system administrators and developers</p>
+            <p>alex@slash-root.com | &copy; 2025</p>
+        </div>
+    </footer>
+
+    <script src="../guide.js"></script>
+</body>
+</html>
