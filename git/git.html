@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Git Fundamentals to Intermediate | Quantum Repository</title>
+    <meta name="description" content="A hands-on Git guide covering the three trees, branching, rebase vs merge, interactive rebase, stash, reset, reflog recovery, cherry-pick, tags, remotes, and hooks.">
+    <link rel="stylesheet" href="../main.css">
+    <link rel="stylesheet" href="../guide.css">
+    <link rel="stylesheet" href="../accessibility.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.1/css/all.css">
+</head>
+<body>
+    <div class="reading-progress-bar"></div>
+
+    <header class="site-header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-atom"></i>
+                    <span>Quantum Repository</span>
+                </div>
+                <nav class="main-nav">
+                    <a href="../index.html">Home</a>
+                    <a href="../index.html#guides">Guides</a>
+                    <a class="btn-donate" href="https://donate.stripe.com/5kQaEX2kMgnB85ia4ycZa00" target="_blank" rel="noopener noreferrer" aria-label="Donate – opens in a new tab"><i class="fas fa-heart" aria-hidden="true"></i><span>Donate</span></a>
+                    <button class="theme-toggle" id="themeToggle">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <div class="breadcrumbs">
+        <div class="container">
+            <a href="../index.html">Home</a>
+            <span>/</span>
+            <span class="category-badge">Development</span>
+            <span>/</span>
+            <span>Git Fundamentals to Intermediate</span>
+        </div>
+    </div>
+
+    <div class="guide-container">
+        <main class="guide-content">
+            <article>
+<h2 id="git-fundamentals">Git Fundamentals to Intermediate</h2>
+
+<p>Git is the de facto version control system for modern software. In this guide we'll move from the basic "three trees" mental model all the way to interactive rebase, reflog-based recovery, and hooks. Every command here was verified against current Git documentation (<code>git help &lt;command&gt;</code> on Git 2.40+).</p>
+
+<div class="scenario-box">
+    <h3><i class="fas fa-code-branch"></i> Real-World Scenario</h3>
+    <p><strong>You just rebased the wrong branch.</strong></p>
+    <p>You meant to clean up your feature branch with <code>git rebase -i</code>, but you accidentally ran it on <code>main</code> after pulling a teammate's work. Commit hashes have changed, the branch tip looks unfamiliar, and you're starting to sweat. By the end of this guide, you'll know exactly how to use <code>git reflog</code> to put everything back where it was. Git almost never truly loses data — you just need to know where to look.</p>
+</div>
+
+<h2 id="the-three-trees">The Three Trees</h2>
+<p>Almost every Git command operates on (or moves data between) three places. If you internalize this model, the rest of Git stops feeling magical.</p>
+<ul>
+    <li><strong>Working directory</strong> — the actual files on disk that you edit.</li>
+    <li><strong>Index</strong> (also called the "staging area" or "cache") — a snapshot of what will go into the next commit.</li>
+    <li><strong>HEAD</strong> — a pointer to the last commit on the current branch; effectively the snapshot of the previous commit.</li>
+</ul>
+
+<pre>
+  working dir          index (staged)         HEAD (last commit)
+  -----------          ---------------         ------------------
+   edits  ──▶  git add  ──▶  staged  ──▶  git commit  ──▶  history
+   ◀──  git restore     ◀──  git restore --staged  ◀── git reset
+</pre>
+
+<p>Most "I'm confused about Git" moments come down to forgetting which of those three places you're looking at. <code>git status</code> reports all three, which is why we run it constantly.</p>
+
+<h2 id="basic-workflow">Basic Workflow</h2>
+<p>Here is the loop we run dozens of times a day. We'll start in a clean clone:</p>
+
+<div class="command-box">
+    <h4>Inspect, stage, commit, review</h4>
+    <pre>
+# What changed and where?
+git status
+
+# Show unstaged changes (working dir vs index)
+git diff
+
+# Show staged changes (index vs HEAD) — what will actually be committed
+git diff --staged
+
+# Stage specific files (preferred over `git add .` for clarity)
+git add src/parser.py tests/test_parser.py
+
+# Commit with a short subject + blank line + body
+git commit -m "parser: handle empty input" -m "Return [] instead of raising IndexError."
+
+# View history (graph form is far more useful)
+git log --oneline --graph --decorate --all -20
+</pre>
+</div>
+
+<p><strong>Tip:</strong> <code>git add -p</code> walks you through each hunk interactively. It's the single best habit for creating clean, reviewable commits.</p>
+
+<h2 id="branching">Branching</h2>
+<p>A branch in Git is just a movable pointer to a commit. Creating one is essentially free.</p>
+
+<div class="command-box">
+    <h4>Create, switch, merge</h4>
+    <pre>
+# Create and switch in one step (modern syntax, Git 2.23+)
+git switch -c feature/login
+
+# Older but still valid
+git checkout -b feature/login
+
+# List branches; the asterisk marks current
+git branch
+
+# Switch back to main
+git switch main
+
+# Merge feature into the current branch (main)
+git merge feature/login
+
+# Delete a merged branch
+git branch -d feature/login
+
+# Force-delete a branch that hasn't been merged (use with care)
+git branch -D feature/scratch
+</pre>
+</div>
+
+<p>By default <code>git merge</code> performs a fast-forward when possible (no merge commit) or creates a merge commit when histories have diverged. Force a merge commit with <code>--no-ff</code> if you want every feature branch to be visibly preserved in history.</p>
+
+<h2 id="rebase-vs-merge">Rebase vs Merge</h2>
+<p>Both integrate changes from one branch into another. They produce <em>different histories</em>, and the trade-off matters.</p>
+
+<pre>
+Before:           A───B───C  main
+                       \
+                        D───E  feature
+
+git merge feature (into main):
+                  A───B───C───M  main
+                       \     /
+                        D───E   (M is a merge commit)
+
+git rebase main (on feature):
+                  A───B───C            main
+                           \
+                            D'───E'   feature  (D, E rewritten on top of C)
+</pre>
+
+<p>Trade-offs:</p>
+<ul>
+    <li><strong>Merge</strong> preserves the true history, including the fact that work happened in parallel. <code>git bisect</code> still works cleanly. Downside: lots of merge commits can clutter <code>git log</code>.</li>
+    <li><strong>Rebase</strong> produces a linear history that is much easier to read and review. Downside: it <em>rewrites commits</em> (new hashes), which is dangerous on shared branches.</li>
+</ul>
+
+<p><strong>⚠️ The golden rule:</strong> <em>Never rebase a branch that other people have pulled.</em> Their copies still point at the old commits; your rewrite makes their next push or merge a mess. Safe targets: your own local feature branches that have not yet been pushed (or that only you use).</p>
+
+<h2 id="interactive-rebase">Interactive Rebase</h2>
+<p>Interactive rebase is how we polish a feature branch before opening a PR: squash WIP commits, reword sloppy messages, and reorder logically.</p>
+
+<div class="command-box">
+    <h4>Squash the last 4 commits into a clean series</h4>
+    <pre>
+# Open an editor showing the last 4 commits on the current branch
+git rebase -i HEAD~4
+</pre>
+</div>
+
+<p>You'll see something like this in your editor:</p>
+
+<pre>
+pick a1b2c3d add login form skeleton
+pick e4f5g6h fix typo
+pick i7j8k9l WIP
+pick m0n1o2p actually wire up auth
+
+# Rebase abc1234..m0n1o2p onto abc1234 (4 commands)
+#
+# Commands:
+# p, pick   = use commit
+# r, reword = use commit, but edit the message
+# e, edit   = use commit, but stop for amending
+# s, squash = use commit, but meld into previous commit
+# f, fixup  = like squash, but discard this commit's message
+# d, drop   = remove commit
+</pre>
+
+<p>Change it to:</p>
+
+<pre>
+pick a1b2c3d add login form skeleton
+fixup e4f5g6h fix typo
+fixup i7j8k9l WIP
+reword m0n1o2p actually wire up auth
+</pre>
+
+<p>Save and close. Git replays the commits in order, squashing the typo and WIP into the first commit, and stopping to let us rewrite the final message. The result: two clean commits instead of four.</p>
+
+<p>If you get into trouble mid-rebase, <code>git rebase --abort</code> returns you to where you started.</p>
+
+<h2 id="stash">Stash</h2>
+<p>Stash is for "I need to switch context but my work isn't ready to commit." It saves working dir + index to a stack and restores a clean tree.</p>
+
+<div class="command-box">
+    <h4>Stash workflow</h4>
+    <pre>
+# Save current changes with a label
+git stash push -m "halfway through refactor"
+
+# List stashes
+git stash list
+
+# Show what's in the most recent stash
+git stash show -p
+
+# Apply and drop the top stash
+git stash pop
+
+# Apply but keep on the stack
+git stash apply stash@{1}
+
+# Drop a specific stash
+git stash drop stash@{0}
+</pre>
+</div>
+
+<p><strong>Note:</strong> <code>git stash</code> only saves tracked files by default. Use <code>git stash push -u</code> to include untracked files, or <code>-a</code> to include ignored files.</p>
+
+<h2 id="reset">Reset — Soft, Mixed, Hard</h2>
+<p><code>git reset</code> moves HEAD (and optionally the index and working dir) to a different commit. The mode determines how much it touches.</p>
+
+<ul>
+    <li><strong><code>--soft</code></strong>: move HEAD only. Index and working dir untouched. Your changes are now staged, ready to recommit.</li>
+    <li><strong><code>--mixed</code></strong> (default): move HEAD and reset the index. Working dir untouched. Your changes are now unstaged.</li>
+    <li><strong><code>--hard</code></strong>: move HEAD, reset index, and overwrite the working directory. <em>This deletes uncommitted work.</em></li>
+</ul>
+
+<div class="command-box">
+    <h4>Common reset patterns</h4>
+    <pre>
+# Undo the last commit but keep changes staged (most common)
+git reset --soft HEAD~1
+
+# Undo the last commit and unstage everything (still on disk)
+git reset --mixed HEAD~1
+
+# Unstage a single file (without touching the working copy)
+git reset HEAD path/to/file
+# Or the modern equivalent:
+git restore --staged path/to/file
+</pre>
+</div>
+
+<p><strong>⚠️ Destructive command — read before running:</strong> <code>git reset --hard</code> permanently discards uncommitted changes in the working directory. There is no undo for unsaved edits. Reach for <code>git stash</code> first if you might want them back.</p>
+
+<pre>
+# Discard everything since the last commit (DANGEROUS)
+git reset --hard HEAD
+</pre>
+
+<h2 id="reflog">Reflog — Your Safety Net</h2>
+<p>Even after a "bad" rebase, reset, or branch deletion, the commits usually still exist in your local repo for around 30–90 days (per Git's default GC settings). The <code>reflog</code> records every move HEAD has made, so you can find them.</p>
+
+<div class="command-box">
+    <h4>Worked example: recover from a botched rebase</h4>
+    <pre>
+# We ran `git rebase -i HEAD~10` and accidentally dropped the wrong commits.
+# Our branch tip is now wrong. Don't panic.
+
+# 1. Look at every recent HEAD position
+git reflog
+
+# Example output:
+# 9f2a1c8 HEAD@{0}: rebase (finish): returning to refs/heads/feature
+# 9f2a1c8 HEAD@{1}: rebase (pick): apply config changes
+# a7b3d4e HEAD@{2}: rebase (start): checkout main
+# 4d5e6f7 HEAD@{3}: commit: the commit we just nuked
+# 3c2b1a0 HEAD@{4}: pull: Fast-forward
+
+# 2. We want to get back to HEAD@{3}, which is the state before the rebase started
+git switch -c rescue 4d5e6f7
+
+# 3. Inspect; if it's what we wanted, move our branch back to it
+git switch feature
+git reset --hard 4d5e6f7
+</pre>
+</div>
+
+<p>Branches deleted with <code>git branch -D</code> can be recovered the same way — find the last commit hash in the reflog and recreate the branch pointing at it.</p>
+
+<h2 id="cherry-pick">Cherry-pick</h2>
+<p><code>git cherry-pick</code> copies a single commit (or range) from one branch onto another. Useful for backporting a bugfix from <code>main</code> to a release branch.</p>
+
+<div class="command-box">
+    <h4>Cherry-pick a fix to a release branch</h4>
+    <pre>
+git switch release/1.4
+git cherry-pick a1b2c3d            # copy a single commit
+git cherry-pick a1b2c3d^..f9e8d7c  # copy a range (inclusive of both ends)
+# If a conflict happens, resolve it then:
+git cherry-pick --continue
+# Or bail out:
+git cherry-pick --abort
+</pre>
+</div>
+
+<p>Cherry-picked commits get new hashes (they are distinct commits). If you later merge the original branch in, Git is usually smart enough to skip the already-applied changes thanks to patch IDs.</p>
+
+<h2 id="tags">Tags — Lightweight vs Annotated</h2>
+<p>Tags mark a point in history — typically a release. Two flavors:</p>
+<ul>
+    <li><strong>Lightweight</strong>: a bare pointer to a commit. No metadata. Good for personal bookmarks.</li>
+    <li><strong>Annotated</strong>: a full object in the database with author, date, message, and (optionally) a GPG signature. Use these for releases.</li>
+</ul>
+
+<div class="command-box">
+    <h4>Tagging</h4>
+    <pre>
+# Lightweight
+git tag v1.2.3
+
+# Annotated (recommended for releases)
+git tag -a v1.2.3 -m "Release 1.2.3 — adds OIDC support"
+
+# Signed annotated tag
+git tag -s v1.2.3 -m "Release 1.2.3"
+
+# List
+git tag --list 'v1.*'
+
+# Push tags (they don't go up with normal `git push`)
+git push origin v1.2.3
+git push origin --tags    # push all tags
+
+# Delete locally and remotely
+git tag -d v1.2.3
+git push origin :refs/tags/v1.2.3
+</pre>
+</div>
+
+<h2 id="remotes">Remotes — push, pull, fetch</h2>
+<p>A remote is a named reference to another copy of the repo (usually a server). The default name when you clone is <code>origin</code>.</p>
+
+<div class="command-box">
+    <h4>Remote basics</h4>
+    <pre>
+# Show all configured remotes with URLs
+git remote -v
+
+# Add an upstream (e.g. when working on a fork)
+git remote add upstream https://github.com/upstream-org/project.git
+
+# Fetch updates without merging
+git fetch origin
+git fetch upstream
+
+# Pull = fetch + merge (or fetch + rebase with --rebase)
+git pull
+git pull --rebase            # cleaner history on shared branches you track
+
+# Push the current branch
+git push
+
+# Push and set the upstream (the first time a new branch goes up)
+git push -u origin feature/login
+</pre>
+</div>
+
+<p><strong>Upstream tracking:</strong> the <code>-u</code> (or <code>--set-upstream</code>) flag tells your local branch which remote branch it tracks. After that, <code>git push</code> and <code>git pull</code> with no arguments know where to go. Check the tracking with <code>git branch -vv</code>.</p>
+
+<h2 id="git-hooks">Git Hooks</h2>
+<p>Hooks are scripts that Git runs at specific points. They live in <code>.git/hooks/</code> in every clone (so they're <em>not</em> versioned by default). For team-shareable hooks, use a tool like <a href="https://pre-commit.com/" target="_blank" rel="noopener noreferrer">pre-commit</a> or set <code>core.hooksPath</code> to a tracked directory.</p>
+
+<p>Common hooks:</p>
+<ul>
+    <li><strong><code>pre-commit</code></strong> — runs before the commit message is written. Block bad commits (failing tests, lint errors, debug statements).</li>
+    <li><strong><code>commit-msg</code></strong> — runs after the message is written, with the message file as <code>$1</code>. Enforce conventional commits or ticket numbers.</li>
+    <li><strong><code>pre-push</code></strong> — runs before the push is sent. Last chance to block pushing broken work.</li>
+</ul>
+
+<div class="command-box">
+    <h4>Example pre-commit hook (block committing focused tests)</h4>
+    <pre>
+#!/usr/bin/env bash
+# Save as .git/hooks/pre-commit and chmod +x
+
+# Reject any staged Python file that still contains .only or pytest.skip("DO NOT MERGE")
+if git diff --cached --name-only --diff-filter=ACM | grep -E '\.py$' | xargs -r grep -nE 'DO NOT MERGE|pdb\.set_trace\(\)'; then
+    echo "✗ pre-commit: remove debug markers before committing."
+    exit 1
+fi
+
+exit 0
+</pre>
+</div>
+
+<div class="command-box">
+    <h4>Example commit-msg hook (require a ticket prefix)</h4>
+    <pre>
+#!/usr/bin/env bash
+# Save as .git/hooks/commit-msg and chmod +x
+# $1 is the path to the commit message file.
+
+msg_file="$1"
+if ! grep -qE '^(PROJ-[0-9]+|fix|feat|chore|docs|refactor): ' "$msg_file"; then
+    echo "✗ commit message must start with PROJ-### or a conventional type (feat/fix/etc)."
+    exit 1
+fi
+</pre>
+</div>
+
+<p>To share hooks across the team, commit a <code>hooks/</code> directory and have each developer run:</p>
+
+<pre>
+git config core.hooksPath hooks
+</pre>
+
+<h2 id="weekly-cheatsheet">Commands We Run Weekly — Cheat Sheet</h2>
+
+<div class="command-box">
+    <h4>The list we keep in our terminal scratchpad</h4>
+    <pre>
+# Inspect
+git status -sb                         # short status with branch info
+git log --oneline --graph --all -20    # last 20 commits across all branches
+git diff --staged                      # what will be committed
+git blame -L 40,60 path/to/file        # who changed lines 40-60 and why
+
+# Stage carefully
+git add -p                             # interactive hunk staging
+
+# Branching
+git switch -c feature/x                # create + switch
+git switch -                           # toggle back to previous branch
+
+# Sync
+git fetch --all --prune                # update remotes, drop deleted branches
+git pull --rebase                      # rebase local commits on top of upstream
+
+# Cleanup before PR
+git rebase -i origin/main              # tidy commits
+git push --force-with-lease            # safer force-push (won't clobber others' work)
+
+# Undo
+git restore --staged FILE              # unstage
+git restore FILE                       # discard working-dir changes (destructive)
+git reset --soft HEAD~1                # undo last commit, keep changes staged
+git reflog                             # find lost commits
+
+# Inspect a remote
+git ls-remote origin
+</pre>
+</div>
+
+<p><strong>One habit worth forming:</strong> always prefer <code>--force-with-lease</code> over <code>--force</code>. The "lease" variant refuses to push if the remote has moved since your last fetch, which prevents the classic "I just overwrote my teammate's work" disaster.</p>
+
+<h2 id="summary">Summary</h2>
+<p>We've covered:</p>
+<ul>
+    <li>✓ The three trees: working dir, index, HEAD</li>
+    <li>✓ Daily workflow with status / add / commit / log / diff</li>
+    <li>✓ Branching with <code>switch</code> and <code>branch</code></li>
+    <li>✓ The merge vs rebase trade-off, and the golden rule</li>
+    <li>✓ Interactive rebase to squash and reword</li>
+    <li>✓ Stash for context switches</li>
+    <li>✓ Reset modes and when each is safe</li>
+    <li>✓ Reflog as the safety net for "lost" commits</li>
+    <li>✓ Cherry-pick, tags, remotes, and upstream tracking</li>
+    <li>✓ Hooks for automating quality checks</li>
+</ul>
+
+<p>If you remember nothing else: <strong>commits are cheap, history is sacred on shared branches, and <code>git reflog</code> almost always has your back</strong>.</p>
+            </article>
+
+            <div class="guide-footer">
+                <a href="../index.html" class="btn-back">
+                    <i class="fas fa-arrow-left"></i> Back to Guides
+                </a>
+            </div>
+        </main>
+    </div>
+
+    <button class="back-to-top" id="backToTop">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p><i class="fas fa-atom"></i> Quantum Repository</p>
+            <p>Technical guides for system administrators and developers</p>
+            <p>alex@slash-root.com | &copy; 2025</p>
+        </div>
+    </footer>
+
+    <script src="../guide.js"></script>
+</body>
+</html>
