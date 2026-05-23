@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IPv6 Fundamentals | Quantum Repository</title>
+    <meta name="description" content="A practical IPv6 primer: addressing, prefixes, SLAAC and DHCPv6, NDP replacing ARP, ICMPv6, and Linux ip -6 commands.">
+    <link rel="stylesheet" href="../main.css">
+    <link rel="stylesheet" href="../guide.css">
+    <link rel="stylesheet" href="../accessibility.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.1/css/all.css">
+</head>
+<body>
+    <div class="reading-progress-bar"></div>
+
+    <header class="site-header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-atom"></i>
+                    <span>Quantum Repository</span>
+                </div>
+                <nav class="main-nav">
+                    <a href="../index.html">Home</a>
+                    <a href="../index.html#guides">Guides</a>
+                    <a class="btn-donate" href="https://donate.stripe.com/5kQaEX2kMgnB85ia4ycZa00" target="_blank" rel="noopener noreferrer" aria-label="Donate – opens in a new tab"><i class="fas fa-heart" aria-hidden="true"></i><span>Donate</span></a>
+                    <button class="theme-toggle" id="themeToggle">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <div class="breadcrumbs">
+        <div class="container">
+            <a href="../index.html">Home</a>
+            <span>/</span>
+            <span class="category-badge">Networking</span>
+            <span>/</span>
+            <span>IPv6 Fundamentals</span>
+        </div>
+    </div>
+
+    <div class="guide-container">
+        <main class="guide-content">
+            <article>
+<h2 id="ipv6-fundamentals">IPv6 Fundamentals</h2>
+
+<p>IPv6 isn't "IPv4 with more bits". It changes how hosts find their address, how they discover their neighbours, and how they negotiate the link layer. By the time you finish this guide you should be able to read an IPv6 address at a glance, predict whether SLAAC or DHCPv6 is in play, understand why blocking ICMPv6 breaks things, and use the Linux <code>ip -6</code> family to inspect any of it.</p>
+
+<h2 id="addressing-shorthand">128-Bit Addresses and Shorthand</h2>
+
+<p>An IPv6 address is 128 bits, written as eight 16-bit groups of hexadecimal separated by colons. The full form is unwieldy, so two rules let us compress it:</p>
+
+<ol>
+    <li>Drop leading zeros within each group.</li>
+    <li>Replace exactly one run of all-zero groups with <code>::</code> — but only one such replacement per address.</li>
+</ol>
+
+<div class="command-box">
+    <h4>Shorthand in action</h4>
+<pre>
+Full      : 2001:0db8:0000:0000:0000:ff00:0042:8329
+Leading 0 : 2001:db8:0:0:0:ff00:42:8329
+Run of 0  : 2001:db8::ff00:42:8329
+
+Other examples:
+  fe80:0000:0000:0000:0204:61ff:fe9d:f156  →  fe80::204:61ff:fe9d:f156
+  0000:0000:0000:0000:0000:0000:0000:0001  →  ::1
+  0000:0000:0000:0000:0000:0000:0000:0000  →  ::
+</pre>
+</div>
+
+<p>You'll see the <code>::</code> at the start, middle, or end. The only constraint is "exactly one"; otherwise the address would be ambiguous. RFC 5952 also recommends always using lower-case hex and not abbreviating a single zero group as <code>::</code> — useful conventions when you're generating output for logs.</p>
+
+<h3>Prefix length</h3>
+
+<p>Subnetting uses CIDR-style notation: <code>2001:db8:abcd:0012::/64</code> is a /64 prefix. End-host subnets are almost always /64 in IPv6 — many features (notably SLAAC) assume it. Provider allocations to customers are typically /48 or /56; the link-prefix /64 is sliced out of that.</p>
+
+<h2 id="address-types">Unicast, Multicast, Anycast</h2>
+
+<p>IPv6 has three address scopes/types — broadcast is gone:</p>
+
+<ul>
+    <li><strong>Unicast</strong> — identifies a single interface. Standard host addresses.</li>
+    <li><strong>Multicast</strong> — identifies a group of interfaces; a packet to a multicast address is delivered to every member. The whole <code>ff00::/8</code> prefix is reserved for multicast.</li>
+    <li><strong>Anycast</strong> — identifies a group of interfaces, but the packet is delivered to <em>one</em> of them (usually the topologically nearest). Anycast and unicast addresses are syntactically identical; the difference is whether multiple hosts share it.</li>
+</ul>
+
+<p>There is no broadcast address. Anything IPv4 did with broadcasts, IPv6 does with well-known multicast groups instead.</p>
+
+<h2 id="prefixes">The Prefixes You Must Recognise</h2>
+
+<p>Knowing what an address means at a glance comes down to memorising six prefixes:</p>
+
+<ul>
+    <li><strong><code>::1/128</code></strong> — loopback. The IPv6 equivalent of <code>127.0.0.1</code>.</li>
+    <li><strong><code>::/128</code></strong> — unspecified address. Used as a source while a host doesn't yet have an address (RFC 4291 §2.5.2).</li>
+    <li><strong><code>fe80::/10</code></strong> — link-local. Every IPv6 interface auto-configures one of these on its link. They are valid only on the local link; routers never forward them. You'll see them used for routing protocol next-hops, NDP, and a lot more.</li>
+    <li><strong><code>fc00::/7</code></strong> — Unique Local Addresses (ULA, RFC 4193). The rough equivalent of RFC 1918 in IPv4: private-use, not routable on the public internet. In practice you generate addresses in <code>fd00::/8</code> (the L=1 half of <code>fc00::/7</code>).</li>
+    <li><strong><code>2000::/3</code></strong> — global unicast. Every public, internet-routable IPv6 address falls inside this range (covering <code>2000::</code> through <code>3fff::</code>).</li>
+    <li><strong><code>ff00::/8</code></strong> — multicast. Subdivided by scope flags so a multicast group can be link-local, organisation-local, global, etc.</li>
+</ul>
+
+<div class="command-box">
+    <h4>Notable well-known multicast groups</h4>
+<pre>
+ff02::1     All nodes on the link
+ff02::2     All routers on the link
+ff02::5     OSPFv3 all routers
+ff02::a     EIGRP for IPv6
+ff02::1:ffXX:XXXX   Solicited-node group (used by NDP — see below)
+</pre>
+</div>
+
+<h2 id="interface-id-eui64">Interface Identifiers and EUI-64</h2>
+
+<p>The low-order 64 bits of a typical unicast address are the <em>interface identifier</em>. There are two common ways to derive it:</p>
+
+<ul>
+    <li><strong>EUI-64</strong> — historic method. Take the 48-bit MAC, insert <code>FF:FE</code> in the middle, and flip the universal/local bit (bit 7 of the first octet). So MAC <code>00:0c:29:9d:f1:56</code> becomes interface ID <code>020c:29ff:fe9d:f156</code>. Combined with <code>fe80::/64</code> that gives a link-local address of <code>fe80::20c:29ff:fe9d:f156</code>.</li>
+    <li><strong>RFC 7217 / RFC 8981 (privacy extensions)</strong> — modern method. The interface ID is generated randomly or pseudorandomly so it doesn't leak the hardware MAC. Linux and Windows both default to this for global addresses; EUI-64 is mostly seen on link-local and some embedded devices.</li>
+</ul>
+
+<p>Privacy extensions also rotate temporary global addresses periodically so outbound connections don't all share a stable identifier.</p>
+
+<h2 id="autoconfig">SLAAC, DHCPv6, and Prefix Delegation</h2>
+
+<p>IPv6 has multiple ways to acquire an address — sometimes used together. The three you must know:</p>
+
+<ul>
+    <li><strong>SLAAC (Stateless Address Autoconfiguration, RFC 4862)</strong> — the host listens for a Router Advertisement (RA) carrying a /64 prefix, generates its own interface ID, and combines them into a global address. No server tracks who has what.</li>
+    <li><strong>DHCPv6 (RFC 8415)</strong> — like DHCP for IPv4: a server hands out addresses and configuration. Two modes: <em>stateful</em> (addresses + other config) and <em>stateless</em> (only the extra config like DNS, while addresses still come from SLAAC).</li>
+    <li><strong>DHCPv6 Prefix Delegation (DHCPv6-PD, RFC 8415)</strong> — a CPE router asks its upstream "give me a prefix I can subnet to my LANs" and gets back, say, a /56. The CPE then sub-divides into /64s for each downstream interface. This is how home and SME routers receive IPv6 from ISPs.</li>
+</ul>
+
+<h3>The M and O flags</h3>
+
+<p>Routers advertise two flags in every RA that tell hosts what to do:</p>
+
+<ul>
+    <li><strong>M (Managed)</strong> — if set, hosts should use stateful DHCPv6 for address configuration.</li>
+    <li><strong>O (Other)</strong> — if set, hosts should use stateless DHCPv6 for <em>other</em> information (DNS servers, NTP, etc.), even if the address itself came from SLAAC.</li>
+</ul>
+
+<div class="command-box">
+    <h4>Common combinations</h4>
+<pre>
+M=0  O=0   SLAAC only. Address from RA, no DHCPv6 contact. RDNSS option in RA carries DNS.
+M=0  O=1   SLAAC for address, DHCPv6 for DNS/NTP/etc.
+M=1  O=1   DHCPv6 for both address and other config (stateful).
+M=1  O=0   Rare. Address from DHCPv6, no other config.
+</pre>
+</div>
+
+<h2 id="ndp-vs-arp">NDP: How IPv6 Replaces ARP</h2>
+
+<p>ARP is gone. Its job is done by the Neighbor Discovery Protocol (NDP, RFC 4861), which runs entirely over ICMPv6. NDP uses five message types:</p>
+
+<ul>
+    <li><strong>Router Solicitation (RS)</strong> — "are there any routers on this link?"</li>
+    <li><strong>Router Advertisement (RA)</strong> — sent by routers, advertising prefixes, link MTU, M/O flags, DNS via RDNSS, etc.</li>
+    <li><strong>Neighbor Solicitation (NS)</strong> — "who has <code>2001:db8::1</code>? Tell <code>2001:db8::5</code>." Sent to the solicited-node multicast group of the target.</li>
+    <li><strong>Neighbor Advertisement (NA)</strong> — "I have <code>2001:db8::1</code>, here's my MAC." Reply to NS.</li>
+    <li><strong>Redirect</strong> — "use a better next-hop for this destination". Same purpose as ICMP Redirect in IPv4.</li>
+</ul>
+
+<p>The <em>solicited-node multicast</em> trick is the key cleverness. Every IPv6 unicast address has a corresponding multicast group of the form <code>ff02::1:ffXX:XXXX</code> where <code>XX:XXXX</code> is the bottom 24 bits of the address. Instead of broadcasting NS to the whole link (the way ARP does), the asker sends NS to this multicast — which the NIC of the holder is already subscribed to. Many fewer hosts get woken up.</p>
+
+<p>Duplicate Address Detection (DAD) uses an NS to its own tentative address before claiming it; if a NA comes back, that address is already taken.</p>
+
+<h2 id="icmpv6">ICMPv6 Is Not Optional</h2>
+
+<p>ICMPv6 (RFC 4443) carries NDP, MLD (multicast group membership), Path MTU Discovery, and the usual diagnostic echo. If you blindly block ICMPv6 at a host firewall, you also block:</p>
+
+<ul>
+    <li>NDP (so neighbour resolution fails entirely on the link)</li>
+    <li>Router Advertisements (so SLAAC can't happen)</li>
+    <li>Packet-Too-Big messages (so Path MTU Discovery silently breaks — IPv6 routers don't fragment packets; the sender must learn the path MTU)</li>
+</ul>
+
+<div style="background: #b71c1c; color: #fff; padding: 1rem; border-radius: 6px; margin: 1rem 0;">
+    <strong>Do not <code>iptables -A INPUT -p ipv6-icmp -j DROP</code> or the equivalent <code>ip6tables</code> rule.</strong> Read RFC 4890 ("Recommendations for Filtering ICMPv6 Messages in Firewalls") for the canonical list of which types to allow. Echo Request, Packet-Too-Big, Time-Exceeded, Parameter-Problem, NDP messages on the link, and MLD are all in the "must allow" category.
+</div>
+
+<h2 id="mtu">The 1280-Byte Minimum MTU</h2>
+
+<p>Every IPv6 link must support an MTU of at least 1280 bytes (RFC 8200 §5). This guarantees Path MTU Discovery can find a working size without IPv6 routers ever having to fragment. If a router on the path can't forward a packet, it sends an ICMPv6 Packet-Too-Big message back to the source — which then lowers its own MTU and retransmits. Block those messages and you get the dreaded "small requests work, large requests hang" failure mode.</p>
+
+<h2 id="dual-stack">Dual-Stack vs IPv6-Only</h2>
+
+<p>For most of the last decade, "deploy IPv6" has meant <em>dual-stack</em>: every host runs both protocols, and applications use Happy Eyeballs (RFC 8305) to race v4 and v6 connections and use whichever wins. Dual-stack is operationally simple but requires two sets of routing, two firewall policies, and double the address management.</p>
+
+<p>IPv6-only with NAT64/DNS64 (RFC 6146, RFC 6147) is increasingly common for mobile and large datacenters. The host gets only IPv6; legacy IPv4 destinations are reached via a translator. Apple, T-Mobile and large enterprise networks all run this.</p>
+
+<h2 id="address-scope">Address Scope</h2>
+
+<p>Every IPv6 address has a <em>scope</em>: where it's valid. Link-local addresses (<code>fe80::/10</code>) only have meaning on the link they're attached to, which means you need a "zone identifier" when there's more than one interface. On Linux:</p>
+
+<div class="command-box">
+    <h4>Zone identifiers in practice</h4>
+<pre>
+# Ping a link-local address — must say which interface
+ping6 fe80::1%eth0
+ping  -6 fe80::1%eth0
+
+# In a URL (RFC 6874): percent becomes %25
+http://[fe80::1%25eth0]/
+</pre>
+</div>
+
+<p>Without the zone, the kernel can't know which interface to send out of. Global addresses don't need a zone — by definition they're routable across links.</p>
+
+<h2 id="linux-commands">Linux <code>ip -6</code> Cheat Sheet</h2>
+
+<p>The <code>iproute2</code> commands handle IPv6 with the same syntax as IPv4 — you just add <code>-6</code>:</p>
+
+<div class="command-box">
+    <h4>Inspect IPv6 state</h4>
+<pre>
+# Addresses
+ip -6 addr show
+ip -6 addr show dev eth0
+
+# Routes (note "via" next-hops will often be link-local)
+ip -6 route show
+ip -6 route show table all
+
+# Neighbour cache (ARP's IPv6 equivalent)
+ip -6 neigh show
+
+# Default route &amp; received RA info
+ip -6 route show default
+sysctl net.ipv6.conf.eth0.accept_ra
+
+# Tests
+ping6 -c 4 ipv6.google.com
+traceroute6 ipv6.google.com
+ss -6 -tulnp
+</pre>
+</div>
+
+<div class="command-box">
+    <h4>Configure addresses and routes</h4>
+<pre>
+# Add a static global address (use a /64 on a LAN segment)
+sudo ip -6 addr add 2001:db8:1::10/64 dev eth0
+
+# Add a route via a link-local next-hop (note the %iface syntax)
+sudo ip -6 route add 2001:db8:2::/64 via fe80::1 dev eth0
+
+# Remove
+sudo ip -6 addr del 2001:db8:1::10/64 dev eth0
+
+# Disable SLAAC on an interface (for static-only setups)
+sudo sysctl -w net.ipv6.conf.eth0.accept_ra=0
+
+# Toggle privacy extensions
+sudo sysctl -w net.ipv6.conf.all.use_tempaddr=2     # 2 = prefer temp address
+</pre>
+</div>
+
+<div class="scenario-box">
+    <h3><i class="fas fa-network-wired"></i> Real-World Scenario</h3>
+    <p>You ssh into a fresh cloud instance and <code>ip -6 addr</code> shows <em>two</em> global addresses on the interface — one with EUI-64 / stable IID, one that looks randomised. That's expected: the stable one is for inbound connections (DNS resolves to it) and the temporary one is sourced for outbound connections to reduce tracking. Both are valid; the kernel picks based on the source-selection rules in RFC 6724.</p>
+</div>
+
+<h2 id="quick-reference">Quick Reference</h2>
+
+<ul>
+    <li>An IPv6 address is 8 × 16-bit hex groups; compress with <code>::</code> once.</li>
+    <li>End-host subnets are <code>/64</code>. Many protocols assume it.</li>
+    <li><code>::1</code> loopback, <code>fe80::/10</code> link-local, <code>fc00::/7</code> ULA, <code>2000::/3</code> global, <code>ff00::/8</code> multicast.</li>
+    <li>Hosts learn addresses via SLAAC, DHCPv6, or both — driven by RA M/O flags.</li>
+    <li>ARP is replaced by NDP, running over ICMPv6. Don't block ICMPv6 (RFC 4890).</li>
+    <li>Minimum link MTU is 1280; Path MTU Discovery relies on ICMPv6 Packet-Too-Big.</li>
+    <li>Link-local addresses need a zone identifier (<code>%iface</code>) when used outside routing tables.</li>
+    <li>Use <code>ip -6</code> for everything. <code>ifconfig</code> is deprecated and incomplete for IPv6.</li>
+</ul>
+
+<p>IPv6 has been "ten years away" since the 1990s, and it has also been quietly taking over the internet for the last fifteen of those years. Every operator should be comfortable with the concepts above; the day a customer reports "your site doesn't work on my new ISP" is too late to start reading <code>man ip-address</code>.</p>
+            </article>
+
+            <div class="guide-footer">
+                <a href="../index.html" class="btn-back">
+                    <i class="fas fa-arrow-left"></i> Back to Guides
+                </a>
+            </div>
+        </main>
+    </div>
+
+    <button class="back-to-top" id="backToTop">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p><i class="fas fa-atom"></i> Quantum Repository</p>
+            <p>Technical guides for system administrators and developers</p>
+            <p>alex@slash-root.com | &copy; 2025</p>
+        </div>
+    </footer>
+
+    <script src="../guide.js"></script>
+</body>
+</html>

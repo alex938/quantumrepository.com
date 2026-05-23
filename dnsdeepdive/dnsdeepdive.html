@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DNS Deep Dive | Quantum Repository</title>
+    <meta name="description" content="DNS from the ground up: resolvers and authoritative servers, query flow, record types, dig anatomy, DNSSEC, DoH/DoT, and the pitfalls that bite operators.">
+    <link rel="stylesheet" href="../main.css">
+    <link rel="stylesheet" href="../guide.css">
+    <link rel="stylesheet" href="../accessibility.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.1/css/all.css">
+</head>
+<body>
+    <div class="reading-progress-bar"></div>
+
+    <header class="site-header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-atom"></i>
+                    <span>Quantum Repository</span>
+                </div>
+                <nav class="main-nav">
+                    <a href="../index.html">Home</a>
+                    <a href="../index.html#guides">Guides</a>
+                    <a class="btn-donate" href="https://donate.stripe.com/5kQaEX2kMgnB85ia4ycZa00" target="_blank" rel="noopener noreferrer" aria-label="Donate – opens in a new tab"><i class="fas fa-heart" aria-hidden="true"></i><span>Donate</span></a>
+                    <button class="theme-toggle" id="themeToggle">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <div class="breadcrumbs">
+        <div class="container">
+            <a href="../index.html">Home</a>
+            <span>/</span>
+            <span class="category-badge">Networking</span>
+            <span>/</span>
+            <span>DNS Deep Dive</span>
+        </div>
+    </div>
+
+    <div class="guide-container">
+        <main class="guide-content">
+            <article>
+<h2 id="dns-deep-dive">DNS Deep Dive</h2>
+
+<p>The Domain Name System is the phone book of the internet — except it's also the routing slip, the trust anchor for TLS, the email policy file, and a few other things. Almost every outage that ends with "we never figured out what was wrong" has DNS somewhere in the root cause. This guide is the bigger-picture mental model that lets you read a <code>dig</code> output, predict resolver behaviour, and avoid the classic apex-CNAME / glue / TTL traps.</p>
+
+<p>We'll start with the moving parts (resolvers vs authoritatives), walk a real query end-to-end, tour the record types and the anatomy of a <code>dig</code> answer, then look at DNSSEC, DoH, DoT, and the operational pitfalls that bite people in production.</p>
+
+<h2 id="resolver-vs-authoritative">Resolvers vs Authoritative Servers</h2>
+
+<p>The single most useful distinction in DNS is between the two server <em>roles</em>. Many products do both at once, but the roles are conceptually separate:</p>
+
+<ul>
+    <li><strong>Authoritative server</strong> — holds the master copy of a zone (<code>example.com</code>) and answers questions about names <em>within that zone</em>. It does not chase referrals or cache other people's data. Examples: NS1, Route 53, Cloudflare Authoritative, BIND running in primary mode.</li>
+    <li><strong>Recursive resolver</strong> (a.k.a. caching resolver) — has no zones of its own. Clients ask it questions; it walks the DNS tree to find answers, caches them according to TTL, and returns the result. Examples: <code>1.1.1.1</code>, <code>8.8.8.8</code>, your ISP's resolver, the <code>systemd-resolved</code> / <code>unbound</code> / <code>dnsmasq</code> instance on your laptop.</li>
+    <li><strong>Stub resolver</strong> — the tiny client built into your OS. It just asks one configured recursive resolver and trusts the answer.</li>
+</ul>
+
+<p>When you type a hostname in a browser, the chain is stub → recursive → authoritative(s). Cache hits short-circuit the path.</p>
+
+<h2 id="query-flow">Recursive vs Iterative Queries</h2>
+
+<p>DNS uses two different question modes. They look similar from the outside but they're handled very differently.</p>
+
+<ul>
+    <li><strong>Recursive query:</strong> "Please give me the final answer, do whatever it takes." Stub → recursive resolver.</li>
+    <li><strong>Iterative query:</strong> "Tell me what you know; if you don't have the answer, point me at someone who's closer." Recursive resolver → roots → TLDs → authoritatives.</li>
+</ul>
+
+<p>Authoritative servers don't do recursion. If you ask <code>a.gtld-servers.net</code> for <code>www.example.com</code>, you'll get a referral to the <code>example.com</code> nameservers, not the answer.</p>
+
+<div class="command-box">
+    <h4>End-to-end query for www.example.com (cold cache)</h4>
+<pre>
+  Your laptop                 Recursive resolver (1.1.1.1)        Authoritative tree
+  ───────────                 ──────────────────────────          ──────────────────
+
+  1. www.example.com? ──────▶ Cache miss. Start at the root.
+                                  │
+                                  │   2. www.example.com?
+                                  ├─────────────────────────────▶ Root server
+                                  │   "I don't know, but the
+                                  │    .com TLD servers are
+                                  │    a.gtld-servers.net, ..."
+                                  │◀─────────────────────────────
+                                  │
+                                  │   3. www.example.com?
+                                  ├─────────────────────────────▶ .com TLD server
+                                  │   "I don't know, but
+                                  │    example.com is served
+                                  │    by a.iana-servers.net,
+                                  │    b.iana-servers.net"
+                                  │◀─────────────────────────────
+                                  │
+                                  │   4. www.example.com?
+                                  ├─────────────────────────────▶ example.com auth
+                                  │   "www.example.com IN A
+                                  │    93.184.216.34
+                                  │    TTL 86400"
+                                  │◀─────────────────────────────
+                                  │
+                                  │   Cache the answer until TTL expires.
+  5. 93.184.216.34   ◀──────────  Send the final A record to the stub.
+</pre>
+</div>
+
+<p>The root, TLD and authoritative servers each do one referral step. The recursive resolver is the only party that walks the whole tree.</p>
+
+<h3>The root zone and the root hints</h3>
+
+<p>There are 13 logical root server identities (A through M, <code>a.root-servers.net</code> .. <code>m.root-servers.net</code>) operated by 12 organisations. Each "letter" is actually hundreds of physical servers fronted by anycast. Every recursive resolver ships with a <em>root hints file</em> listing their IP addresses; <code>dig . NS</code> against any of them returns the authoritative copy of that list.</p>
+
+<h2 id="record-types">DNS Record Types You'll Actually Use</h2>
+
+<p>The protocol defines dozens of record types; in practice eleven of them cover almost everything:</p>
+
+<ul>
+    <li><strong>A</strong> — IPv4 address. <code>example.com IN A 93.184.216.34</code>.</li>
+    <li><strong>AAAA</strong> — IPv6 address (pronounced "quad-A"). <code>example.com IN AAAA 2606:2800:220:1::248:1893</code>.</li>
+    <li><strong>CNAME</strong> — canonical name; an alias from one name to another. <em>Must not</em> coexist with other record types on the same name (RFC 1034 §3.6.2). That's why you can't put a CNAME at the zone apex (<code>example.com</code>) — the apex already carries SOA and NS records.</li>
+    <li><strong>NS</strong> — delegates a (sub)domain to the listed nameserver hostnames.</li>
+    <li><strong>SOA</strong> — Start of Authority. One per zone, lists the primary master, contact email (with the first <code>.</code> standing in for <code>@</code>), serial number, refresh / retry / expire / minimum TTL fields.</li>
+    <li><strong>MX</strong> — mail exchanger, with a preference number (lower = more preferred). <code>example.com IN MX 10 mail.example.com.</code></li>
+    <li><strong>TXT</strong> — free-form text. Now overloaded for SPF, DKIM, DMARC, domain-verification challenges, and a lot more.</li>
+    <li><strong>SRV</strong> — service location: <code>_sip._tcp.example.com 86400 IN SRV 10 60 5060 sipserver.example.com.</code> Holds priority, weight, port and target.</li>
+    <li><strong>CAA</strong> — Certificate Authority Authorisation (RFC 8659); restricts which CAs may issue certs for the domain. Issuance-time check.</li>
+    <li><strong>PTR</strong> — reverse pointer. Lives under <code>in-addr.arpa</code> (IPv4) or <code>ip6.arpa</code> (IPv6). Used for reverse DNS lookups.</li>
+    <li><strong>ALIAS / ANAME</strong> — vendor-specific "CNAME-flattening" records (not standardised). Useful when you really want CNAME-like behaviour at the apex.</li>
+</ul>
+
+<h2 id="ttl-caching">TTLs and Caching</h2>
+
+<p>Every DNS record carries a TTL (Time To Live) in seconds — a hint to resolvers about how long they may cache the answer. The TTL is set by the zone operator. Resolvers are required to honour it as an upper bound; they may cache for less (and some clients ignore it entirely, which is its own problem).</p>
+
+<ul>
+    <li><strong>Long TTLs (1 day +)</strong> — fewer queries to your authoritatives, faster lookups for end users, but slower change propagation.</li>
+    <li><strong>Short TTLs (60–300s)</strong> — fast failover and changes, but the load on your authoritatives goes up dramatically.</li>
+    <li><strong>Negative caching</strong> (NXDOMAIN responses) is governed by the <code>minimum</code> field in the SOA record (capped at 24h, RFC 2308).</li>
+</ul>
+
+<p>If you're about to do a planned migration, drop the TTL <em>days</em> ahead of the cutover so existing cached entries expire by the time you flip. Once the new value has propagated, raise the TTL back up.</p>
+
+<h2 id="dig-anatomy">Reading <code>dig</code> Output</h2>
+
+<p><code>dig</code> (Domain Information Groper) ships with BIND-utils. We prefer it over <code>nslookup</code> because it shows you the raw protocol fields and is scriptable. Here is a default query and what each block means.</p>
+
+<div class="command-box">
+    <h4>dig www.example.com</h4>
+<pre>
+$ dig www.example.com
+
+; &lt;&lt;&gt;&gt; DiG 9.18.18 &lt;&lt;&gt;&gt; www.example.com
+;; global options: +cmd
+;; Got answer:
+;; -&gt;&gt;HEADER&lt;&lt;- opcode: QUERY, status: NOERROR, id: 12345
+;; flags: qr rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 1232
+
+;; QUESTION SECTION:
+;www.example.com.               IN      A
+
+;; ANSWER SECTION:
+www.example.com.        86400   IN      A       93.184.216.34
+
+;; Query time: 12 msec
+;; SERVER: 1.1.1.1#53(1.1.1.1)
+;; WHEN: Sat May 23 16:00:00 UTC 2026
+;; MSG SIZE  rcvd: 60
+</pre>
+</div>
+
+<p>Section by section:</p>
+<ul>
+    <li><strong>HEADER</strong> — <code>opcode</code> is almost always <code>QUERY</code>. <code>status</code> is the rcode: <code>NOERROR</code>, <code>NXDOMAIN</code> (name doesn't exist), <code>SERVFAIL</code> (resolver gave up), <code>REFUSED</code> (server won't answer).</li>
+    <li><strong>flags</strong> — <code>qr</code> response, <code>rd</code> recursion desired, <code>ra</code> recursion available, <code>aa</code> authoritative answer, <code>ad</code> authentic data (DNSSEC-validated), <code>cd</code> checking disabled.</li>
+    <li><strong>QUESTION</strong> — the question we asked, echoed back.</li>
+    <li><strong>ANSWER</strong> — the records that answer the question. The number left of <code>IN</code> is the TTL in seconds.</li>
+    <li><strong>AUTHORITY</strong> — the NS records for the zone holding the answer (often omitted from cached responses).</li>
+    <li><strong>ADDITIONAL</strong> — extra records the server thought we'd want next: glue, OPT pseudo-record for EDNS, etc.</li>
+</ul>
+
+<h3>Practical <code>dig</code> recipes</h3>
+
+<div class="command-box">
+    <h4>Common dig invocations</h4>
+<pre>
+# Just the answer value, nothing else
+dig +short www.example.com
+
+# Specific record type
+dig MX example.com
+dig AAAA example.com
+dig TXT _dmarc.example.com
+
+# Ask a specific server (bypass your configured resolver)
+dig @1.1.1.1 www.example.com
+dig @ns1.example.com SOA example.com
+
+# Trace the full delegation from the root down (iterative walk)
+dig +trace www.example.com
+
+# Show DNSSEC RRs and the AD flag
+dig +dnssec example.com
+
+# Reverse lookup
+dig -x 93.184.216.34
+dig -x 2606:2800:220:1::248:1893
+
+# Useful diagnostics
+dig +noall +answer +stats www.example.com   # quieter output
+dig +tcp www.example.com                    # force TCP (e.g. large responses)
+</pre>
+</div>
+
+<p><code>+trace</code> is invaluable when you suspect a delegation problem. It starts at the root, follows referrals, and prints the records it gets at each step — so you can see <em>where</em> the chain breaks.</p>
+
+<h2 id="dnssec">DNSSEC at a Glance</h2>
+
+<p>DNSSEC (DNS Security Extensions, RFCs 4033–4035) doesn't encrypt DNS. It signs DNS records so a resolver can verify they weren't tampered with on the wire or in cache. There are three new record types and a chain of trust that runs from the root down.</p>
+
+<ul>
+    <li><strong>DNSKEY</strong> — the zone's public key(s). Two flavours: KSK (Key Signing Key) and ZSK (Zone Signing Key).</li>
+    <li><strong>RRSIG</strong> — a signature over an RRset, made with the ZSK. There's one RRSIG per RRset per signing key.</li>
+    <li><strong>DS</strong> — Delegation Signer record. Lives in the <em>parent</em> zone, contains a hash of the child's KSK. This is what extends the chain across delegation boundaries.</li>
+    <li><strong>NSEC / NSEC3</strong> — authenticated denial-of-existence proofs (so an attacker can't say "there's no record" when there is one).</li>
+</ul>
+
+<div class="command-box">
+    <h4>The chain in plain English</h4>
+<pre>
+  .                  Root has a DNSKEY. Resolvers ship with its hash (trust anchor).
+  └── com            Root signs com's DS record.
+        └── example.com   .com signs example.com's DS record.
+              └── www      example.com signs the A record for www.
+
+  A resolver validates from the top:
+   1. Root DNSKEY matches the trust anchor on disk? OK.
+   2. DS for com matches root's signed DS RRset? OK.
+   3. com DNSKEY's hash matches that DS? OK.
+   4. DS for example.com matches com's signed DS RRset? OK.
+   5. example.com DNSKEY's hash matches that DS? OK.
+   6. example.com RRSIG over (www IN A 93.184.216.34) validates with that key? OK.
+   → Set the AD flag in the response. Done.
+</pre>
+</div>
+
+<p>If any link breaks (expired RRSIG, missing DS, wrong key), the resolver returns <code>SERVFAIL</code>. That's why a DNSSEC key rollover gone wrong looks like "the entire domain is down". The classic operational rule: always pre-publish new keys, never let signatures expire.</p>
+
+<h2 id="encrypted-dns">DNS-over-TLS and DNS-over-HTTPS</h2>
+
+<p>Plain DNS travels over UDP/TCP port 53 with no encryption or authentication. Anyone on path can read your queries or modify the answers. Two standardised transports fix this on the stub-to-resolver hop:</p>
+
+<ul>
+    <li><strong>DNS-over-TLS (DoT)</strong> — RFC 7858. DNS messages in a TLS-wrapped TCP connection on port 853. Looks like a distinct service; easy to block at network boundaries if you want to.</li>
+    <li><strong>DNS-over-HTTPS (DoH)</strong> — RFC 8484. DNS messages in HTTPS POSTs (or GETs of base64-encoded queries) to a templated URL like <code>https://cloudflare-dns.com/dns-query</code> on port 443. Indistinguishable from regular web traffic, which is the point and also the controversy.</li>
+</ul>
+
+<p>Both authenticate the resolver (you know you're talking to <code>1.1.1.1</code> and not someone wedged in front of it) and encrypt the queries. Neither hides the final destination IP from the network, and neither replaces DNSSEC — they complement it. <code>systemd-resolved</code>, <code>unbound</code>, <code>stubby</code>, and most modern browsers can be configured to use DoT or DoH.</p>
+
+<div class="command-box">
+    <h4>kdig (knot-dnsutils) makes DoT/DoH easy to test</h4>
+<pre>
+# DoT to Cloudflare
+kdig +tls @1.1.1.1 www.example.com
+
+# DoH to Cloudflare
+kdig +https @cloudflare-dns.com www.example.com
+
+# DNS-over-QUIC (DoQ, RFC 9250) — newest of the three
+kdig +quic @dns.adguard.com www.example.com
+</pre>
+</div>
+
+<h2 id="pitfalls">Common Operational Pitfalls</h2>
+
+<h3>CNAME at the apex</h3>
+
+<p>You can't put a CNAME at <code>example.com.</code> — the apex already carries SOA and NS records and a CNAME forbids any other record type on the same name. Symptoms: email breaks (no MX), the zone refuses to load, or resolvers return <code>SERVFAIL</code>. Workarounds: an A/AAAA record pointing at the same upstream, a vendor "ALIAS/ANAME" flattening record, or moving to a service that returns the upstream's A records directly.</p>
+
+<h3>Missing or incorrect glue records</h3>
+
+<p>If <code>example.com</code> is delegated to <code>ns1.example.com</code> (a nameserver <em>inside</em> the zone it's serving), the parent zone must publish a <em>glue</em> A/AAAA record alongside the NS delegation. Without it, resolvers chicken-and-egg themselves: they need to query <code>ns1.example.com</code> to find <code>example.com</code>, but they need <code>example.com</code> to learn <code>ns1.example.com</code>'s address. <code>dig +trace</code> reveals missing glue immediately.</p>
+
+<h3>Stale TTLs and "we changed it hours ago"</h3>
+
+<p>If you forgot to drop the TTL before a migration, every resolver downstream of you is contractually allowed to hold the old answer for up to the original TTL. Forcing a flush on someone else's resolver is not within your power; you can only wait. Plan migrations with a TTL of 60–300s for at least <em>longer than the previous TTL</em> before the change.</p>
+
+<h3>"It works from my laptop"</h3>
+
+<p>Resolvers differ. Your laptop might be hitting <code>systemd-resolved</code>, which is fronting your VPN's resolver, which is forwarding to your corporate resolver, which is forwarding to <code>8.8.8.8</code>. Each hop has independent caching. Always reproduce DNS issues from <em>multiple</em> resolvers — <code>dig @1.1.1.1</code>, <code>dig @8.8.8.8</code>, <code>dig @9.9.9.9</code>, and at least one resolver on the same network as the user — before declaring a fix.</p>
+
+<h3>Forgetting AAAA</h3>
+
+<p>Dual-stack hosts answer to AAAA queries too. If your apex has an A record but no AAAA, and the user is on an IPv6-only network (or Happy Eyeballs picks v6 first), they'll see an inconsistent experience. Check <em>both</em> records when investigating.</p>
+
+<h3>Round-robin is not load balancing</h3>
+
+<p>Returning multiple A records cycles them per-query but offers no health checking, no weighting, and no session affinity. For real traffic shaping use a load balancer, geo-DNS, or a service-specific solution.</p>
+
+<h2 id="cheat-sheet">Quick Reference</h2>
+
+<div class="command-box">
+    <h4>DNS commands you'll keep using</h4>
+<pre>
+# Inspect your stub configuration
+cat /etc/resolv.conf
+resolvectl status                # systemd-resolved
+
+# Quick lookups
+dig +short A   example.com
+dig +short AAAA example.com
+dig +short MX  example.com
+dig +short TXT example.com
+dig +short NS  example.com
+dig +short SOA example.com
+
+# Authoritative answer (skip the resolver)
+dig @ns1.example.com SOA example.com +norec
+
+# DNSSEC validation status
+dig +dnssec +cd example.com    # cd = checking disabled (compare)
+dig +dnssec     example.com    # ad flag indicates validation success
+
+# Reverse lookups
+dig -x 8.8.8.8
+dig -x 2001:db8::1
+
+# Print only certain sections
+dig +noall +answer    example.com
+dig +noall +authority example.com
+</pre>
+</div>
+
+<p>If you internalise three things from this guide, make them: (1) resolvers chase, authoritatives just answer; (2) every record has a TTL you signed up to honour; (3) when something looks wrong, ask multiple resolvers — DNS is a distributed cache, and "wrong" is often "stale somewhere".</p>
+            </article>
+
+            <div class="guide-footer">
+                <a href="../index.html" class="btn-back">
+                    <i class="fas fa-arrow-left"></i> Back to Guides
+                </a>
+            </div>
+        </main>
+    </div>
+
+    <button class="back-to-top" id="backToTop">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p><i class="fas fa-atom"></i> Quantum Repository</p>
+            <p>Technical guides for system administrators and developers</p>
+            <p>alex@slash-root.com | &copy; 2025</p>
+        </div>
+    </footer>
+
+    <script src="../guide.js"></script>
+</body>
+</html>

@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linux Server Hardening | Quantum Repository</title>
+    <meta name="description" content="A practical, defensive checklist for hardening a fresh Linux server: SSH, UFW, fail2ban, automatic updates, MAC frameworks, auditd, sysctl, and service minimisation.">
+    <link rel="stylesheet" href="../main.css">
+    <link rel="stylesheet" href="../guide.css">
+    <link rel="stylesheet" href="../accessibility.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.1/css/all.css">
+</head>
+<body>
+    <div class="reading-progress-bar"></div>
+
+    <header class="site-header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-atom"></i>
+                    <span>Quantum Repository</span>
+                </div>
+                <nav class="main-nav">
+                    <a href="../index.html">Home</a>
+                    <a href="../index.html#guides">Guides</a>
+                    <a class="btn-donate" href="https://donate.stripe.com/5kQaEX2kMgnB85ia4ycZa00" target="_blank" rel="noopener noreferrer" aria-label="Donate – opens in a new tab"><i class="fas fa-heart" aria-hidden="true"></i><span>Donate</span></a>
+                    <button class="theme-toggle" id="themeToggle">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <div class="breadcrumbs">
+        <div class="container">
+            <a href="../index.html">Home</a>
+            <span>/</span>
+            <span class="category-badge">Linux</span>
+            <span>/</span>
+            <span>Linux Server Hardening</span>
+        </div>
+    </div>
+
+    <div class="guide-container">
+        <main class="guide-content">
+            <article>
+<h2 id="linux-hardening">Linux Server Hardening Checklist</h2>
+
+<div style="background: #ff9800; color: #000; padding: 1.25rem; border-radius: 8px; margin: 1.5rem 0; border-left: 6px solid #f57c00;">
+    <h3 style="margin-top: 0; color: #000;">⚠️ Apply on systems you control</h3>
+    <p style="color: #000; margin-bottom: 0;">This guide assumes you are hardening a server you own or administer. Always test changes in a non-production environment first — a bad SSH or firewall rule can lock you out. Keep a console / out-of-band session open while making the changes in this guide.</p>
+</div>
+
+<p>A freshly installed Linux server is rarely production-ready. Default configurations favour convenience over security: root may be reachable via SSH password, the firewall is often open, package updates are not automatic, and kernel knobs are tuned for compatibility rather than defence-in-depth. In this guide we'll walk through a pragmatic hardening baseline that works on both Debian/Ubuntu and RHEL-family distributions (Rocky Linux, AlmaLinux, RHEL).</p>
+
+<p>We'll focus on changes that give the largest return for the smallest amount of risk: locking down SSH, enabling a host firewall, automating security updates, embracing the mandatory access control framework that ships with your distro, enabling system auditing, tightening kernel parameters, and removing services we don't need.</p>
+
+<h2 id="ssh-hardening">SSH Configuration Hardening</h2>
+<p>SSH is almost always the front door of a Linux server, so this is where we start. All directives below live in <code>/etc/ssh/sshd_config</code> (see <code>sshd_config(5)</code>). Edit, then run <code>sudo sshd -t</code> to syntax-check before reloading.</p>
+
+<div class="scenario-box">
+    <h3><i class="fas fa-shield-alt"></i> Real-World Scenario</h3>
+    <p>You stand up a $5/month VPS to host a small web service. Within minutes of being online, the auth log fills with brute-force attempts against <code>root</code>, <code>admin</code>, <code>ubuntu</code> and <code>oracle</code>. Disabling password auth and root login closes off the majority of these without writing a single firewall rule.</p>
+</div>
+
+<h3>Generate a modern key first</h3>
+<p>Before disabling password authentication, make sure you have a working key pair. We prefer Ed25519 over RSA for new keys: it's faster, smaller and resistant to weak-RNG and small-modulus issues.</p>
+
+<div class="command-box">
+    <h4>Create and copy a key (on your workstation)</h4>
+<pre>
+# Generate a modern key pair
+ssh-keygen -t ed25519 -a 100 -C "alex@workstation"
+
+# Copy the public key to the server (still using password auth at this stage)
+ssh-copy-id -i ~/.ssh/id_ed25519.pub alex@server.example.com
+
+# Test that key auth works before locking down passwords
+ssh -i ~/.ssh/id_ed25519 alex@server.example.com
+</pre>
+</div>
+
+<h3>Core sshd_config directives</h3>
+
+<div class="command-box">
+    <h4>/etc/ssh/sshd_config — opinionated baseline</h4>
+<pre>
+# Identity
+Port 22
+AddressFamily any
+Protocol 2
+
+# Authentication
+PermitRootLogin no
+PasswordAuthentication no
+PermitEmptyPasswords no
+ChallengeResponseAuthentication no
+KbdInteractiveAuthentication no
+UsePAM yes
+PubkeyAuthentication yes
+MaxAuthTries 3
+LoginGraceTime 30
+AuthenticationMethods publickey
+
+# Restrict which accounts can log in at all
+AllowUsers alex deploy
+
+# Disable agent / TCP / X11 forwarding unless you actually need them
+AllowAgentForwarding no
+AllowTcpForwarding no
+X11Forwarding no
+
+# Modern crypto only — drop anything older than these
+KexAlgorithms curve25519-sha256,curve25519-sha256@libssh.org,sntrup761x25519-sha512@openssh.com
+Ciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com
+MACs hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com
+
+# Idle session timeout (5 minutes, drop after 2 missed responses)
+ClientAliveInterval 300
+ClientAliveCountMax 2
+</pre>
+</div>
+
+<p>The <code>KexAlgorithms</code>, <code>Ciphers</code> and <code>MACs</code> lines above intentionally exclude older algorithms such as <code>diffie-hellman-group14-sha1</code> and CBC ciphers. The <code>sntrup761x25519-sha512@openssh.com</code> KEX is a post-quantum hybrid available in OpenSSH 9.0+; on older releases just remove it.</p>
+
+<h3>Reload and verify</h3>
+
+<div class="command-box">
+    <h4>Apply the change without dropping your current session</h4>
+<pre>
+# Syntax-check first — never skip this
+sudo sshd -t
+
+# Reload (does not kill existing sessions)
+sudo systemctl reload sshd
+
+# From a *new* shell, confirm you can still log in
+ssh alex@server.example.com
+
+# Inspect the negotiated cipher
+ssh -v alex@server.example.com 2&gt;&amp;1 | grep -E 'kex:|cipher:'
+</pre>
+</div>
+
+<p><strong>Tip:</strong> Keep your existing SSH session open until you've confirmed the new one works. If you typo a directive, that first session is your lifeline.</p>
+
+<h2 id="ufw-firewall">Host Firewall with UFW</h2>
+<p>On Debian/Ubuntu, UFW is a friendly front-end for <code>nftables</code>/<code>iptables</code>. On RHEL-family distributions, the equivalent is <code>firewalld</code>; we'll cover UFW here because the questions in the prompt ask for it, but the principle is the same: default deny inbound, default allow outbound, allow only what you need.</p>
+
+<div class="command-box">
+    <h4>UFW baseline</h4>
+<pre>
+# Install on Debian / Ubuntu (already present on most server images)
+sudo apt-get install -y ufw
+
+# Default policy
+sudo ufw default deny incoming
+sudo ufw default allow outgoing
+
+# Allow and rate-limit SSH (6 connections / 30s per source IP)
+sudo ufw limit 22/tcp comment 'SSH with rate-limit'
+
+# Web traffic if applicable
+sudo ufw allow 80/tcp  comment 'HTTP'
+sudo ufw allow 443/tcp comment 'HTTPS'
+
+# Enable and inspect
+sudo ufw enable
+sudo ufw status verbose
+sudo ufw status numbered
+</pre>
+</div>
+
+<p><code>ufw limit</code> uses kernel connection tracking to drop sources that open more than 6 connections in 30 seconds. It is not a replacement for fail2ban, but it raises the cost of trivial scans.</p>
+
+<p><strong>Example output</strong> of <code>ufw status verbose</code>:</p>
+
+<pre>
+Status: active
+Logging: on (low)
+Default: deny (incoming), allow (outgoing), disabled (routed)
+New profiles: skip
+
+To                         Action      From
+--                         ------      ----
+22/tcp                     LIMIT       Anywhere
+80/tcp                     ALLOW       Anywhere
+443/tcp                    ALLOW       Anywhere
+22/tcp (v6)                LIMIT       Anywhere (v6)
+</pre>
+
+<h2 id="fail2ban">fail2ban for sshd</h2>
+<p>fail2ban watches log files, matches failed authentication patterns, and inserts temporary firewall rules to block the offending source. Always edit <code>jail.local</code> (which overrides shipped defaults) rather than <code>jail.conf</code> (which is replaced on package upgrades).</p>
+
+<div class="command-box">
+    <h4>Install and configure</h4>
+<pre>
+# Debian / Ubuntu
+sudo apt-get install -y fail2ban
+
+# RHEL / Rocky / AlmaLinux (needs EPEL)
+sudo dnf install -y epel-release
+sudo dnf install -y fail2ban
+
+# Create the override file
+sudo tee /etc/fail2ban/jail.local &gt; /dev/null &lt;&lt;'EOF'
+[DEFAULT]
+# Trust your own admin network so a typo doesn't lock you out
+ignoreip = 127.0.0.1/8 ::1 203.0.113.0/24
+bantime  = 1h
+findtime = 10m
+maxretry = 5
+backend  = systemd
+
+[sshd]
+enabled  = true
+port     = ssh
+filter   = sshd
+maxretry = 3
+bantime  = 24h
+EOF
+
+sudo systemctl enable --now fail2ban
+
+# Check the jail
+sudo fail2ban-client status
+sudo fail2ban-client status sshd
+</pre>
+</div>
+
+<p>The <code>203.0.113.0/24</code> range above is the IANA documentation block (RFC 5737) — replace it with the network you actually administer from. The <code>backend = systemd</code> line tells fail2ban to read from the systemd journal rather than tail <code>/var/log/auth.log</code>, which is more reliable on modern distributions.</p>
+
+<h2 id="automatic-updates">Automatic Security Updates</h2>
+<p>An unpatched server is a vulnerable server. The mechanism differs by distro family, but the goal is the same: apply at least security errata without manual intervention.</p>
+
+<h3>On Ubuntu / Debian</h3>
+
+<div class="command-box">
+    <h4>unattended-upgrades</h4>
+<pre>
+sudo apt-get install -y unattended-upgrades apt-listchanges
+
+# Interactive setup — pick "Yes" to the prompt
+sudo dpkg-reconfigure --priority=low unattended-upgrades
+
+# Inspect the policy file
+sudoedit /etc/apt/apt.conf.d/50unattended-upgrades
+
+# Verify what the scheduler thinks
+sudo unattended-upgrade --dry-run --debug
+
+# Reboots are off by default. Allow them in a maintenance window:
+#   Unattended-Upgrade::Automatic-Reboot "true";
+#   Unattended-Upgrade::Automatic-Reboot-Time "03:30";
+</pre>
+</div>
+
+<h3>On RHEL / Rocky / AlmaLinux</h3>
+
+<div class="command-box">
+    <h4>dnf-automatic</h4>
+<pre>
+sudo dnf install -y dnf-automatic
+
+sudoedit /etc/dnf/automatic.conf
+# Recommended:
+#   [commands]
+#   upgrade_type = security
+#   apply_updates = yes
+#
+#   [emitters]
+#   emit_via = stdio,motd
+
+# Enable the timer (NOT the .service unit)
+sudo systemctl enable --now dnf-automatic.timer
+systemctl list-timers --all | grep dnf-automatic
+</pre>
+</div>
+
+<p>Both mechanisms log to standard locations: <code>/var/log/unattended-upgrades/</code> on Debian/Ubuntu and the systemd journal (<code>journalctl -u dnf-automatic</code>) on RHEL.</p>
+
+<h2 id="mac-frameworks">Mandatory Access Control: AppArmor &amp; SELinux</h2>
+<p>Mandatory Access Control (MAC) confines processes by policy, independent of the user that started them. Ubuntu and SUSE ship AppArmor; RHEL-family distributions ship SELinux. Both are good; what matters is leaving them enabled and in enforcing mode.</p>
+
+<div style="background: #b71c1c; color: #fff; padding: 1rem; border-radius: 6px; margin: 1rem 0;">
+    <strong>Do not disable SELinux or AppArmor "to make something work".</strong> Almost every SELinux issue is a missing label, missing boolean, or a policy that just needs a denial-driven adjustment. Disabling MAC is throwing away a layer of defence that has stopped real-world container escapes and privilege-escalation chains.
+</div>
+
+<h3>AppArmor (Ubuntu / Debian)</h3>
+
+<div class="command-box">
+    <h4>Inspect profile state</h4>
+<pre>
+sudo aa-status
+
+# Example output:
+# apparmor module is loaded.
+# 32 profiles are loaded.
+# 30 profiles are in enforce mode.
+#  2 profiles are in complain mode.
+
+# Put a profile into enforce mode
+sudo aa-enforce /etc/apparmor.d/usr.sbin.nginx
+
+# Tail denials
+sudo journalctl -k | grep -i apparmor
+</pre>
+</div>
+
+<h3>SELinux (RHEL / Rocky / AlmaLinux)</h3>
+
+<div class="command-box">
+    <h4>Confirm enforcing mode</h4>
+<pre>
+# Quick mode check
+getenforce       # Should print: Enforcing
+
+# Detailed status
+sestatus
+
+# Permissive vs enforcing temporarily (resets on reboot)
+sudo setenforce 1        # enforcing
+sudo setenforce 0        # permissive (debugging only)
+
+# Persistent setting lives here
+sudoedit /etc/selinux/config
+# SELINUX=enforcing
+# SELINUXTYPE=targeted
+
+# Investigate a denial without disabling SELinux
+sudo dnf install -y setroubleshoot-server
+sudo ausearch -m AVC -ts recent
+sudo sealert -a /var/log/audit/audit.log
+</pre>
+</div>
+
+<p>If a legitimate service is being denied, the correct workflow is: read the AVC, identify the missing context, fix it (<code>semanage fcontext</code> + <code>restorecon</code>) or flip the appropriate boolean (<code>setsebool -P</code>). See <code>selinux(8)</code> and the Red Hat SELinux User's and Administrator's Guide.</p>
+
+<h2 id="auditd">Auditing with auditd</h2>
+<p>The Linux audit subsystem records kernel-level events: syscalls, file access, login activity, and rule-defined triggers. It's how you answer "did someone read <code>/etc/shadow</code> on Tuesday?" months after the fact.</p>
+
+<div class="command-box">
+    <h4>Install and bootstrap</h4>
+<pre>
+# Debian / Ubuntu
+sudo apt-get install -y auditd audispd-plugins
+
+# RHEL / Rocky / AlmaLinux (usually pre-installed)
+sudo dnf install -y audit
+
+sudo systemctl enable --now auditd
+
+# List active rules
+sudo auditctl -l
+
+# Example custom rules: watch sensitive files
+sudo tee /etc/audit/rules.d/hardening.rules &gt; /dev/null &lt;&lt;'EOF'
+# Identity files
+-w /etc/passwd  -p wa -k identity
+-w /etc/shadow  -p wa -k identity
+-w /etc/group   -p wa -k identity
+-w /etc/gshadow -p wa -k identity
+
+# sudoers and ssh config
+-w /etc/sudoers       -p wa -k sudo
+-w /etc/sudoers.d/    -p wa -k sudo
+-w /etc/ssh/sshd_config -p wa -k sshd
+
+# Time / kernel module changes
+-a always,exit -F arch=b64 -S adjtimex -S settimeofday -k time-change
+-a always,exit -F arch=b64 -S init_module -S delete_module -k modules
+
+# Make rules immutable until reboot
+-e 2
+EOF
+
+sudo augenrules --load
+sudo systemctl restart auditd
+</pre>
+</div>
+
+<p>Search the resulting log with <code>ausearch -k identity</code> or summarise with <code>aureport --summary</code>. For long-term storage, ship the events off-host with the audisp <code>remote</code> plugin or a journald → syslog → SIEM pipeline.</p>
+
+<h2 id="sysctl">sysctl Kernel Hardening</h2>
+<p>Several kernel parameters default to "permissive" for historical compatibility. We can tighten them in <code>/etc/sysctl.d/99-hardening.conf</code>. None of these flags break a normal workload; they reduce attacker surface for spoofing, info-leaks, and a few legacy ICMP tricks.</p>
+
+<div class="command-box">
+    <h4>/etc/sysctl.d/99-hardening.conf</h4>
+<pre>
+# --- Network: spoof &amp; redirect protection ---
+net.ipv4.conf.all.rp_filter = 1
+net.ipv4.conf.default.rp_filter = 1
+net.ipv4.conf.all.accept_source_route = 0
+net.ipv6.conf.all.accept_source_route = 0
+net.ipv4.conf.all.accept_redirects = 0
+net.ipv6.conf.all.accept_redirects = 0
+net.ipv4.conf.all.secure_redirects = 0
+net.ipv4.conf.all.send_redirects = 0
+net.ipv4.conf.all.log_martians = 1
+
+# --- ICMP / SYN ---
+net.ipv4.icmp_echo_ignore_broadcasts = 1
+net.ipv4.icmp_ignore_bogus_error_responses = 1
+net.ipv4.tcp_syncookies = 1
+
+# --- Kernel info-leaks &amp; pointer obfuscation ---
+kernel.dmesg_restrict = 1
+kernel.kptr_restrict = 2
+kernel.yama.ptrace_scope = 1
+kernel.unprivileged_bpf_disabled = 1
+net.core.bpf_jit_harden = 2
+
+# --- Filesystem ---
+fs.protected_hardlinks = 1
+fs.protected_symlinks = 1
+fs.protected_fifos = 2
+fs.protected_regular = 2
+fs.suid_dumpable = 0
+</pre>
+</div>
+
+<div class="command-box">
+    <h4>Apply</h4>
+<pre>
+sudo sysctl --system
+
+# Inspect a single value
+sysctl kernel.dmesg_restrict
+sysctl net.ipv4.tcp_syncookies
+</pre>
+</div>
+
+<p><strong>What these do, briefly:</strong></p>
+<ul>
+    <li><code>rp_filter = 1</code> — Reverse path filtering; drops packets whose source address would not route back out the receiving interface (anti-spoof, RFC 3704).</li>
+    <li><code>accept_redirects = 0</code> — Ignore ICMP Redirects, which can be abused to bend traffic through an attacker.</li>
+    <li><code>tcp_syncookies = 1</code> — Lets the kernel survive SYN-flood saturation without dropping legitimate connections.</li>
+    <li><code>kernel.kptr_restrict = 2</code> — Replaces kernel pointers in <code>/proc</code> with zeros, frustrating local KASLR bypasses.</li>
+    <li><code>kernel.yama.ptrace_scope = 1</code> — Restricts <code>ptrace</code> to descendants, blocking trivial credential theft between user processes.</li>
+    <li><code>fs.protected_*</code> — Closes classic symlink/hardlink-in-<code>/tmp</code> race conditions.</li>
+</ul>
+
+<h2 id="services">Removing Unused Services</h2>
+<p>Every listening service is attack surface. Walk the system, identify what is running, and disable anything you can't justify.</p>
+
+<div class="command-box">
+    <h4>Inventory</h4>
+<pre>
+# What is listening on a port?
+sudo ss -tulpn
+
+# Enabled systemd unit files (look for unfamiliar names)
+systemctl list-unit-files --state=enabled
+
+# Currently active services
+systemctl list-units --type=service --state=running
+
+# What does a unit actually do?
+systemctl cat &lt;service-name&gt;
+</pre>
+</div>
+
+<div class="command-box">
+    <h4>Disable and mask</h4>
+<pre>
+# Stop now, never start again
+sudo systemctl disable --now cups.service avahi-daemon.service
+
+# Mask (link the unit to /dev/null so nothing can re-enable it)
+sudo systemctl mask telnet.socket
+
+# Reverse a mask if needed
+sudo systemctl unmask &lt;unit&gt;
+</pre>
+</div>
+
+<p>Common services you usually don't need on a server: <code>cups</code> (printing), <code>avahi-daemon</code> (mDNS), <code>bluetooth</code>, <code>ModemManager</code>, <code>rpcbind</code> / <code>nfs-*</code> (unless you actually share filesystems). Always confirm before disabling — masking <code>systemd-resolved</code> on a box that needs DNS will ruin your afternoon.</p>
+
+<h2 id="extras">Additional Quick Wins</h2>
+<ul>
+    <li><strong>Time sync:</strong> Run <code>chrony</code> or <code>systemd-timesyncd</code>. Skewed clocks break TLS, Kerberos, and log correlation.</li>
+    <li><strong>Login banner:</strong> Populate <code>/etc/issue.net</code> and reference it with <code>Banner /etc/issue.net</code> in <code>sshd_config</code>. Most jurisdictions want an "authorised use only" notice for evidentiary purposes.</li>
+    <li><strong>Sudo hygiene:</strong> Use group-based access (<code>%wheel</code> on RHEL, <code>%sudo</code> on Debian); avoid <code>NOPASSWD</code> except for tightly-scoped automation.</li>
+    <li><strong>Drop /tmp exec:</strong> If your workloads allow, mount <code>/tmp</code> with <code>nodev,nosuid,noexec</code> via <code>/etc/fstab</code>.</li>
+    <li><strong>Backups:</strong> Hardening only matters if you can recover. Test restores, not just backups.</li>
+</ul>
+
+<h2 id="final-checklist">Final Hardening Checklist</h2>
+<ul>
+    <li>✓ Ed25519 (or hardware-token) SSH keys on every admin account</li>
+    <li>✓ <code>PermitRootLogin no</code>, <code>PasswordAuthentication no</code>, modern KEX/Ciphers/MACs</li>
+    <li>✓ <code>AllowUsers</code> restricts SSH to a known list</li>
+    <li>✓ Host firewall (<code>ufw</code> or <code>firewalld</code>) default-deny incoming, explicit allows</li>
+    <li>✓ <code>fail2ban</code> running with <code>sshd</code> jail</li>
+    <li>✓ Unattended security updates configured for your distro family</li>
+    <li>✓ AppArmor enforce / SELinux enforcing — <em>not</em> disabled</li>
+    <li>✓ <code>auditd</code> with rules for <code>/etc/passwd</code>, <code>/etc/shadow</code>, sudoers, sshd_config</li>
+    <li>✓ sysctl hardening file present and loaded</li>
+    <li>✓ <code>ss -tulpn</code> shows only services you can justify</li>
+    <li>✓ Time sync enabled, login banner set, sudoers reviewed</li>
+    <li>✓ Backups tested by an actual restore</li>
+</ul>
+
+<p>None of these items, taken alone, will stop a determined attacker. Taken together they raise the cost of compromise enough that the average opportunistic scanner moves on, and the targeted attacker leaves more forensic traces. That is the entire point of defence in depth.</p>
+            </article>
+
+            <div class="guide-footer">
+                <a href="../index.html" class="btn-back">
+                    <i class="fas fa-arrow-left"></i> Back to Guides
+                </a>
+            </div>
+        </main>
+    </div>
+
+    <button class="back-to-top" id="backToTop">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p><i class="fas fa-atom"></i> Quantum Repository</p>
+            <p>Technical guides for system administrators and developers</p>
+            <p>alex@slash-root.com | &copy; 2025</p>
+        </div>
+    </footer>
+
+    <script src="../guide.js"></script>
+</body>
+</html>
