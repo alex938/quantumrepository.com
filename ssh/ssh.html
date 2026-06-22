@@ -3,9 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Configure SSH with password authentication, then upgrade to key-based authentication using a 4096-bit key pair and PuTTY on Windows.">
     <title>SSH Configuration | Quantum Repository</title>
     <link rel="stylesheet" href="../main.css">
     <link rel="stylesheet" href="../guide.css">
+    <link rel="stylesheet" href="../accessibility.css">
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.1/css/all.css">
 </head>
 <body>
@@ -49,7 +51,7 @@
             <h2 id="lab-setup">Lab Setup</h2>
             <ol>
                 <li>GNS3 as the network emulation software.
-                    <div><img src="topology.png" alt="topology"></div>
+                    <div><img src="topology.png" alt="Network topology diagram showing Kali Linux and Windows 10 machines connected via a Cisco switch and home router" loading="lazy"></div>
                 </li>
                 <li>I have my 2 PC's (Kali and Windows10).</li>
                 <li>A CISCO layer 2 switch (Switch1).</li>
@@ -60,32 +62,32 @@
             running on my router.</p>
             <h2 id="ssh-with-password-authentication">SSH with password authentication</h2>
             First, let's see what IP addresses my 2 PC's have been allocated; my Kali machine is:
-                <img src="kali.png" alt="kali_ip">
+                <img src="kali.png" alt="Kali Linux terminal showing ifconfig output with assigned IP address" loading="lazy">
 
             My Windows10 machine is:
-                <img src="windows.png" alt="windows_ip">
+                <img src="windows.png" alt="Windows 10 command prompt showing ipconfig output with assigned IP address" loading="lazy">
 
             We are going to enable SSH access on our Kali machine. To do this, we need to edit our SSH configuration to allow password authentication. We access this file with the following command:
                 <br><br><code>sudo nano /etc/ssh/sshd_config</code><br><br>
                 We are going to uncomment the following 2 settings, 'Port 22' and 'PasswordAuthentication yes'.
-                <img src="22.png" alt="port22">
-            <img src="permitpassword.png" alt="passwordauthentication">
+                <img src="22.png" alt="sshd_config file with 'Port 22' line uncommented" loading="lazy">
+            <img src="permitpassword.png" alt="sshd_config file with 'PasswordAuthentication yes' line uncommented" loading="lazy">
                 We now need to start the SSH server on the Kali machine:
-                <img src="startssh.png" alt="startssh">
+                <img src="startssh.png" alt="Kali terminal running 'sudo service ssh start' to start the SSH daemon" loading="lazy">
 
             At this point we ready to connect via SSH from our Windows10 machine. In this guide I am using an application called PuTTY - it has a ton of 
                 functionality, but I will just be using it for its SSH capability.
-                <img src="putty.png" alt="putty">
+                <img src="putty.png" alt="PuTTY main window with the Kali machine IP entered in the Host Name field and port 22 selected" loading="lazy">
 
             All I have done is started up the application and entered the IP address of the Kali machine into the 'Host Name or IP address' field and the port 
                 of 22. Remember this is the port we uncommented out on our SSH config on the Kali machine. If we were to change this default SSH port, we would need to 
                 enter that port here also. All we need to do now is click 'Open' and PuTTY will attempt to establish a SSH session for us:
-                <img src="putty_host_key.png" alt="putty_host_key">
-            <img src="kali_login.png" alt="kali_login">
+                <img src="putty_host_key.png" alt="PuTTY host key acceptance dialog on first connection" loading="lazy">
+            <img src="kali_login.png" alt="PuTTY terminal prompting for kali username and password" loading="lazy">
                 PuTTY opened a session for us and promoted us for a username and password, which is my case was 'kali' and 'kali' (press yes on the host key acceptance). Remember, the username and password are credentials 
                 that exist on the Kali machine not the Windows10 machine. At this point you now have a successful and authenticated SSH session from the Windows10 to Kali machines.
-            <h2 id="ssh-with-key-authentication">SSH with key authentication</h2>works. We now have three independent zones. We will build on this topology in future guides with NAT and ACLs to allow certain traffic into the DMZ from the OUTSIDE and certain traffic into the INSIDE from the DMZ.</p>
-            While password authentication is a quick win, it's not the most secure. It is susceptible to password attacks such as bruteforce and offline hash cracking if password dumps have been acquired etc. The following 
+            <h2 id="ssh-with-key-authentication">SSH with key authentication</h2>
+            <p>While password authentication is a quick win, it's not the most secure. It is susceptible to password attacks such as bruteforce and offline hash cracking if password dumps have been acquired etc. The following 
                 process we are now going to follow is:
                 <ol>
                     <li>Create a private/public key pair (4096-bits).</li>
@@ -96,58 +98,58 @@
                     <li>SSH into the Kali machine from Windows10 using PuTTY in conjunction with the private key file for authentication.</li>
                 </ol>
                 First we need to create a private/public key pair, to do this we use the following command:
-                <img src="keygencommand.png" alt="keygencommand">
+                <img src="keygencommand.png" alt="Kali terminal running ssh-keygen with RSA 4096-bit parameters" loading="lazy">
 
             Notice I have set the parameters to RSA at a strength of 4096-bits. You will also notice the keys have been saved in the directory /home/kali/.ssh/ not the directory I am currently in /etc/ssh. I am now 
                 going to create a file authorized_keys which will be a carbon copy of my public key file id_rsa.pub:
-                <img src="authorizedkeys.png" alt="authorized_keys">
+                <img src="authorizedkeys.png" alt="Creating an authorized_keys file by copying id_rsa.pub on the Kali machine" loading="lazy">
 
             At this stage, make sure the permissions have been set correctly for this file, as well as the .ssh folder:
-                <img src="permissions.png" alt="permissions">
+                <img src="permissions.png" alt="Setting correct permissions on ~/.ssh directory (700) and authorized_keys file (600)" loading="lazy">
 
             The next step is to transfer our private key (id_rsa) to our Windows10 machine. Luckily for us PuTTY comes packaged with CLI tool that will allow us to easily do this. On my Windows10 host I 
                 open a CMD window and run the following:
-                <img src="transfer_priv_key.png" alt="transfer_priv_key">
-            <img src="copied_priv_key.png" alt="copied_priv_key">
+                <img src="transfer_priv_key.png" alt="Windows CMD running pscp to copy the private key from the Kali machine" loading="lazy">
+            <img src="copied_priv_key.png" alt="Confirmation that id_rsa private key was copied to the Windows user directory" loading="lazy">
                 All this is doing, is using the PuTTY Secure Copy (pscp) application to log into our Kali machine and download the directed file id_rsa. It is then placing it in my Windows10 accounts user directory. At this point 
                 we need to convert the private key to a PuTTY readable private key file. To do this we will use another application packaged with PuTTY called PuTTYgen. To find it simply open Start and start typing 'puttygen', it should 
                 quickly show up:
-                <img src="puttygen_search.png" alt="puttygen_search">
+                <img src="puttygen_search.png" alt="Windows Start menu search showing the PuTTYgen application" loading="lazy">
 
             Load this application, select conversions and then import key:
-                <img src="putty_gen_import.png" alt="putty_gen_import">
+                <img src="putty_gen_import.png" alt="PuTTYgen Conversions menu with Import key option highlighted" loading="lazy">
 
             It will ask you to select the private key file you want to import - this will be the file we downloaded from the Kali machine:
-                <img src="select_key_priv.png" alt="select_key_priv">
+                <img src="select_key_priv.png" alt="PuTTYgen file picker selecting the id_rsa private key for import" loading="lazy">
 
             Once loaded in, select save private key and choose a location to save to:
-                <img src="save_priv.png" alt="save_priv">
+                <img src="save_priv.png" alt="PuTTYgen Save private key dialog after importing the OpenSSH key" loading="lazy">
 
             I chose not to protect it with a passphrase but in reality, you really should for the added protections. I saved my key to the desktop:
-                <img src="kali_ppk_desktop.png" alt="kali_ppk_desktop">
+                <img src="kali_ppk_desktop.png" alt="Saved .ppk private key file on the Windows desktop" loading="lazy">
 
             Let's switch back to our Kali machine and get it ready for SSH key authentication. We are going to be editing the same SSH configuration file again:
                 <br><br><code>sudo nano /etc/ssh/sshd_config</code><br><br>
                 This time we will re-comment PasswordAuthentication:
-                <img src="comment_out1.png" alt="comment_out1">
+                <img src="comment_out1.png" alt="sshd_config file with PasswordAuthentication line re-commented to disable password auth" loading="lazy">
 
             We need to enable key authentication and tell our SSH service where to look for keys, I have highlighted them here:
-                <img src="uncomment_config.png" alt="uncomment_config">
+                <img src="uncomment_config.png" alt="sshd_config file with PubkeyAuthentication enabled and AuthorizedKeysFile path set" loading="lazy">
 
             Notice the authorized_keys file is the one we created earlier containing our public key. Save the file and exit. At this point we best restart our SSH service:
                 <br><br><code>sudo service ssh restart</code><br><br>
                 Jumping back our Windows10 machine we are now ready to attempt a SSH session with key authentication. Load the PuTTY client and select auth > credentials. Click browse 
                 and select the private key file we created:
-                <img src="select_priv_key.png" alt="select_priv_key">
+                <img src="select_priv_key.png" alt="PuTTY Auth > Credentials pane with the .ppk private key file selected for SSH authentication" loading="lazy">
 
             Once entered, move back up to session and in the hostname/IP we enter our username (username on the kali machine) followed by the IP address of the Kali machine. We also ensure port 
                 22 is selected:
                 <br><br><code>kali@192.168.122.29</code><br><br>
 
-            <img src="connect_putty.png" alt="connect_putty">
+            <img src="connect_putty.png" alt="PuTTY Session pane with kali@192.168.122.29 as the host and port 22 selected" loading="lazy">
 
             I now click open and key authentication occurs:
-                <img src="connected.png" alt="connected">
+                <img src="connected.png" alt="Successful SSH session into Kali via PuTTY using key-based authentication, no password prompt" loading="lazy">
 
             At this point we were straight into the Kali machine without the requirement of entering a username or password. The key pair itself authenticates us. At this stage 
                 we are pretty much ready to go - it goes without saying though, the private key file is now the key to the kingdom.
@@ -169,7 +171,7 @@
         <div class="container">
             <p><i class="fas fa-atom"></i> Quantum Repository</p>
             <p>Technical guides for system administrators and developers</p>
-            <p>alex@slash-root.com | &copy; 2025</p>
+            <p>alex@slash-root.com | &copy; <span id="footer-year">2025</span></p>
         </div>
     </footer>
 

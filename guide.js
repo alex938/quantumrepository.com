@@ -182,21 +182,51 @@ function initExternalLinks() {
 
 // ============================================
 // Footer normalization (compact footer with logo + email)
+// Uses DOM APIs instead of innerHTML so this stays safe even if any of the
+// values below ever become user-influenced.
 // ============================================
 function replaceFooter() {
     const container = document.querySelector('.site-footer .container');
     if (!container) return;
-    container.innerHTML = `
-        <div class="footer-compact">
-            <div class="footer-brand">
-                <i class="fas fa-atom"></i>
-                <span>Quantum Repository</span>
-            </div>
-            <div class="footer-contact">
-                <a href="mailto:alex@slash-root.com">alex@slash-root.com</a>
-            </div>
-        </div>
-    `;
+
+    // Wipe whatever the page shipped with.
+    while (container.firstChild) container.removeChild(container.firstChild);
+
+    const compact = document.createElement('div');
+    compact.className = 'footer-compact';
+
+    const brand = document.createElement('div');
+    brand.className = 'footer-brand';
+    const icon = document.createElement('i');
+    icon.className = 'fas fa-atom';
+    icon.setAttribute('aria-hidden', 'true');
+    const brandText = document.createElement('span');
+    brandText.textContent = 'Quantum Repository';
+    brand.append(icon, brandText);
+
+    const contact = document.createElement('div');
+    contact.className = 'footer-contact';
+    const mail = document.createElement('a');
+    mail.href = 'mailto:alex@slash-root.com';
+    mail.textContent = 'alex@slash-root.com';
+    contact.appendChild(mail);
+
+    // Dynamic copyright year alongside the contact info.
+    const year = document.createElement('span');
+    year.className = 'footer-year';
+    year.textContent = `\u00A9 ${new Date().getFullYear()}`;
+    contact.appendChild(year);
+
+    compact.append(brand, contact);
+    container.appendChild(compact);
+}
+
+// ============================================
+// Footer year span (for pages that didn't have replaceFooter() applied)
+// ============================================
+function initFooterYear() {
+    const span = document.getElementById('footer-year');
+    if (span) span.textContent = new Date().getFullYear();
 }
 
 // ============================================
@@ -210,5 +240,6 @@ document.addEventListener('DOMContentLoaded', () => {
     initSmoothScroll();
     initProgressBar();
     initExternalLinks();
+    initFooterYear();
     replaceFooter();
 });

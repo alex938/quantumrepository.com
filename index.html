@@ -5,7 +5,40 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Free cybersecurity learning resources, networking guides, Python tutorials, and hands-on labs.">
     <meta name="keywords" content="cybersecurity, networking, CISCO, Python, Docker, Kubernetes, security labs">
-    <meta name="author" content="quantumrepository">
+    <meta name="author" content="Quantum Repository">
+    <link rel="canonical" href="https://quantumrepository.com/">
+
+    <!-- Favicon (uses an SVG of an atom icon to match the site logo) -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='4' fill='%238b5cf6'/%3E%3Cg fill='none' stroke='%2306b6d4' stroke-width='2.5'%3E%3Cellipse cx='32' cy='32' rx='26' ry='10'/%3E%3Cellipse cx='32' cy='32' rx='26' ry='10' transform='rotate(60 32 32)'/%3E%3Cellipse cx='32' cy='32' rx='26' ry='10' transform='rotate(120 32 32)'/%3E%3C/g%3E%3C/svg%3E">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Quantum Repository">
+    <meta property="og:title" content="Quantum Repository | Free Computer Science Learning Resources">
+    <meta property="og:description" content="Free cybersecurity learning resources, networking guides, Python tutorials, and hands-on labs.">
+    <meta property="og:url" content="https://quantumrepository.com/">
+    <meta property="og:locale" content="en_GB">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Quantum Repository">
+    <meta name="twitter:description" content="Free cybersecurity learning resources, networking guides, Python tutorials, and hands-on labs.">
+
+    <!-- JSON-LD structured data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "Quantum Repository",
+        "url": "https://quantumrepository.com/",
+        "description": "Free cybersecurity learning resources, networking guides, Python tutorials, and hands-on labs.",
+        "inLanguage": "en-GB",
+        "author": { "@type": "Person", "name": "Alex", "email": "alex@slash-root.com" },
+        "publisher": { "@type": "Organization", "name": "Quantum Repository" }
+    }
+    </script>
+
+    <link rel="preconnect" href="https://use.fontawesome.com" crossorigin>
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.1/css/all.css">
     <link rel="stylesheet" href="main.css">
     <link rel="stylesheet" href="accessibility.css">
@@ -36,7 +69,7 @@
                             <span>Donate</span>
                         </a>
                     </li>
-                    <li><button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light mode" aria-label="Toggle dark and light mode" aria-pressed="false">
+                    <li><button class="theme-toggle" id="themeToggle" title="Toggle dark/light mode" aria-label="Toggle dark and light mode" aria-pressed="false">
                         <i class="fas fa-moon" id="theme-icon" aria-hidden="true"></i>
                         <span class="sr-only" id="theme-text">Switch to light mode</span>
                     </button></li>
@@ -56,21 +89,21 @@
                 </p>
                 <div class="hero-stats">
                     <div class="stat">
-                        <span class="stat-number" data-count="77">0</span>
+                        <span class="stat-number" data-count="92" data-suffix="+">0</span>
                         <span class="stat-label">Guides</span>
                     </div>
                     <div class="stat">
-                        <span class="stat-number" data-count="10">0</span>
+                        <span class="stat-number" data-count="15" data-suffix="+">0</span>
                         <span class="stat-label">Categories</span>
                     </div>
                     <div class="stat">
-                        <span class="stat-number" data-count="100">0</span>
+                        <span class="stat-number" data-count="100" data-suffix="%">0</span>
                         <span class="stat-label">Free</span>
                     </div>
                 </div>
                 
-                <div class="safety-warning" style="background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%); color: white; padding: 1rem 1.5rem; text-align: center; font-size: 0.95rem; font-weight: 500; border-radius: 8px; box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3); margin-top: 2rem;">
-                    <span class="warning-icon" style="margin-right: 0.5rem; font-size: 1.1rem;">⚠️</span>
+                <div class="safety-warning" role="note">
+                    <span class="warning-icon" aria-hidden="true">⚠️</span>
                     <strong>SECURITY WARNING:</strong> Never run commands you don't understand. Always review code before execution. Use at your own risk.
                 </div>
             </div>
@@ -80,12 +113,11 @@
             <div class="search-wrapper">
                 <label for="searchInput" class="sr-only">Search guides</label>
                 <i class="fas fa-search search-icon" aria-hidden="true"></i>
-                <input 
-                    type="text" 
-                    class="search-input" 
-                    id="searchInput" 
+                <input
+                    type="text"
+                    class="search-input"
+                    id="searchInput"
                     placeholder="Search guides... (e.g., 'CISCO', 'Python', 'Docker')"
-                    onkeyup="searchGuides()"
                     aria-describedby="search-help"
                     autocomplete="off"
                 >
@@ -94,13 +126,16 @@
         </section>
 
         <section class="filter-container" role="tablist" aria-label="Filter guides by category">
-            <button class="filter-btn active" role="tab" aria-selected="true" aria-controls="guides" onclick="filterGuides('all', event)" id="filter-all">All</button>
-            <button class="filter-btn" role="tab" aria-selected="false" aria-controls="guides" onclick="filterGuides('networking', event)" id="filter-networking">Networking</button>
-            <button class="filter-btn" role="tab" aria-selected="false" aria-controls="guides" onclick="filterGuides('python', event)" id="filter-python">Python</button>
-            <button class="filter-btn" role="tab" aria-selected="false" aria-controls="guides" onclick="filterGuides('active-directory', event)" id="filter-ad">Active Directory</button>
-            <button class="filter-btn" role="tab" aria-selected="false" aria-controls="guides" onclick="filterGuides('docker', event)" id="filter-docker">Docker</button>
-            <button class="filter-btn" role="tab" aria-selected="false" aria-controls="guides" onclick="filterGuides('kubernetes', event)" id="filter-k8s">Kubernetes</button>
-            <button class="filter-btn" role="tab" aria-selected="false" aria-controls="guides" onclick="filterGuides('guides', event)" id="filter-general">General Guides</button>
+            <button class="filter-btn active" role="tab" aria-selected="true" aria-controls="guides" data-filter="all" id="filter-all">All</button>
+            <button class="filter-btn" role="tab" aria-selected="false" aria-controls="guides" data-filter="networking" id="filter-networking">Networking</button>
+            <button class="filter-btn" role="tab" aria-selected="false" aria-controls="guides" data-filter="linux" id="filter-linux">Linux / Shell</button>
+            <button class="filter-btn" role="tab" aria-selected="false" aria-controls="guides" data-filter="python" id="filter-python">Python</button>
+            <button class="filter-btn" role="tab" aria-selected="false" aria-controls="guides" data-filter="windows" id="filter-windows">Windows / AD</button>
+            <button class="filter-btn" role="tab" aria-selected="false" aria-controls="guides" data-filter="docker" id="filter-docker">Docker</button>
+            <button class="filter-btn" role="tab" aria-selected="false" aria-controls="guides" data-filter="kubernetes" id="filter-k8s">Kubernetes</button>
+            <button class="filter-btn" role="tab" aria-selected="false" aria-controls="guides" data-filter="security" id="filter-security">Security</button>
+            <button class="filter-btn" role="tab" aria-selected="false" aria-controls="guides" data-filter="devops" id="filter-devops">Dev Workflows</button>
+            <button class="filter-btn" role="tab" aria-selected="false" aria-controls="guides" data-filter="guides" id="filter-general">General Guides</button>
         </section>
 
         <div id="main-content">
@@ -109,7 +144,7 @@
             <article class="card fade-in" data-category="networking">
                 <div class="card-header">
                     <i class="fas fa-network-wired card-icon"></i>
-                    <h3>Networking <span class="guide-count">12</span></h3>
+                    <h3>Networking <span class="guide-count">13</span></h3>
                 </div>
                 <div class="card-meta">
                     <span class="card-tag">CISCO</span>
@@ -118,6 +153,7 @@
                 <ul class="card-links">
                     <li><a href="ciscoipaddress/ciscoip.html">CISCO Configuring Interfaces</a></li>
                     <li><a href="ciscovlans/ciscovlans.html">CISCO VLANs Configuration</a></li>
+                    <li><a href="vlantrunking/vlantrunking.html">VLAN Trunking &amp; Inter-VLAN Routing</a></li>
                     <li><a href="ciscodhcp/ciscodhcp.html">CISCO Configuring DHCP</a></li>
                     <li><a href="ciscondns/ciscodns.html">CISCO Configuring DNS</a></li>
                     <li><a href="ciscostaticnat/ciscostaticnat.html">CISCO Configuring Static NAT</a></li>
@@ -128,6 +164,23 @@
                     <li><a href="ciscoospf/ciscoospf.html">CISCO OSPF Routing</a></li>
                     <li><a href="ciscotelnet/ciscotelnet.html">CISCO Remote TELNET Access</a></li>
                     <li><a href="ciscogre/ciscogre.html">CISCO GRE and IPSec Tunnels</a></li>
+                </ul>
+            </article>
+
+            <article class="card fade-in" data-category="networking">
+                <div class="card-header">
+                    <i class="fas fa-globe card-icon"></i>
+                    <h3>Network Protocols <span class="guide-count">3</span></h3>
+                </div>
+                <div class="card-meta">
+                    <span class="card-tag">DNS</span>
+                    <span class="card-tag">IPv6</span>
+                    <span class="card-tag">Wireshark</span>
+                </div>
+                <ul class="card-links">
+                    <li><a href="dnsdeepdive/dnsdeepdive.html">DNS Deep Dive</a></li>
+                    <li><a href="ipv6/ipv6.html">IPv6 Fundamentals</a></li>
+                    <li><a href="wireshark/wireshark.html">Wireshark Intro &mdash; Packet Capture Analysis</a></li>
                 </ul>
             </article>
 
@@ -148,6 +201,70 @@
                 </ul>
             </article>
 
+            <article class="card fade-in" data-category="linux">
+                <div class="card-header">
+                    <i class="fab fa-linux card-icon"></i>
+                    <h3>Linux &amp; Shell <span class="guide-count">3</span></h3>
+                </div>
+                <div class="card-meta">
+                    <span class="card-tag">Linux</span>
+                    <span class="card-tag">Bash</span>
+                    <span class="card-tag">Hardening</span>
+                </div>
+                <ul class="card-links">
+                    <li><a href="linuxhardening/linuxhardening.html">Linux Server Hardening Checklist</a></li>
+                    <li><a href="bash/bash.html">Bash Scripting Fundamentals</a></li>
+                    <li><a href="cronvssystemd/cronvssystemd.html">cron Jobs vs systemd Timers</a></li>
+                </ul>
+            </article>
+
+            <article class="card fade-in" data-category="windows">
+                <div class="card-header">
+                    <i class="fab fa-windows card-icon"></i>
+                    <h3>Windows &amp; PowerShell <span class="guide-count">2</span></h3>
+                </div>
+                <div class="card-meta">
+                    <span class="card-tag">PowerShell</span>
+                    <span class="card-tag">Sysadmin</span>
+                </div>
+                <ul class="card-links">
+                    <li><a href="powershellsysadmin/powershellsysadmin.html">PowerShell for Sysadmins</a></li>
+                    <li><a href="adattacks/adattacks.html">Active Directory Attacks &amp; Defenses (lab only)</a></li>
+                </ul>
+            </article>
+
+            <article class="card fade-in" data-category="devops">
+                <div class="card-header">
+                    <i class="fas fa-code-branch card-icon"></i>
+                    <h3>Dev Workflows <span class="guide-count">3</span></h3>
+                </div>
+                <div class="card-meta">
+                    <span class="card-tag">Git</span>
+                    <span class="card-tag">Docker</span>
+                    <span class="card-tag">Nginx</span>
+                </div>
+                <ul class="card-links">
+                    <li><a href="git/git.html">Git Fundamentals &rarr; Intermediate</a></li>
+                    <li><a href="dockercompose/dockercompose.html">Docker Compose Deep Dive</a></li>
+                    <li><a href="nginxproxy/nginxproxy.html">Nginx Reverse Proxy + TLS</a></li>
+                </ul>
+            </article>
+
+            <article class="card fade-in" data-category="security">
+                <div class="card-header">
+                    <i class="fas fa-user-shield card-icon"></i>
+                    <h3>Web &amp; Crypto Security <span class="guide-count">2</span></h3>
+                </div>
+                <div class="card-meta">
+                    <span class="card-tag">TLS</span>
+                    <span class="card-tag">OWASP</span>
+                </div>
+                <ul class="card-links">
+                    <li><a href="tlsdeepdive/tlsdeepdive.html">TLS / HTTPS Deep Dive</a></li>
+                    <li><a href="owasptop10/owasptop10.html">OWASP Top 10 (2021)</a></li>
+                </ul>
+            </article>
+
             <article class="card fade-in" data-category="active-directory">
                 <div class="card-header">
                     <i class="fas fa-server card-icon"></i>
@@ -164,10 +281,10 @@
                     <li><a href="ad4/ad.html">4. Active Directory Configuration</a></li>
                     <li><a href="ad5/ad.html">5. Creating OUs and Domain Admins</a></li>
                     <li><a href="ad6/ad.html">6. Configuring DHCP Server</a></li>
-                    <li><a href="#"><span class="badge badge-warning">Coming Soon</span> 7. File Server Configuration</a></li>
-                    <li><a href="#"><span class="badge badge-warning">Coming Soon</span> 8. NAT Configuration</a></li>
-                    <li><a href="#"><span class="badge badge-warning">Coming Soon</span> 9. Windows 10 Installation</a></li>
-                    <li><a href="#"><span class="badge badge-warning">Coming Soon</span> 10. Joining Domain</a></li>
+                    <li><span class="coming-soon" aria-disabled="true"><span class="badge badge-warning">Coming Soon</span> 7. File Server Configuration</span></li>
+                    <li><span class="coming-soon" aria-disabled="true"><span class="badge badge-warning">Coming Soon</span> 8. NAT Configuration</span></li>
+                    <li><span class="coming-soon" aria-disabled="true"><span class="badge badge-warning">Coming Soon</span> 9. Windows 10 Installation</span></li>
+                    <li><span class="coming-soon" aria-disabled="true"><span class="badge badge-warning">Coming Soon</span> 10. Joining Domain</span></li>
                 </ul>
             </article>
 
@@ -202,7 +319,7 @@
             <article class="card fade-in" data-category="python">
                 <div class="card-header">
                     <i class="fas fa-code card-icon"></i>
-                    <h3>Python Advanced <span class="guide-count">5</span></h3>
+                    <h3>Python Advanced <span class="guide-count">6</span></h3>
                 </div>
                 <div class="card-meta">
                     <span class="card-tag">Programming</span>
@@ -214,6 +331,7 @@
                     <li><a href="code/pydoc.html">Creating Documentation with Pydoc</a></li>
                     <li><a href="code/custom_context_managers.html">Custom Context Managers</a></li>
                     <li><a href="code/path.html">Pathlib Module</a></li>
+                    <li><a href="pythonadvancedpatterns/pythonadvancedpatterns.html">asyncio + Type Hints / mypy</a></li>
                 </ul>
             </article>
 
@@ -365,251 +483,284 @@
             </div>
         </div>
         <div class="footer-bottom">
-            <p>&copy; 2025 quantumrepository.com | All rights reserved</p>
+            <p>&copy; <span id="footer-year">2025</span> quantumrepository.com | All rights reserved</p>
         </div>
     </footer>
 
     <script>
-        // Theme Toggle with Accessibility
-        function toggleTheme() {
-            const html = document.documentElement;
-            const icon = document.getElementById('theme-icon');
-            const themeText = document.getElementById('theme-text');
-            const themeButton = document.querySelector('.theme-toggle');
-            const currentTheme = html.getAttribute('data-theme');
-            
-            if (currentTheme === 'light') {
-                html.removeAttribute('data-theme');
-                icon.className = 'fas fa-moon';
-                themeText.textContent = 'Switch to light mode';
-                themeButton.setAttribute('aria-pressed', 'false');
-                themeButton.title = 'Switch to light mode';
-                localStorage.setItem('theme', 'dark');
-                announceToScreenReader('Switched to dark mode');
-            } else {
-                html.setAttribute('data-theme', 'light');
-                icon.className = 'fas fa-sun';
-                themeText.textContent = 'Switch to dark mode';
-                themeButton.setAttribute('aria-pressed', 'true');
-                themeButton.title = 'Switch to dark mode';
-                localStorage.setItem('theme', 'light');
-                announceToScreenReader('Switched to light mode');
-            }
-        }
+        /* =========================================================
+           Quantum Repository - homepage script
+           - Single DOMContentLoaded entry point (on document, not window)
+           - No inline onclick / onkeyup handlers (everything via addEventListener)
+           - Search is debounced and combines with the active filter
+           - Stat counter uses an explicit data-suffix attribute
+           ========================================================= */
+        (function () {
+            'use strict';
 
-        // Load saved theme
-        window.addEventListener('DOMContentLoaded', () => {
-            const savedTheme = localStorage.getItem('theme');
-            const icon = document.getElementById('theme-icon');
-            const themeText = document.getElementById('theme-text');
-            const themeButton = document.querySelector('.theme-toggle');
-            
-            if (savedTheme === 'light') {
-                document.documentElement.setAttribute('data-theme', 'light');
-                icon.className = 'fas fa-sun';
-                themeText.textContent = 'Switch to dark mode';
-                themeButton.setAttribute('aria-pressed', 'true');
-            }
-            
-            // Detect keyboard users
-            document.addEventListener('keydown', handleKeyboardUser);
-            document.addEventListener('mousedown', handleMouseUser);
-        });
-        
-        // Keyboard Navigation
-        let isKeyboardUser = false;
-        
-        function handleKeyboardUser(e) {
-            if (e.key === 'Tab') {
-                isKeyboardUser = true;
-                document.body.classList.add('keyboard-user');
-            }
-            
-            // Keyboard shortcuts
-            if (e.ctrlKey || e.metaKey) {
-                switch(e.key) {
-                    case 'k':
-                        e.preventDefault();
-                        document.getElementById('searchInput').focus();
-                        break;
-                    case '/':
-                        e.preventDefault();
-                        showKeyboardHelp();
-                        break;
-                }
-            }
-            
-            // ESC to close modals
-            if (e.key === 'Escape') {
-                closeKeyboardHelp();
-            }
-        }
-        
-        function handleMouseUser() {
-            if (isKeyboardUser) {
-                isKeyboardUser = false;
-                document.body.classList.remove('keyboard-user');
-            }
-        }
-        
-        // Keyboard Help Modal
-        function showKeyboardHelp() {
-            const helpModal = document.createElement('div');
-            helpModal.className = 'keyboard-help';
-            helpModal.id = 'keyboard-help';
-            helpModal.setAttribute('role', 'dialog');
-            helpModal.setAttribute('aria-labelledby', 'help-title');
-            helpModal.innerHTML = `
-                <h3 id="help-title">Keyboard Shortcuts</h3>
-                <ul>
-                    <li><span>Search guides</span> <kbd>Ctrl + K</kbd></li>
-                    <li><span>Toggle theme</span> <kbd>Click theme button</kbd></li>
-                    <li><span>Navigate filters</span> <kbd>Tab / Arrow keys</kbd></li>
-                    <li><span>Close this help</span> <kbd>Escape</kbd></li>
-                </ul>
-                <button onclick="closeKeyboardHelp()" aria-label="Close help">Close</button>
-            `;
-            document.body.appendChild(helpModal);
-            helpModal.querySelector('button').focus();
-        }
-        
-        function closeKeyboardHelp() {
-            const helpModal = document.getElementById('keyboard-help');
-            if (helpModal) {
-                helpModal.remove();
-            }
-        }
-
-        // Search Functionality
-        function searchGuides() {
-            const input = document.getElementById('searchInput').value.toLowerCase();
-            const cards = document.querySelectorAll('.card');
-            
-            cards.forEach(card => {
-                const text = card.textContent.toLowerCase();
-                if (text.includes(input)) {
-                    card.style.display = '';
+            // ---- Theme ----
+            function applyTheme(theme) {
+                const icon = document.getElementById('theme-icon');
+                const themeText = document.getElementById('theme-text');
+                const themeButton = document.getElementById('themeToggle');
+                if (theme === 'light') {
+                    document.documentElement.setAttribute('data-theme', 'light');
+                    if (icon) icon.className = 'fas fa-sun';
+                    if (themeText) themeText.textContent = 'Switch to dark mode';
+                    if (themeButton) {
+                        themeButton.setAttribute('aria-pressed', 'true');
+                        themeButton.title = 'Switch to dark mode';
+                    }
                 } else {
-                    card.style.display = 'none';
+                    document.documentElement.removeAttribute('data-theme');
+                    if (icon) icon.className = 'fas fa-moon';
+                    if (themeText) themeText.textContent = 'Switch to light mode';
+                    if (themeButton) {
+                        themeButton.setAttribute('aria-pressed', 'false');
+                        themeButton.title = 'Switch to light mode';
+                    }
                 }
-            });
-        }
+            }
 
-        // Filter Functionality with Accessibility
-        let currentFilter = 'all';
-        
-        function filterGuides(category, e) {
-            currentFilter = category;
-            const cards = document.querySelectorAll('.card[data-category]');
-            const buttons = document.querySelectorAll('.filter-btn');
-            
-            // Update active button with ARIA
-            buttons.forEach(btn => {
-                btn.classList.remove('active');
-                btn.setAttribute('aria-selected', 'false');
-            });
-            
-            const activeButton = e.target;
-            activeButton.classList.add('active');
-            activeButton.setAttribute('aria-selected', 'true');
-            
-            // Update tabpanel
-            const guidesSection = document.getElementById('guides');
-            guidesSection.setAttribute('aria-labelledby', activeButton.id);
-            
-            // Filter cards
-            let visibleCount = 0;
-            cards.forEach(card => {
-                if (category === 'all' || card.dataset.category === category) {
-                    card.style.display = '';
-                    card.removeAttribute('aria-hidden');
-                    visibleCount++;
-                } else {
-                    card.style.display = 'none';
-                    card.setAttribute('aria-hidden', 'true');
-                }
-            });
-            
-            // Announce results to screen readers
-            announceToScreenReader(`Showing ${visibleCount} guides for ${category === 'all' ? 'all categories' : category}`);
-            
-            // Clear search when filtering
-            document.getElementById('searchInput').value = '';
-        }
-        
-        // Screen reader announcements
-        function announceToScreenReader(message) {
-            const announcement = document.createElement('div');
-            announcement.setAttribute('aria-live', 'polite');
-            announcement.setAttribute('aria-atomic', 'true');
-            announcement.className = 'sr-only';
-            announcement.textContent = message;
-            document.body.appendChild(announcement);
-            setTimeout(() => document.body.removeChild(announcement), 1000);
-        }
+            function initTheme() {
+                const saved = localStorage.getItem('theme');
+                // If no saved preference, fall back to OS-level preference.
+                const initial = saved
+                    ? saved
+                    : (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+                applyTheme(initial);
 
-        // Animated counter for stats
-        function animateCounter(element) {
-            const target = parseInt(element.dataset.count);
-            const duration = 2000;
-            const step = target / (duration / 16);
-            let current = 0;
-            
-            const timer = setInterval(() => {
-                current += step;
-                if (current >= target) {
-                    element.textContent = target + (target === 100 ? '%' : '+');
-                    clearInterval(timer);
-                } else {
-                    element.textContent = Math.floor(current) + (target === 100 ? '%' : '+');
-                }
-            }, 16);
-        }
-
-        // Animate stats on page load
-        window.addEventListener('DOMContentLoaded', () => {
-            const statNumbers = document.querySelectorAll('.stat-number');
-            setTimeout(() => {
-                statNumbers.forEach(animateCounter);
-            }, 300);
-        });
-
-        // Smooth scroll for anchor links
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                const href = this.getAttribute('href');
-                if (href !== '#' && document.querySelector(href)) {
-                    e.preventDefault();
-                    document.querySelector(href).scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start'
+                const themeButton = document.getElementById('themeToggle');
+                if (themeButton) {
+                    themeButton.addEventListener('click', () => {
+                        const current = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+                        const next = current === 'light' ? 'dark' : 'light';
+                        applyTheme(next);
+                        localStorage.setItem('theme', next);
+                        announceToScreenReader(`Switched to ${next} mode`);
                     });
                 }
-            });
-        });
+            }
 
-        // Add fade-in animation on scroll
-        const observerOptions = {
-            threshold: 0.1,
-            rootMargin: '0px 0px -50px 0px'
-        };
+            // ---- Screen reader announcements ----
+            function announceToScreenReader(message) {
+                const a = document.createElement('div');
+                a.setAttribute('aria-live', 'polite');
+                a.setAttribute('aria-atomic', 'true');
+                a.className = 'sr-only';
+                a.textContent = message;
+                document.body.appendChild(a);
+                setTimeout(() => a.remove(), 1000);
+            }
 
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.style.opacity = '1';
-                    entry.target.style.transform = 'translateY(0)';
+            // ---- Search + filter (combined) ----
+            let activeFilter = 'all';
+            let activeQuery = '';
+
+            function applyVisibility() {
+                const q = activeQuery.trim().toLowerCase();
+                const cards = document.querySelectorAll('.card[data-category]');
+                let visible = 0;
+                cards.forEach(card => {
+                    const matchesFilter = activeFilter === 'all' || card.dataset.category === activeFilter;
+                    const matchesSearch = !q || card.textContent.toLowerCase().includes(q);
+                    const show = matchesFilter && matchesSearch;
+                    card.style.display = show ? '' : 'none';
+                    if (show) {
+                        card.removeAttribute('aria-hidden');
+                        visible++;
+                    } else {
+                        card.setAttribute('aria-hidden', 'true');
+                    }
+                });
+                return visible;
+            }
+
+            function initSearch() {
+                const input = document.getElementById('searchInput');
+                if (!input) return;
+                let timer;
+                input.addEventListener('input', () => {
+                    clearTimeout(timer);
+                    timer = setTimeout(() => {
+                        activeQuery = input.value;
+                        const visible = applyVisibility();
+                        announceToScreenReader(`${visible} guides match your search`);
+                    }, 150);
+                });
+            }
+
+            function initFilters() {
+                document.querySelectorAll('.filter-btn[data-filter]').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const category = btn.dataset.filter;
+                        activeFilter = category;
+                        document.querySelectorAll('.filter-btn').forEach(b => {
+                            b.classList.remove('active');
+                            b.setAttribute('aria-selected', 'false');
+                        });
+                        btn.classList.add('active');
+                        btn.setAttribute('aria-selected', 'true');
+                        const guidesSection = document.getElementById('guides');
+                        if (guidesSection) guidesSection.setAttribute('aria-labelledby', btn.id);
+                        const visible = applyVisibility();
+                        announceToScreenReader(`Showing ${visible} guides for ${category === 'all' ? 'all categories' : category}`);
+                    });
+                });
+            }
+
+            // ---- Stat counter ----
+            function animateCounter(el) {
+                const target = parseInt(el.dataset.count, 10);
+                const suffix = el.dataset.suffix || '';
+                const duration = 2000;
+                const step = target / (duration / 16);
+                let current = 0;
+                const timer = setInterval(() => {
+                    current += step;
+                    if (current >= target) {
+                        el.textContent = target + suffix;
+                        clearInterval(timer);
+                    } else {
+                        el.textContent = Math.floor(current) + suffix;
+                    }
+                }, 16);
+            }
+
+            function initStats() {
+                const stats = document.querySelectorAll('.stat-number');
+                setTimeout(() => stats.forEach(animateCounter), 300);
+            }
+
+            // ---- Keyboard nav ----
+            let isKeyboardUser = false;
+
+            function handleKeyDown(e) {
+                if (e.key === 'Tab') {
+                    isKeyboardUser = true;
+                    document.body.classList.add('keyboard-user');
                 }
-            });
-        }, observerOptions);
+                if (e.ctrlKey || e.metaKey) {
+                    if (e.key === 'k') {
+                        e.preventDefault();
+                        const si = document.getElementById('searchInput');
+                        if (si) si.focus();
+                    } else if (e.key === '/') {
+                        e.preventDefault();
+                        showKeyboardHelp();
+                    }
+                }
+                if (e.key === 'Escape') {
+                    closeKeyboardHelp();
+                }
+            }
 
-        // Observe all cards
-        document.querySelectorAll('.card').forEach(card => {
-            card.style.opacity = '0';
-            card.style.transform = 'translateY(20px)';
-            card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
-            observer.observe(card);
-        });
+            function handleMouseDown() {
+                if (isKeyboardUser) {
+                    isKeyboardUser = false;
+                    document.body.classList.remove('keyboard-user');
+                }
+            }
+
+            // ---- Keyboard help modal (built with DOM API, not innerHTML) ----
+            function showKeyboardHelp() {
+                if (document.getElementById('keyboard-help')) return;
+                const modal = document.createElement('div');
+                modal.className = 'keyboard-help';
+                modal.id = 'keyboard-help';
+                modal.setAttribute('role', 'dialog');
+                modal.setAttribute('aria-labelledby', 'help-title');
+
+                const h = document.createElement('h3');
+                h.id = 'help-title';
+                h.textContent = 'Keyboard Shortcuts';
+                modal.appendChild(h);
+
+                const ul = document.createElement('ul');
+                const shortcuts = [
+                    ['Search guides', 'Ctrl + K'],
+                    ['Toggle theme', 'Click theme button'],
+                    ['Navigate filters', 'Tab / Arrow keys'],
+                    ['Close this help', 'Escape'],
+                ];
+                shortcuts.forEach(([label, keys]) => {
+                    const li = document.createElement('li');
+                    const s = document.createElement('span');
+                    s.textContent = label;
+                    const kbd = document.createElement('kbd');
+                    kbd.textContent = keys;
+                    li.append(s, ' ', kbd);
+                    ul.appendChild(li);
+                });
+                modal.appendChild(ul);
+
+                const closeBtn = document.createElement('button');
+                closeBtn.type = 'button';
+                closeBtn.textContent = 'Close';
+                closeBtn.setAttribute('aria-label', 'Close help');
+                closeBtn.addEventListener('click', closeKeyboardHelp);
+                modal.appendChild(closeBtn);
+
+                document.body.appendChild(modal);
+                closeBtn.focus();
+            }
+
+            function closeKeyboardHelp() {
+                const m = document.getElementById('keyboard-help');
+                if (m) m.remove();
+            }
+
+            // ---- Smooth scroll ----
+            function initSmoothScroll() {
+                document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                    anchor.addEventListener('click', function (e) {
+                        const href = this.getAttribute('href');
+                        if (href !== '#' && document.querySelector(href)) {
+                            e.preventDefault();
+                            document.querySelector(href).scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }
+                    });
+                });
+            }
+
+            // ---- Fade-in observer ----
+            function initFadeIn() {
+                const opts = { threshold: 0.1, rootMargin: '0px 0px -50px 0px' };
+                const observer = new IntersectionObserver(entries => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.style.opacity = '1';
+                            entry.target.style.transform = 'translateY(0)';
+                        }
+                    });
+                }, opts);
+                document.querySelectorAll('.card').forEach(card => {
+                    card.style.opacity = '0';
+                    card.style.transform = 'translateY(20px)';
+                    card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                    observer.observe(card);
+                });
+            }
+
+            // ---- Footer year ----
+            function initFooterYear() {
+                const span = document.getElementById('footer-year');
+                if (span) span.textContent = new Date().getFullYear();
+            }
+
+            // ---- Single entry point ----
+            document.addEventListener('DOMContentLoaded', () => {
+                initTheme();
+                initSearch();
+                initFilters();
+                initStats();
+                initSmoothScroll();
+                initFadeIn();
+                initFooterYear();
+                document.addEventListener('keydown', handleKeyDown);
+                document.addEventListener('mousedown', handleMouseDown);
+            });
+        })();
     </script>
 </body>
 </html>

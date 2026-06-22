@@ -9,8 +9,9 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@master
-    - uses: jakejarvis/s3-sync-action@master
+    - uses: actions/checkout@v4
+    # Pinned to v0.5.1 to avoid pulling a moving @master tag (supply-chain hygiene).
+    - uses: jakejarvis/s3-sync-action@be0c4ab89158cac4278689ebedd8407dd5f35a83 # v0.5.1
       with:
         args: --acl public-read --follow-symlinks --delete --exclude '.git*/*'
       env:

@@ -961,3 +961,25 @@ main.guide-content {
 .footer-brand i { color: var(--accent-primary); }
 .footer-contact a { color: var(--primary-text); text-decoration: none; }
 .footer-contact a:hover { color: var(--accent-primary); text-decoration: underline; }
+
+/* ============================================
+   SAFETY / SECURITY WARNING BANNER
+   (Used on index.html and any guide showing a warning)
+   ============================================ */
+.safety-warning {
+    background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+    color: #ffffff;
+    padding: 1rem 1.5rem;
+    text-align: center;
+    font-size: 0.95rem;
+    font-weight: 500;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+    margin-top: 2rem;
+}
+
+.safety-warning .warning-icon {
+    margin-right: 0.5rem;
+    font-size: 1.1rem;
+}
+

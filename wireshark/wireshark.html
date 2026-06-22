@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wireshark Intro: Packet Capture Analysis | Quantum Repository</title>
+    <meta name="description" content="Capture vs display filters, the TCP three-way handshake, ARP, DNS, Follow TCP Stream, and defensive use cases. A practical introduction to Wireshark and tshark.">
+    <link rel="stylesheet" href="../main.css">
+    <link rel="stylesheet" href="../guide.css">
+    <link rel="stylesheet" href="../accessibility.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.1/css/all.css">
+</head>
+<body>
+    <div class="reading-progress-bar"></div>
+
+    <header class="site-header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-atom"></i>
+                    <span>Quantum Repository</span>
+                </div>
+                <nav class="main-nav">
+                    <a href="../index.html">Home</a>
+                    <a href="../index.html#guides">Guides</a>
+                    <a class="btn-donate" href="https://donate.stripe.com/5kQaEX2kMgnB85ia4ycZa00" target="_blank" rel="noopener noreferrer" aria-label="Donate – opens in a new tab"><i class="fas fa-heart" aria-hidden="true"></i><span>Donate</span></a>
+                    <button class="theme-toggle" id="themeToggle">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <div class="breadcrumbs">
+        <div class="container">
+            <a href="../index.html">Home</a>
+            <span>/</span>
+            <span class="category-badge">Networking</span>
+            <span>/</span>
+            <span>Wireshark Intro</span>
+        </div>
+    </div>
+
+    <div class="guide-container">
+        <main class="guide-content">
+            <article>
+<h2 id="wireshark-intro">Wireshark: Packet Capture Analysis for Beginners</h2>
+
+<p>Wireshark is the standard tool for capturing and inspecting network traffic at the packet level. In this guide we'll cover the things that trip up beginners most often: the very different syntaxes of <strong>capture filters</strong> versus <strong>display filters</strong>, walking through a TCP three-way handshake, reading ARP and DNS exchanges, and a handful of defensive use cases. Everything below works on Wireshark 4.x.</p>
+
+<div class="safety-warning" role="note">
+    <span class="warning-icon" aria-hidden="true">⚠️</span>
+    <strong>Capture safely.</strong> Packet captures often contain credentials, session cookies, personal data, and the contents of plaintext requests. Treat <code>.pcap</code>/<code>.pcapng</code> files as sensitive. Only capture on networks you own or are explicitly authorised to monitor.
+</div>
+
+<h2 id="setup">Setup and First Capture</h2>
+<p>Install Wireshark from <code>wireshark.org</code> (Windows/macOS) or from your package manager (e.g. <code>sudo apt-get install wireshark</code> on Debian/Ubuntu). During installation on Linux, accept the prompt to let non-root members of the <code>wireshark</code> group capture; otherwise you'll need <code>sudo</code> every time.</p>
+
+<div class="command-box">
+    <h4>Linux: let your user capture without sudo</h4>
+<pre>
+# Add yourself to the wireshark group (you must log out / back in to pick this up).
+sudo usermod -aG wireshark "$USER"
+
+# Verify your interface list is populated as your normal user.
+dumpcap -D
+</pre>
+</div>
+
+<p>Start Wireshark, double-click an interface (usually <code>eth0</code>, <code>wlan0</code>, or <code>Wi-Fi</code>), and you'll be staring at live traffic. Stop the capture with the red square in the toolbar.</p>
+
+<h2 id="capture-vs-display">Capture Filters vs Display Filters — Different Languages</h2>
+<p>This is the #1 thing that confuses people. Wireshark has two filter syntaxes that do similar-looking things, but they are <strong>not</strong> interchangeable.</p>
+
+<ul>
+    <li><strong>Capture filters</strong> use <em>BPF (Berkeley Packet Filter)</em> syntax. They decide which packets are <em>captured to disk in the first place</em>. They are evaluated by libpcap before Wireshark sees the packet.</li>
+    <li><strong>Display filters</strong> use <em>Wireshark's own expression language</em>. They decide which already-captured packets are <em>shown in the list pane</em>. They can use any decoded field name (e.g. <code>http.host</code>, <code>tls.handshake.type</code>) which BPF cannot.</li>
+</ul>
+
+<p>Quick reference:</p>
+
+<pre>
+                     Capture filter (BPF)            Display filter (Wireshark)
+                     -------------------             --------------------------
+Host                 host 10.0.0.5                   ip.addr == 10.0.0.5
+Either direction     src or dst host 10.0.0.5        ip.src == 10.0.0.5 || ip.dst == 10.0.0.5
+TCP port             tcp port 443                    tcp.port == 443
+UDP only             udp                             udp
+Not ARP              not arp                         !arp
+HTTP requests        (n/a — no field knowledge)      http.request
+DNS                  port 53                         dns
+Specific subnet      net 10.0.0.0/24                 ip.addr == 10.0.0.0/24
+Combine              tcp and port 443                tcp.port == 443 &amp;&amp; ip.src == 10.0.0.5
+</pre>
+
+<p>Rule of thumb: use <strong>capture filters</strong> when you are capturing on a busy interface and don't want to drown in unrelated packets; use <strong>display filters</strong> for everything else. Once a packet is captured, you can change display filters as many times as you like without re-capturing.</p>
+
+<div class="command-box">
+    <h4>Examples worth remembering</h4>
+<pre>
+# Capture filter examples (set in Capture &gt; Options &gt; Capture filter for selected interface)
+host 192.168.1.50
+tcp port 80 or tcp port 443
+not (broadcast or multicast)
+ether host aa:bb:cc:dd:ee:ff
+
+# Display filter examples (type into the green bar above the packet list)
+ip.addr == 192.168.1.50
+tcp.flags.syn == 1 and tcp.flags.ack == 0       # SYN-only packets
+http.request.method == "POST"
+dns.flags.response == 0                          # DNS queries (not responses)
+tls.handshake.type == 1                          # ClientHello
+tcp.analysis.retransmission                      # Wireshark's own anomaly detector
+</pre>
+</div>
+
+<h2 id="three-way-handshake">Reading the TCP Three-Way Handshake</h2>
+<p>TCP opens a connection with a three-packet exchange. Filter for one interesting connection (e.g. <code>tcp.port == 443 &amp;&amp; ip.host == example.com</code>) and look at the first three packets. The handshake is the single most important thing to be able to read in Wireshark.</p>
+
+<pre>
+Client (C)                                              Server (S)
+
+  ── SYN          seq=X         ───────────────────▶
+                  win=64240,
+                  options: MSS, SACK, WS, ...
+
+  ◀────────────── SYN, ACK      seq=Y, ack=X+1     ──
+                                win=65535,
+                                options: MSS, SACK, WS
+
+  ── ACK          seq=X+1, ack=Y+1 ──────────────────▶
+
+  (connection is now ESTABLISHED, data can flow)
+</pre>
+
+<p>What to notice in Wireshark's packet detail pane:</p>
+<ul>
+    <li>In the <strong>first packet</strong>, expand "Transmission Control Protocol" → "Flags" — only the <code>SYN</code> bit is set, and the <em>Acknowledgment number</em> is 0 / undefined.</li>
+    <li>In the <strong>second packet</strong>, both <code>SYN</code> and <code>ACK</code> are set. The server's initial sequence is <code>Y</code>; the ack number is <code>X + 1</code> (acknowledging the client's SYN consumes one sequence number, even though no real payload byte was sent).</li>
+    <li>By default Wireshark shows <strong>relative</strong> sequence numbers (so the first SYN shows seq=0). To see the real absolute numbers, untick <em>Edit → Preferences → Protocols → TCP → Relative sequence numbers</em>.</li>
+    <li>The <strong>third packet</strong> is the client's ACK. Wireshark labels it as a "TCP ACK" — at this point the connection is fully established.</li>
+</ul>
+
+<p>If you ever see SYN, then SYN, then SYN again with no SYN+ACK in between, the destination port is closed or filtered — that's the same pattern a stealth scan produces.</p>
+
+<h2 id="arp">ARP — Who Has What MAC?</h2>
+<p>ARP resolves an IPv4 address to a MAC address on the local segment. The exchange is two packets: <em>broadcast request</em> and <em>unicast reply</em>.</p>
+
+<div class="command-box">
+    <h4>Display filter to isolate ARP</h4>
+<pre>
+arp
+</pre>
+</div>
+
+<pre>
+Request  (Broadcast)  : "Who has 192.168.1.1? Tell 192.168.1.50"
+                        eth.dst = ff:ff:ff:ff:ff:ff   eth.src = (sender)
+                        arp.opcode = 1 (request)
+
+Reply    (Unicast)    : "192.168.1.1 is at aa:bb:cc:dd:ee:01"
+                        eth.dst = (original requester)
+                        arp.opcode = 2 (reply)
+</pre>
+
+<p><strong>Defensive note:</strong> if Wireshark reports <em>"duplicate use of IP address detected"</em> in the Expert Info pane, that means two different MACs are claiming the same IP. That is the signature of ARP spoofing (a man-in-the-middle attempt) or simply two devices misconfigured with the same static IP.</p>
+
+<h2 id="dns">DNS — Query and Response</h2>
+<p>DNS over UDP/53 is one of the easiest protocols to read in Wireshark.</p>
+
+<div class="command-box">
+    <h4>Display filter for a domain you care about</h4>
+<pre>
+dns and dns.qry.name contains "example.com"
+</pre>
+</div>
+
+<p>You'll see two packets per lookup (one query, one response). Expand the <em>Domain Name System</em> tree in the detail pane:</p>
+<ul>
+    <li><strong>Transaction ID</strong> matches request to response.</li>
+    <li><strong>Flags</strong>: bit 0 of the second byte (<code>QR</code>) is 0 for query, 1 for response.</li>
+    <li><strong>Questions</strong> section shows the QNAME and QTYPE (A, AAAA, MX, TXT, ...).</li>
+    <li><strong>Answers</strong> section appears in the response with the resolved records and their TTLs.</li>
+</ul>
+
+<p><strong>Defensive note:</strong> long, high-entropy, random-looking subdomain queries (<code>x7p9d2.tunnel.evil.example</code>) that occur repeatedly are a hallmark of <em>DNS tunneling</em> — exfiltration over DNS. Sort by <code>dns.qry.name</code> length, or filter on it, when hunting.</p>
+
+<h2 id="http-and-follow-stream">HTTP and Follow TCP Stream</h2>
+<p>Plain HTTP is rare on the public internet now but still very common on internal services, IoT devices, and management ports.</p>
+
+<div class="command-box">
+    <h4>Common HTTP filters</h4>
+<pre>
+http                                       # all HTTP traffic
+http.request                               # only requests
+http.request.method == "POST"              # just POSTs
+http.response.code &gt;= 400                  # errors
+http.host == "internal.example.com"        # by Host header
+</pre>
+</div>
+
+<p>Right-click any HTTP packet → <strong>Follow → HTTP Stream</strong> to see the full request/response as plaintext. For TCP-level reconstruction, right-click → <strong>Follow → TCP Stream</strong>; for TLS, <em>Follow → TLS Stream</em> shows the cleartext if you have the keys (next section).</p>
+
+<h2 id="tls-decryption-note">A Note on TLS</h2>
+<p>Wireshark can decrypt TLS in two situations:</p>
+<ul>
+    <li><strong>Pre-master keys</strong> (the modern, recommended approach): set <code>SSLKEYLOGFILE</code> in the environment of the client process (e.g. Chrome, Firefox, curl) before it starts. Then point Wireshark at the resulting file in <em>Edit → Preferences → Protocols → TLS → (Pre)-Master-Secret log filename</em>. This works for TLS 1.3.</li>
+    <li><strong>Private key</strong> (legacy): only works for TLS 1.2 with an RSA key exchange (not ECDHE) — which is rare today. Most modern handshakes use ephemeral key exchange and cannot be decrypted from the server key alone, which is the entire point of forward secrecy.</li>
+</ul>
+
+<h2 id="statistics">Statistics: Conversations, Endpoints, IO Graph</h2>
+<p>The <em>Statistics</em> menu is the most under-used part of Wireshark.</p>
+<ul>
+    <li><strong>Statistics → Conversations</strong>: every pair of hosts that exchanged packets, sortable by byte/packet count. Spot "top talkers" instantly.</li>
+    <li><strong>Statistics → Endpoints</strong>: individual hosts (IPv4, IPv6, TCP, UDP tabs). Right-click a row → <em>Apply as Filter</em> to focus on it.</li>
+    <li><strong>Statistics → I/O Graphs</strong>: traffic over time. Add multiple display-filter-based graphs (e.g. one for <code>tcp.analysis.retransmission</code>, one for <code>dns</code>) to correlate visually.</li>
+    <li><strong>Statistics → Protocol Hierarchy</strong>: what percentage of your capture is each protocol. Quick way to spot something unusual on the wire.</li>
+</ul>
+
+<h2 id="exporting">Exporting Objects</h2>
+<p><em>File → Export Objects → HTTP</em> lists every HTTP-served file in the capture and lets you save them. Similar entries exist for <em>SMB</em>, <em>FTP-DATA</em>, and others. Useful in incident response when you want to recover a payload an attacker dropped over a plaintext channel.</p>
+
+<h2 id="coloring-rules">Coloring Rules</h2>
+<p><em>View → Coloring Rules</em>. The default ruleset already highlights TCP retransmissions, errors, and bad checksums. You can add your own — for example, paint any packet matching <code>dns.qry.name matches "[a-z0-9]{20,}"</code> bright red to catch suspicious DNS at a glance.</p>
+
+<h2 id="tshark">tshark — Wireshark in the Terminal</h2>
+<p><strong>tshark</strong> is Wireshark's CLI. Use it when you need to capture on a remote/headless box, or when you want to script analysis.</p>
+
+<div class="command-box">
+    <h4>Common tshark recipes</h4>
+<pre>
+# List interfaces
+tshark -D
+
+# Capture on eth0 for 30s, write to file
+sudo tshark -i eth0 -a duration:30 -w /tmp/capture.pcapng
+
+# Capture only DNS, print summary lines
+sudo tshark -i eth0 -f "port 53" -Y "dns"
+
+# Read a file with a display filter and print specific fields
+tshark -r /tmp/capture.pcapng \
+       -Y "http.request" \
+       -T fields -e ip.src -e http.host -e http.request.uri
+
+# Top 10 DNS query names by frequency
+tshark -r /tmp/capture.pcapng -Y "dns.flags.response == 0" \
+       -T fields -e dns.qry.name | sort | uniq -c | sort -rn | head -10
+</pre>
+</div>
+
+<p>Note the <code>-f</code> flag is a <strong>capture filter</strong> (BPF) and <code>-Y</code> is a <strong>display filter</strong> — same distinction as the GUI.</p>
+
+<h2 id="defensive-use-cases">Defensive Use Cases</h2>
+<p>To finish, a handful of small investigations you can run against any capture:</p>
+<ul>
+    <li><strong>Suspect ARP spoofing?</strong> Use the Expert Info pane (<em>Analyze → Expert Information</em>) and look for "duplicate IP address detected" entries. Compare ARP replies to your DHCP lease records.</li>
+    <li><strong>Suspect data exfil over DNS?</strong> Filter <code>dns.qry.name</code> and look at the length distribution. Healthy traffic is a long tail of short names; tunneling produces a flat distribution of long random-looking labels.</li>
+    <li><strong>Suspect port-scan?</strong> Filter <code>tcp.flags.syn == 1 and tcp.flags.ack == 0</code> and group by destination port via <em>Statistics → Conversations</em>. A single source talking to many destination ports in seconds is a giveaway.</li>
+    <li><strong>Suspect slow application?</strong> <code>tcp.analysis.retransmission || tcp.analysis.duplicate_ack || tcp.analysis.zero_window</code> isolates almost every "the network feels slow" cause.</li>
+    <li><strong>Suspect plaintext credentials?</strong> Wireshark's <em>Statistics → Protocol Hierarchy</em> + <em>Follow → TCP Stream</em> on any FTP, Telnet, HTTP basic-auth, or non-TLS SMTP/IMAP flow will show them in seconds. Disable those protocols where you find them.</li>
+</ul>
+
+<h2 id="next-steps">Next Steps</h2>
+<p>Once you're comfortable with the above, look into:</p>
+<ul>
+    <li><strong>Display filter macros</strong> (Edit → Preferences → Macros) for filters you use constantly.</li>
+    <li><strong>Lua dissectors</strong> for custom or undocumented protocols you encounter on internal networks.</li>
+    <li><strong>Zeek</strong> (formerly Bro) for protocol-level logging at scale — Wireshark is great for single captures; Zeek is what you reach for when you need to process a continuous network feed.</li>
+</ul>
+
+<p>And remember: the most powerful thing Wireshark gives you is <em>ground truth</em>. When two systems disagree about who said what to whom, the wire doesn't lie.</p>
+            </article>
+
+            <div class="guide-footer">
+                <a href="../index.html" class="btn-back">
+                    <i class="fas fa-arrow-left"></i> Back to Guides
+                </a>
+            </div>
+        </main>
+    </div>
+
+    <button class="back-to-top" id="backToTop">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p><i class="fas fa-atom"></i> Quantum Repository</p>
+            <p>Technical guides for system administrators and developers</p>
+            <p>alex@slash-root.com | &copy; <span id="footer-year">2025</span></p>
+        </div>
+    </footer>
+
+    <script src="../guide.js"></script>
+</body>
+</html>

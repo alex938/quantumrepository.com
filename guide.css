@@ -9,16 +9,19 @@ body {
     padding: 0;
 }
 
-.guide-container {
+/* `.guide-container` is the page-level wrapper. The combined selector with
+   `body` gives it specificity (0,0,2,0) which beats `main.css .container`
+   without needing !important. */
+body .guide-container {
     width: 95%;
-    max-width: none !important;
+    max-width: none;
     margin: 2rem auto;
     padding: 0 2.5%;
 }
 
-.guide-content {
+body .guide-content {
     width: 100%;
-    max-width: none !important;
+    max-width: none;
 }
 
 .guide-content article {
@@ -113,18 +116,21 @@ body {
     box-shadow: 0 6px 20px rgba(0,0,0,0.3);
 }
 
-/* Override conflicting max-width from main.css */
-.guide-container .container {
-    max-width: none !important;
+/* Constrain the `.container` only when nested in guide layout. The doubled
+   selector and child combinator bump specificity past main.css without
+   needing !important. */
+.guide-container > .container,
+body .guide-container .container {
+    max-width: none;
     width: 100%;
 }
 
-.site-header .container {
+body .site-header .container {
     max-width: 95%;
     width: 95%;
 }
 
-.breadcrumbs .container {
+body .breadcrumbs .container {
     max-width: 95%;
     width: 95%;
 }

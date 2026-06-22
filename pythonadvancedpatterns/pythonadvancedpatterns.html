@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python Advanced Patterns: asyncio + Type Hints | Quantum Repository</title>
+    <meta name="description" content="Modern Python asyncio (TaskGroup, gather, cancellation, async context managers) combined with PEP 585 / 604 / 695 type hints and mypy --strict.">
+    <link rel="stylesheet" href="../main.css">
+    <link rel="stylesheet" href="../guide.css">
+    <link rel="stylesheet" href="../accessibility.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.1/css/all.css">
+</head>
+<body>
+    <div class="reading-progress-bar"></div>
+
+    <header class="site-header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-atom"></i>
+                    <span>Quantum Repository</span>
+                </div>
+                <nav class="main-nav">
+                    <a href="../index.html">Home</a>
+                    <a href="../index.html#guides">Guides</a>
+                    <a class="btn-donate" href="https://donate.stripe.com/5kQaEX2kMgnB85ia4ycZa00" target="_blank" rel="noopener noreferrer" aria-label="Donate – opens in a new tab"><i class="fas fa-heart" aria-hidden="true"></i><span>Donate</span></a>
+                    <button class="theme-toggle" id="themeToggle">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <div class="breadcrumbs">
+        <div class="container">
+            <a href="../index.html">Home</a>
+            <span>/</span>
+            <span class="category-badge">Python / Advanced</span>
+            <span>/</span>
+            <span>asyncio + Type Hints</span>
+        </div>
+    </div>
+
+    <div class="guide-container">
+        <main class="guide-content">
+            <article>
+<h2 id="python-advanced">Python Advanced Patterns: asyncio + Type Hints</h2>
+
+<p>This guide combines two modern Python topics that show up together a lot in real codebases: <strong>asyncio</strong> (concurrency without threads) and <strong>static type hints</strong> with <strong>mypy</strong>. We'll focus on the patterns the language has settled on as of Python 3.11–3.12, noting which features need which minimum version.</p>
+
+<div class="scenario-box">
+    <h3><i class="fas fa-bolt"></i> Why both at once?</h3>
+    <p>Async code is concurrent code, and concurrent code is harder to read. Type hints (especially <code>Awaitable</code>, <code>Coroutine</code>, generic <code>TypedDict</code>) make async APIs self-documenting and catch a whole class of "I forgot to <code>await</code> that" bugs at type-check time, before you ever run the program.</p>
+</div>
+
+<h2 id="asyncio-model">Part 1 — asyncio</h2>
+
+<h3>The event loop in one paragraph</h3>
+<p>Python's asyncio model is <strong>cooperative single-threaded concurrency</strong>: one OS thread runs a loop that picks one ready coroutine, runs it until it hits an <code>await</code>, then picks the next ready coroutine. Coroutines never pre-empt each other. That means asyncio is fantastic for I/O-bound work (network, disk, subprocesses) and useless for CPU-bound work — for the latter, use threads, processes, or native code.</p>
+
+<h3>Hello, async</h3>
+
+<div class="command-box">
+    <h4>The modern entrypoint: <code>asyncio.run()</code></h4>
+<pre>
+import asyncio
+
+async def greet(name: str) -&gt; None:
+    await asyncio.sleep(0.5)
+    print(f"hello, {name}")
+
+async def main() -&gt; None:
+    await greet("alex")
+
+if __name__ == "__main__":
+    asyncio.run(main())
+</pre>
+</div>
+
+<p>A few rules that catch beginners:</p>
+<ul>
+    <li>An <code>async def</code> function returns a <em>coroutine object</em>, not a result. Calling <code>greet("alex")</code> on its own does nothing — you must <code>await</code> it or schedule it.</li>
+    <li><code>asyncio.run()</code> creates the loop, runs the coroutine, and tears the loop down. Use it exactly once per program, at the top.</li>
+    <li>You cannot call <code>asyncio.run()</code> from inside another running event loop (e.g. inside Jupyter — use <code>await</code> directly there).</li>
+</ul>
+
+<h3>Running things concurrently: <code>gather</code> vs <code>TaskGroup</code></h3>
+
+<p><code>asyncio.gather()</code> schedules multiple coroutines and waits for them all. It has been the workhorse for years, but it has rough edges around exception handling — if one task fails, the others keep running, and their results are lost unless you set <code>return_exceptions=True</code>.</p>
+
+<p>Python 3.11 added <code>asyncio.TaskGroup</code>, which fixes those rough edges. <strong>If you're on 3.11+, prefer TaskGroup.</strong></p>
+
+<div class="command-box">
+    <h4>gather (still useful pre-3.11)</h4>
+<pre>
+import asyncio
+
+async def fetch(n: int) -&gt; int:
+    await asyncio.sleep(0.2)
+    return n * n
+
+async def main() -&gt; None:
+    results = await asyncio.gather(fetch(1), fetch(2), fetch(3))
+    print(results)  # [1, 4, 9]
+
+asyncio.run(main())
+</pre>
+</div>
+
+<div class="command-box">
+    <h4>TaskGroup (3.11+): structured concurrency with proper cancellation</h4>
+<pre>
+import asyncio
+
+async def fetch(n: int) -&gt; int:
+    await asyncio.sleep(0.2)
+    if n == 2:
+        raise ValueError("no twos allowed")
+    return n * n
+
+async def main() -&gt; None:
+    try:
+        async with asyncio.TaskGroup() as tg:
+            t1 = tg.create_task(fetch(1))
+            t2 = tg.create_task(fetch(2))
+            t3 = tg.create_task(fetch(3))
+        # All tasks finished here. If any raised, *all* siblings are cancelled,
+        # and the errors come back as an ExceptionGroup.
+        print(t1.result(), t2.result(), t3.result())
+    except* ValueError as eg:
+        for err in eg.exceptions:
+            print("caught:", err)
+
+asyncio.run(main())
+</pre>
+</div>
+
+<p>Note <code>except*</code> — that's the new "except-star" syntax for unpacking exception groups, also Python 3.11+. If you've never seen it before, it's a focused tool: it lets you catch and re-raise a <em>subset</em> of exceptions from an <code>ExceptionGroup</code> by type while letting the others propagate.</p>
+
+<h3>Fire-and-forget: the pitfall</h3>
+
+<p><code>asyncio.create_task()</code> schedules a coroutine but does <em>not</em> wait for it. The classic mistake is not keeping a reference to the task:</p>
+
+<div class="command-box">
+    <h4>Don't do this</h4>
+<pre>
+# BUG: task may be garbage-collected mid-flight because no strong reference is held.
+async def main() -&gt; None:
+    asyncio.create_task(slow_background_thing())
+    await asyncio.sleep(10)
+</pre>
+</div>
+
+<p>Always store the reference (in a set you manage, or on <code>self</code>), and ideally <code>await</code> it before the program exits:</p>
+
+<div class="command-box">
+    <h4>Do this instead</h4>
+<pre>
+background_tasks: set[asyncio.Task] = set()
+
+async def main() -&gt; None:
+    task = asyncio.create_task(slow_background_thing())
+    background_tasks.add(task)
+    task.add_done_callback(background_tasks.discard)
+
+    await asyncio.sleep(10)
+    # On shutdown, await outstanding tasks so they can clean up.
+    await asyncio.gather(*background_tasks, return_exceptions=True)
+</pre>
+</div>
+
+<h3>Cancellation</h3>
+
+<p>Tasks can be cancelled by calling <code>task.cancel()</code>. Inside the task, that delivers <code>asyncio.CancelledError</code> the next time it hits an <code>await</code>. You should let it propagate so cleanup runs — never swallow <code>CancelledError</code> without re-raising:</p>
+
+<div class="command-box">
+    <h4>Cooperative cancellation done right</h4>
+<pre>
+async def worker() -&gt; None:
+    try:
+        while True:
+            await asyncio.sleep(1)
+            do_work()
+    except asyncio.CancelledError:
+        # Cleanup here.
+        print("shutting down cleanly")
+        raise   # always re-raise
+</pre>
+</div>
+
+<h3>async with, async for</h3>
+
+<p>Async context managers (<code>__aenter__</code>/<code>__aexit__</code>) and async iterators (<code>__aiter__</code>/<code>__anext__</code>) are how libraries expose resources whose acquisition/release does I/O. You'll meet them in <code>aiohttp</code>, <code>asyncpg</code>, etc.</p>
+
+<div class="command-box">
+    <h4>aiohttp example with both</h4>
+<pre>
+import asyncio
+import aiohttp
+
+async def fetch(url: str) -&gt; int:
+    async with aiohttp.ClientSession() as session:    # async with
+        async with session.get(url) as resp:
+            return resp.status
+
+async def main() -&gt; None:
+    urls = ["https://example.com", "https://example.org"]
+    async with asyncio.TaskGroup() as tg:
+        tasks = [tg.create_task(fetch(u)) for u in urls]
+    for t in tasks:
+        print(t.result())
+
+asyncio.run(main())
+</pre>
+</div>
+
+<h3>Calling blocking code from async</h3>
+
+<p>If a function is not <code>async</code> (e.g. <code>requests.get</code>, blocking file I/O, a CPU-bound function), calling it directly will block the whole event loop. Hand it off to a thread:</p>
+
+<div class="command-box">
+    <h4>asyncio.to_thread (3.9+)</h4>
+<pre>
+import asyncio
+import requests   # synchronous library
+
+async def fetch_blocking(url: str) -&gt; int:
+    # Runs in a default thread-pool executor, doesn't block the loop.
+    resp = await asyncio.to_thread(requests.get, url, timeout=10)
+    return resp.status_code
+</pre>
+</div>
+
+<h2 id="type-hints">Part 2 — Type Hints &amp; mypy</h2>
+
+<p>Type hints were introduced in <strong>PEP 484</strong> for Python 3.5. They started as a static documentation tool and have since become a serious checker, with <code>mypy</code> as the most-used implementation. The hints themselves are stored in <code>__annotations__</code> and are not enforced at runtime — Python doesn't check them; <code>mypy</code> does.</p>
+
+<h3>The modern flavour: PEP 585 + PEP 604</h3>
+
+<p>Pre-3.9 code looks like this:</p>
+
+<div class="command-box">
+    <h4>Old (still works, but verbose)</h4>
+<pre>
+from typing import List, Dict, Optional, Union
+
+def lookup(ids: List[int], cache: Dict[int, str]) -&gt; Optional[str]:
+    ...
+
+def fetch(url: Union[str, bytes]) -&gt; None:
+    ...
+</pre>
+</div>
+
+<p>On Python 3.9+ you can use builtins as generics (PEP 585), and on 3.10+ you can use <code>|</code> for unions (PEP 604):</p>
+
+<div class="command-box">
+    <h4>Modern equivalent</h4>
+<pre>
+def lookup(ids: list[int], cache: dict[int, str]) -&gt; str | None:
+    ...
+
+def fetch(url: str | bytes) -&gt; None:
+    ...
+</pre>
+</div>
+
+<p>Both forms are valid; mix and match if you must, but settle on the modern form for new code.</p>
+
+<h3>TypedDict for dict shapes</h3>
+
+<p>Many APIs (especially JSON) pass dicts with fixed keys. <code>TypedDict</code> (PEP 589) gives them types:</p>
+
+<div class="command-box">
+    <h4>TypedDict</h4>
+<pre>
+from typing import TypedDict
+
+class User(TypedDict):
+    id: int
+    name: str
+    email: str | None      # nullable field
+
+class UserWithOptionalAvatar(User, total=False):
+    avatar_url: str        # may or may not be present
+
+def render(u: User) -&gt; str:
+    return f"{u['name']} &lt;{u['email']}&gt;"
+</pre>
+</div>
+
+<p>TypedDicts are excellent for typing JSON deserialisation. For full-blown data classes consider <code>@dataclass</code> or Pydantic instead.</p>
+
+<h3>Protocol — structural subtyping ("duck typing for type checkers")</h3>
+
+<p><code>Protocol</code> (PEP 544) lets you say "I accept anything with this shape" without forcing the caller to inherit. This is essential for the duck-typed APIs Python is full of:</p>
+
+<div class="command-box">
+    <h4>Protocol example</h4>
+<pre>
+from typing import Protocol
+
+class SupportsClose(Protocol):
+    def close(self) -&gt; None: ...
+
+def safely(thing: SupportsClose) -&gt; None:
+    try:
+        do_stuff(thing)
+    finally:
+        thing.close()
+
+# Anything with a .close() method works — no inheritance needed.
+safely(open("data.txt"))      # file objects
+safely(some_db_connection)    # any DB connection with .close()
+</pre>
+</div>
+
+<h3>Final, Literal, NewType</h3>
+
+<div class="command-box">
+    <h4>Useful primitives</h4>
+<pre>
+from typing import Final, Literal, NewType
+
+MAX_RETRIES: Final = 3              # mypy refuses re-assignment
+
+Method = Literal["GET", "POST", "PUT", "DELETE"]
+
+def request(url: str, method: Method = "GET") -&gt; bytes:
+    ...
+
+UserId = NewType("UserId", int)      # nominal alias — int at runtime, distinct type to mypy
+
+def load(uid: UserId) -&gt; User:
+    ...
+
+load(42)              # mypy error: int is not UserId
+load(UserId(42))      # OK
+</pre>
+</div>
+
+<h3>Generics</h3>
+
+<p>Before Python 3.12, generics used <code>TypeVar</code>:</p>
+
+<div class="command-box">
+    <h4>Classic generic with TypeVar</h4>
+<pre>
+from typing import TypeVar, Generic
+
+T = TypeVar("T")
+
+class Stack(Generic[T]):
+    def __init__(self) -&gt; None:
+        self._items: list[T] = []
+    def push(self, item: T) -&gt; None:
+        self._items.append(item)
+    def pop(self) -&gt; T:
+        return self._items.pop()
+</pre>
+</div>
+
+<p>Python 3.12 added <strong>PEP 695</strong>, a much cleaner generic syntax — no more <code>TypeVar</code> imports:</p>
+
+<div class="command-box">
+    <h4>3.12+ generic syntax (PEP 695)</h4>
+<pre>
+class Stack[T]:
+    def __init__(self) -&gt; None:
+        self._items: list[T] = []
+    def push(self, item: T) -&gt; None:
+        self._items.append(item)
+    def pop(self) -&gt; T:
+        return self._items.pop()
+
+# Same for functions
+def first[T](items: list[T]) -&gt; T:
+    return items[0]
+</pre>
+</div>
+
+<h3>Typing async code</h3>
+
+<p>The right hint for an <code>async def</code> function is whatever it <em>returns</em> — the <code>async</code> wrapping is implicit:</p>
+
+<div class="command-box">
+    <h4>Annotate the return type, not the coroutine</h4>
+<pre>
+from collections.abc import Awaitable
+
+async def fetch(url: str) -&gt; bytes:        # returns bytes, not Coroutine[..., bytes]
+    ...
+
+def schedule(coro: Awaitable[bytes]) -&gt; None:    # caller wants something awaitable
+    ...
+</pre>
+</div>
+
+<h3>Running mypy</h3>
+
+<div class="command-box">
+    <h4>Install and run</h4>
+<pre>
+python -m pip install mypy
+
+# Quick check
+mypy myproject/
+
+# Recommended for new code: strict mode (turns on a bundle of strict flags)
+mypy --strict myproject/
+
+# Individually useful flags if --strict is too much at first
+mypy --disallow-untyped-defs --warn-unused-ignores myproject/
+</pre>
+</div>
+
+<p>The <code>--strict</code> flag is the gold standard for new projects — it forces every function to be annotated, complains about implicit <code>Any</code>, and warns about dead <code>type: ignore</code> comments. For existing untyped code, start with no flags and ratchet up.</p>
+
+<h3>reveal_type — your debugging friend</h3>
+
+<p>Drop <code>reveal_type(x)</code> anywhere; mypy will print what type it inferred for <code>x</code> at that point. At runtime <code>reveal_type</code> is provided by mypy and ignored (or you need to import from <code>typing</code> on 3.11+).</p>
+
+<div class="command-box">
+    <h4>Use reveal_type while writing</h4>
+<pre>
+from typing import reveal_type   # 3.11+, or just write it and mypy injects it
+
+def example(x: list[int] | None) -&gt; None:
+    if x is None:
+        return
+    reveal_type(x)   # mypy: note: Revealed type is "builtins.list[builtins.int]"
+</pre>
+</div>
+
+<h2 id="combined-example">Putting It Together: Typed Async Fetch</h2>
+
+<p>A small worked example that uses everything above:</p>
+
+<div class="command-box">
+    <h4>typed_fetch.py</h4>
+<pre>
+"""Fetch a batch of URLs concurrently and return their statuses, fully typed."""
+from __future__ import annotations
+
+import asyncio
+from typing import TypedDict
+import aiohttp
+
+class FetchResult(TypedDict):
+    url: str
+    status: int
+    bytes: int
+
+async def fetch_one(session: aiohttp.ClientSession, url: str) -&gt; FetchResult:
+    async with session.get(url, timeout=aiohttp.ClientTimeout(total=10)) as resp:
+        body = await resp.read()
+        return {"url": url, "status": resp.status, "bytes": len(body)}
+
+async def fetch_all(urls: list[str]) -&gt; list[FetchResult]:
+    results: list[FetchResult] = []
+    async with aiohttp.ClientSession() as session:
+        async with asyncio.TaskGroup() as tg:
+            tasks = [tg.create_task(fetch_one(session, u)) for u in urls]
+    # All tasks have completed (or the TaskGroup raised). Collect.
+    for t in tasks:
+        results.append(t.result())
+    return results
+
+def main() -&gt; None:
+    urls: list[str] = [
+        "https://example.com",
+        "https://example.org",
+        "https://example.net",
+    ]
+    out = asyncio.run(fetch_all(urls))
+    for r in out:
+        print(f"{r['status']} {r['bytes']:7d}  {r['url']}")
+
+if __name__ == "__main__":
+    main()
+</pre>
+</div>
+
+<p>Run <code>mypy --strict typed_fetch.py</code> — if you have it set up correctly, it returns zero errors. Then run <code>python typed_fetch.py</code>. You've now got concurrent I/O, structured concurrency with automatic cancellation on failure, and full static typing in fewer than 40 lines.</p>
+
+<h2 id="further-reading">Further Reading</h2>
+<ul>
+    <li><strong>PEP 484</strong> — Type hints (the original)</li>
+    <li><strong>PEP 544</strong> — Protocols (structural subtyping)</li>
+    <li><strong>PEP 585</strong> — Type hinting generics in standard collections</li>
+    <li><strong>PEP 604</strong> — Allow writing union types as <code>X | Y</code></li>
+    <li><strong>PEP 654</strong> — Exception Groups and <code>except*</code></li>
+    <li><strong>PEP 695</strong> — Type Parameter Syntax (the new 3.12 generic syntax)</li>
+    <li><a href="https://docs.python.org/3/library/asyncio.html">asyncio — official docs</a></li>
+    <li><a href="https://mypy.readthedocs.io/">mypy documentation</a></li>
+</ul>
+
+            </article>
+
+            <div class="guide-footer">
+                <a href="../index.html" class="btn-back">
+                    <i class="fas fa-arrow-left"></i> Back to Guides
+                </a>
+            </div>
+        </main>
+    </div>
+
+    <button class="back-to-top" id="backToTop">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p><i class="fas fa-atom"></i> Quantum Repository</p>
+            <p>Technical guides for system administrators and developers</p>
+            <p>alex@slash-root.com | &copy; <span id="footer-year">2025</span></p>
+        </div>
+    </footer>
+
+    <script src="../guide.js"></script>
+</body>
+</html>
