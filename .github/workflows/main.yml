@@ -13,7 +13,12 @@ jobs:
     # Pinned to v0.5.1 to avoid pulling a moving @master tag (supply-chain hygiene).
     - uses: jakejarvis/s3-sync-action@be0c4ab89158cac4278689ebedd8407dd5f35a83 # v0.5.1
       with:
-        args: --acl public-read --follow-symlinks --delete --exclude '.git*/*'
+        # Repo-only files: version-controlled, but not part of the website.
+        args: >-
+          --acl public-read --follow-symlinks --delete
+          --exclude '.git*/*'
+          --exclude '.gitignore'
+          --exclude 'CLAUDE.md'
       env:
         AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
