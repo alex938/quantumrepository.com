@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -131,21 +131,35 @@ tcp.analysis.retransmission                      # Wireshark's own anomaly detec
 <h2 id="three-way-handshake">Reading the TCP Three-Way Handshake</h2>
 <p>TCP opens a connection with a three-packet exchange. Filter for one interesting connection (e.g. <code>tcp.port == 443 &amp;&amp; ip.host == example.com</code>) and look at the first three packets. The handshake is the single most important thing to be able to read in Wireshark.</p>
 
-<pre>
-Client (C)                                              Server (S)
-
-  ── SYN          seq=X         ───────────────────▶
-                  win=64240,
-                  options: MSS, SACK, WS, ...
-
-  ◀────────────── SYN, ACK      seq=Y, ack=X+1     ──
-                                win=65535,
-                                options: MSS, SACK, WS
-
-  ── ACK          seq=X+1, ack=Y+1 ──────────────────▶
-
-  (connection is now ESTABLISHED, data can flow)
-</pre>
+<figure class="diagram">
+<svg viewBox="0 0 860 400" role="img" aria-labelledby="tcp-t tcp-d">
+<title id="tcp-t">The TCP three-way handshake between a client and a server</title>
+<desc id="tcp-d">The client sends a SYN with sequence number X, a window size and its options. The server replies with SYN plus ACK, sequence number Y acknowledging X plus 1, with its own window and options. The client sends a final ACK with sequence X plus 1 acknowledging Y plus 1, after which the connection is established and data can flow.</desc>
+<defs><marker id="tcp-ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="d-fill-flow"/></marker><marker id="tcp-ab" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="d-fill-back"/></marker></defs>
+<rect class="d-panel" x="40" y="14" width="240" height="46" rx="8"/>
+<text class="d-head" x="160.0" y="34" text-anchor="middle">Client</text>
+<text class="d-muted" x="160.0" y="50" text-anchor="middle">opens the connection</text>
+<rect class="d-panel" x="580" y="14" width="240" height="46" rx="8"/>
+<text class="d-head" x="700.0" y="34" text-anchor="middle">Server</text>
+<text class="d-muted" x="700.0" y="50" text-anchor="middle">listening socket</text>
+<line class="d-lifeline" x1="160" y1="62" x2="160" y2="368"/>
+<line class="d-lifeline" x1="700" y1="62" x2="700" y2="368"/>
+<line class="d-flow" x1="160" y1="110" x2="694" y2="110" marker-end="url(#tcp-ah)"/>
+<text class="d-label" x="430" y="86" text-anchor="middle">1. SYN</text>
+<text class="d-mono" x="430" y="102" text-anchor="middle">seq=X</text>
+<text class="d-muted" x="430" y="128" text-anchor="middle">win=64240 · options: MSS, SACK, WS</text>
+<line class="d-flow-back" x1="700" y1="200" x2="166" y2="200" marker-end="url(#tcp-ab)"/>
+<text class="d-label" x="430" y="176" text-anchor="middle">2. SYN, ACK</text>
+<text class="d-mono" x="430" y="192" text-anchor="middle">seq=Y, ack=X+1</text>
+<text class="d-muted" x="430" y="218" text-anchor="middle">win=65535 · options: MSS, SACK, WS</text>
+<line class="d-flow" x1="160" y1="290" x2="694" y2="290" marker-end="url(#tcp-ah)"/>
+<text class="d-label" x="430" y="266" text-anchor="middle">3. ACK</text>
+<text class="d-mono" x="430" y="282" text-anchor="middle">seq=X+1, ack=Y+1</text>
+<rect class="d-node-alt" x="240" y="332" width="380" height="42" rx="8"/>
+<text class="d-label" x="430" y="358" text-anchor="middle">ESTABLISHED — data can now flow</text>
+</svg>
+<figcaption>Three segments, one round trip and a bit. Everything after this — including the TLS handshake — rides on top of it.</figcaption>
+</figure>
 
 <p>What to notice in Wireshark's packet detail pane:</p>
 <ul>

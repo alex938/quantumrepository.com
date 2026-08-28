@@ -64,7 +64,7 @@
         In Python, a class is a blueprint for creating objects. Classes encapsulate data and functions as methods.<br><br>
 
         a. Defining and creating an object of a class: Define a class using the 'class' keyword and then create its objects.
-<h2 class="white">Code</h2>
+<p class="code-label">Code</p>
 <div class="code-block"><pre ><span style="color: #6ab825; font-weight: bold">class</span> <span style="color: #447fcf; text-decoration: underline">Dog</span><span style="color: #d0d0d0">:</span>
     <span style="color: #6ab825; font-weight: bold">def</span> <span style="color: #447fcf">bark</span><span style="color: #d0d0d0">(</span><span style="color: #24909d">self</span><span style="color: #d0d0d0">):</span>
         <span style="color: #6ab825; font-weight: bold">return</span> <span style="color: #ed9d13">&quot;Woof!&quot;</span>
@@ -73,14 +73,14 @@
 <span style="color: #6ab825; font-weight: bold">print</span><span style="color: #d0d0d0">(dog.bark())</span>
 </pre></div>
 
-<h2 class="white">Output</h2>
+<p class="code-label">Output</p>
 <div class="code-block">
 <pre ><span style="color: #d0d0d0">Woof!</span>
 </pre></div>
 <br>
 
 b. Initialisation with '__init__': The '__init__' method is a special method that is run when an object is instantiated.
-<h2 class="white">Code</h2>
+<p class="code-label">Code</p>
 <div class="code-block"><pre ><span style="color: #6ab825; font-weight: bold">class</span> <span style="color: #447fcf; text-decoration: underline">Cat</span><span style="color: #d0d0d0">:</span>
     <span style="color: #6ab825; font-weight: bold">def</span> <span style="color: #447fcf">__init__</span><span style="color: #d0d0d0">(</span><span style="color: #24909d">self</span><span style="color: #d0d0d0">,</span> <span style="color: #d0d0d0">name):</span>
         <span style="color: #24909d">self</span><span style="color: #d0d0d0">.name</span> <span style="color: #d0d0d0">=</span> <span style="color: #d0d0d0">name</span>
@@ -91,14 +91,14 @@ b. Initialisation with '__init__': The '__init__' method is a special method tha
 <span style="color: #6ab825; font-weight: bold">print</span><span style="color: #d0d0d0">(cat.meow())</span>
 </pre></div>
 
-<h2 class="white">Output</h2>
+<p class="code-label">Output</p>
 <div class="code-block">
 <pre ><span style="color: #d0d0d0">Whiskers says Meow!</span>
 </pre></div>
 <br>
 
 c. Inheritance: Python classes can inherit properties and methods from other classes.
-<h2 class="white">Code</h2>
+<p class="code-label">Code</p>
 <div class="code-block"><pre ><span style="color: #6ab825; font-weight: bold">class</span> <span style="color: #447fcf; text-decoration: underline">Animal</span><span style="color: #d0d0d0">:</span>
     <span style="color: #6ab825; font-weight: bold">def</span> <span style="color: #447fcf">speak</span><span style="color: #d0d0d0">(</span><span style="color: #24909d">self</span><span style="color: #d0d0d0">):</span>
         <span style="color: #6ab825; font-weight: bold">return</span> <span style="color: #ed9d13">&quot;Some sound&quot;</span>
@@ -111,14 +111,14 @@ c. Inheritance: Python classes can inherit properties and methods from other cla
 <span style="color: #6ab825; font-weight: bold">print</span><span style="color: #d0d0d0">(cow.speak())</span>
 </pre></div>
 
-<h2 class="white">Output</h2>
+<p class="code-label">Output</p>
 <div class="code-block">
 <pre ><span style="color: #d0d0d0">Moo</span>
 </pre></div>
 <br>
 
 d. In the above example the Cow class is overriding the speak method of the Animal class. If you want to also include the sound of the parent Animal class when the Cow speaks, you can call the parent method inside the speak method of the Cow class using the super() function.
-<h2 class="white">Code</h2>
+<p class="code-label">Code</p>
 <div class="code-block"><pre ><span style="color: #6ab825; font-weight: bold">class</span> <span style="color: #447fcf; text-decoration: underline">Animal</span><span style="color: #d0d0d0">:</span>
     <span style="color: #6ab825; font-weight: bold">def</span> <span style="color: #447fcf">speak</span><span style="color: #d0d0d0">(</span><span style="color: #24909d">self</span><span style="color: #d0d0d0">):</span>
         <span style="color: #6ab825; font-weight: bold">return</span> <span style="color: #ed9d13">&quot;Some sound&quot;</span>
@@ -131,7 +131,7 @@ d. In the above example the Cow class is overriding the speak method of the Anim
 <span style="color: #6ab825; font-weight: bold">print</span><span style="color: #d0d0d0">(cow.speak())</span>
 </pre></div>
 
-<h2 class="white">Output</h2>
+<p class="code-label">Output</p>
 <div class="code-block">
 <pre ><span style="color: #d0d0d0">Some sound and Moo</span>
 </pre></div>

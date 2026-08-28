@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -60,9 +60,9 @@
             <article>
 <h1 id="linux-hardening">Linux Server Hardening Checklist</h1>
 
-<div style="background: #ff9800; color: #000; padding: 1.25rem; border-radius: 8px; margin: 1.5rem 0; border-left: 6px solid #f57c00;">
-    <h3 style="margin-top: 0; color: #000;">⚠️ Apply on systems you control</h3>
-    <p style="color: #000; margin-bottom: 0;">This guide assumes you are hardening a server you own or administer. Always test changes in a non-production environment first — a bad SSH or firewall rule can lock you out. Keep a console / out-of-band session open while making the changes in this guide.</p>
+<div class="callout-lab">
+    <h3>⚠️ Apply on systems you control</h3>
+    <p>This guide assumes you are hardening a server you own or administer. Always test changes in a non-production environment first — a bad SSH or firewall rule can lock you out. Keep a console / out-of-band session open while making the changes in this guide.</p>
 </div>
 
 <p>A freshly installed Linux server is rarely production-ready. Default configurations favour convenience over security: root may be reachable via SSH password, the firewall is often open, package updates are not automatic, and kernel knobs are tuned for compatibility rather than defence-in-depth. In this guide we'll walk through a pragmatic hardening baseline that works on both Debian/Ubuntu and RHEL-family distributions (Rocky Linux, AlmaLinux, RHEL).</p>

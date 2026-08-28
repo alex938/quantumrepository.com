@@ -56,7 +56,11 @@ function initCopyButtons() {
         // Create copy button
         const button = document.createElement('button');
         button.className = 'copy-code-btn';
-        button.innerHTML = '<i class="fas fa-copy"></i> Copy';
+        button.type = 'button';
+        button.innerHTML = '<i class="fas fa-copy" aria-hidden="true"></i> Copy';
+        // 50+ identical "Copy" buttons on a page are ambiguous in a screen
+        // reader's control list; number them.
+        button.setAttribute('aria-label', 'Copy code block ' + (index + 1));
         button.setAttribute('data-index', index);
         
         button.addEventListener('click', function() {

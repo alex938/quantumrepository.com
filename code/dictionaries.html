@@ -64,58 +64,58 @@
         Python dictionaries are unordered collections of items. Each item of a dictionary has a key/value pair. Dictionaries are optimised to retrieve values when the key is known.<br><br>
 
         a. Creating a dictionary: Dictionaries in Python can be created by placing items inside curly braces { } separated by commas.
-<h2 class="white">Code</h2>
+<p class="code-label">Code</p>
 <div class="code-block"><pre ><span style="color: #d0d0d0">my_dict</span> <span style="color: #d0d0d0">=</span> <span style="color: #d0d0d0">{</span><span style="color: #ed9d13">&#39;name&#39;</span><span style="color: #d0d0d0">:</span> <span style="color: #ed9d13">&#39;John&#39;</span><span style="color: #d0d0d0">,</span> <span style="color: #ed9d13">&#39;age&#39;</span><span style="color: #d0d0d0">:</span> <span style="color: #3677a9">30</span><span style="color: #d0d0d0">}</span>
 <span style="color: #24909d">print</span><span style="color: #d0d0d0">(my_dict)</span>
 </pre></div>
 
-<h2 class="white">Output</h2>
+<p class="code-label">Output</p>
 <div class="code-block"><pre ><span style="color: #d0d0d0">{&#39;name&#39;: &#39;John&#39;, &#39;age&#39;: 30}</span>
 </pre></div>
 <br>
 
 b. Accessing elements from a dictionary: While indexing is used with other data types to access values, a dictionary uses keys. Keys can be used either inside square brackets [ ] or with the get() method.
-<h2 class="white">Code</h2>
+<p class="code-label">Code</p>
 <div class="code-block"><pre ><span style="color: #d0d0d0">my_dict</span> <span style="color: #d0d0d0">=</span> <span style="color: #d0d0d0">{</span><span style="color: #ed9d13">&#39;name&#39;</span><span style="color: #d0d0d0">:</span> <span style="color: #ed9d13">&#39;John&#39;</span><span style="color: #d0d0d0">,</span> <span style="color: #ed9d13">&#39;age&#39;</span><span style="color: #d0d0d0">:</span> <span style="color: #3677a9">30</span><span style="color: #d0d0d0">}</span>
 <span style="color: #24909d">print</span><span style="color: #d0d0d0">(my_dict[</span><span style="color: #ed9d13">&#39;name&#39;</span><span style="color: #d0d0d0">])</span>
 <span style="color: #24909d">print</span><span style="color: #d0d0d0">(my_dict.get(</span><span style="color: #ed9d13">&#39;age&#39;</span><span style="color: #d0d0d0">))</span>
 </pre></div>
 
-<h2 class="white">Output</h2>
+<p class="code-label">Output</p>
 <div class="code-block"><pre ><span style="color: #d0d0d0">John</span>
 <span style="color: #d0d0d0">30</span>
 </pre></div>
 <br>
     
 c. Modifying and adding key-value pairs in dictionary: Dictionaries are mutable. We can add new items or change the value of existing items using an assignment operator. If the key is already present, then the existing value gets updated. In case the key is not present, a new key: value pair is added to the dictionary.
-<h2 class="white">Code</h2>
+<p class="code-label">Code</p>
 <div class="code-block"><pre ><span style="color: #d0d0d0">my_dict</span> <span style="color: #d0d0d0">=</span> <span style="color: #d0d0d0">{</span><span style="color: #ed9d13">&#39;name&#39;</span><span style="color: #d0d0d0">:</span> <span style="color: #ed9d13">&#39;John&#39;</span><span style="color: #d0d0d0">,</span> <span style="color: #ed9d13">&#39;age&#39;</span><span style="color: #d0d0d0">:</span> <span style="color: #3677a9">30</span><span style="color: #d0d0d0">}</span>
 <span style="color: #d0d0d0">my_dict[</span><span style="color: #ed9d13">&#39;age&#39;</span><span style="color: #d0d0d0">]</span> <span style="color: #d0d0d0">=</span> <span style="color: #3677a9">40</span>
 <span style="color: #d0d0d0">my_dict[</span><span style="color: #ed9d13">&#39;address&#39;</span><span style="color: #d0d0d0">]</span> <span style="color: #d0d0d0">=</span> <span style="color: #ed9d13">&#39;Downtown&#39;</span>
 <span style="color: #24909d">print</span><span style="color: #d0d0d0">(my_dict)</span>
 </pre></div>
 
-<h2 class="white">Output</h2>
+<p class="code-label">Output</p>
 <div class="code-block"><pre ><span style="color: #d0d0d0">{&#39;name&#39;: &#39;John&#39;, &#39;age&#39;: 40, &#39;address&#39;: &#39;Downtown&#39;}</span>
 </pre></div>
 <br>
 
 d. Removing elements from a dictionary: We can remove a particular item in a dictionary by using the pop() method. This method removes an item with the provided key and returns the value.
-<h2 class="white">Code</h2>
+<p class="code-label">Code</p>
 <div class="code-block"><pre ><span style="color: #d0d0d0">my_dict</span> <span style="color: #d0d0d0">=</span> <span style="color: #d0d0d0">{</span><span style="color: #ed9d13">&#39;name&#39;</span><span style="color: #d0d0d0">:</span> <span style="color: #ed9d13">&#39;John&#39;</span><span style="color: #d0d0d0">,</span> <span style="color: #ed9d13">&#39;age&#39;</span><span style="color: #d0d0d0">:</span> <span style="color: #3677a9">30</span><span style="color: #d0d0d0">,</span> <span style="color: #ed9d13">&#39;address&#39;</span><span style="color: #d0d0d0">:</span> <span style="color: #ed9d13">&#39;Downtown&#39;</span><span style="color: #d0d0d0">}</span>
 <span style="color: #d0d0d0">removed_value</span> <span style="color: #d0d0d0">=</span> <span style="color: #d0d0d0">my_dict.pop(</span><span style="color: #ed9d13">&#39;address&#39;</span><span style="color: #d0d0d0">)</span>
 <span style="color: #24909d">print</span><span style="color: #d0d0d0">(my_dict)</span>
 <span style="color: #24909d">print</span><span style="color: #d0d0d0">(</span><span style="color: #ed9d13">&#39;Removed Value: &#39;</span><span style="color: #d0d0d0">+</span> <span style="color: #d0d0d0">removed_value)</span>
 </pre></div>
 
-<h2 class="white">Output</h2>
+<p class="code-label">Output</p>
 <div class="code-block"><pre ><span style="color: #d0d0d0">{&#39;name&#39;: &#39;John&#39;, &#39;age&#39;: 30}</span>
 <span style="color: #d0d0d0">Removed Value: Downtown</span>
 </pre></div>
 <br>
 
 e. Dictionary Methods: Python includes the following built-in methods to manipulate dictionaries - clear(), copy(), fromkeys(), get(), items(), keys(), pop(), popitem(), setdefault(), update(), values().
-<h2 class="white">Code</h2>
+<p class="code-label">Code</p>
 <div class="code-block"><pre ><span style="color: #d0d0d0">my_dict</span> <span style="color: #d0d0d0">=</span> <span style="color: #d0d0d0">{</span><span style="color: #ed9d13">&#39;name&#39;</span><span style="color: #d0d0d0">:</span> <span style="color: #ed9d13">&#39;John&#39;</span><span style="color: #d0d0d0">,</span> <span style="color: #ed9d13">&#39;age&#39;</span><span style="color: #d0d0d0">:</span> <span style="color: #3677a9">30</span><span style="color: #d0d0d0">,</span> <span style="color: #ed9d13">&#39;address&#39;</span><span style="color: #d0d0d0">:</span> <span style="color: #ed9d13">&#39;Downtown&#39;</span><span style="color: #d0d0d0">}</span>
 <span style="color: #24909d">print</span><span style="color: #d0d0d0">(my_dict.keys())</span>
 <span style="color: #24909d">print</span><span style="color: #d0d0d0">(my_dict.values())</span>
@@ -123,7 +123,7 @@ e. Dictionary Methods: Python includes the following built-in methods to manipul
 <span style="color: #24909d">print</span><span style="color: #d0d0d0">(my_dict.get(</span><span style="color: #ed9d13">&#39;name&#39;</span><span style="color: #d0d0d0">))</span>
 </pre></div>
 
-<h2 class="white">Output</h2>
+<p class="code-label">Output</p>
 <div class="code-block"><pre ><span style="color: #d0d0d0">dict_keys([&#39;name&#39;, &#39;age&#39;, &#39;address&#39;])</span>
 <span style="color: #d0d0d0">dict_values([&#39;John&#39;, 30, &#39;Downtown&#39;])</span>
 <span style="color: #d0d0d0">dict_items([(&#39;name&#39;, &#39;John&#39;), (&#39;age&#39;, 30), (&#39;address&#39;, &#39;Downtown&#39;)])</span>

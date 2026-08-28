@@ -75,19 +75,31 @@ body .guide-content {
     color: #f0f0f0;
     padding: 0.3em 0.6em;
     border-radius: 4px;
-    font-family: 'Consolas', 'Monaco', monospace;
-    font-size: 1rem;
+    font-family: var(--mono-stack);
+    font-size: 0.95em;
 }
 
 .guide-content pre {
     background: #1e1e1e;
     color: #d4d4d4;
-    padding: 2rem;
+    padding: 1.5rem;
     border-radius: 8px;
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
     margin: 2rem 0;
-    font-size: 1rem;
-    line-height: 1.6;
+    font-family: var(--mono-stack);
+    font-size: 0.95rem;
+    line-height: 1.55;
+    white-space: pre;
+    tab-size: 4;
+}
+
+/* Long single-line commands wrap; only genuinely column-aligned blocks
+   (diagrams, tabular output) are left to scroll. */
+.guide-content pre.wrap {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
 }
 
 .guide-footer {
@@ -143,22 +155,67 @@ body .breadcrumbs .container {
 
 .guide-content .code-block,
 .guide-content .output-block {
-    background: #202020;
-    overflow: auto;
+    /* The syntax colours are baked into the HTML as inline styles chosen for a
+       dark surface, so this panel stays dark in both themes. */
+    background: #1e1e1e;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
     width: auto;
-    border: solid gray;
-    border-width: .1em .1em .1em .8em;
-    padding: .2em .6em;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-left: 4px solid var(--primary-color);
+    padding: 1rem 1.1rem;
     margin: 1.5rem 0;
-    border-radius: 4px;
+    border-radius: var(--radius-md);
 }
 
 .guide-content .code-block pre,
 .guide-content .output-block pre {
+    /* The wrapper already supplies the panel; the <pre> must not draw a
+       second box inside it. */
     margin: 0;
-    line-height: 125%;
+    padding: 0;
+    background: none;
+    border: none;
+    border-radius: 0;
+    line-height: 1.5;
     color: #d0d0d0;
 }
+
+/* A "Code" / "Output" caption belongs to the block beneath it, not in the
+   document outline — these used to be repeated <h2>s. */
+.guide-content .code-label {
+    margin: 2rem 0 0.4rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--secondary-text);
+}
+
+.guide-content .code-label + .code-block,
+.guide-content .code-label + .output-block,
+.guide-content .code-label + pre {
+    margin-top: 0;
+}
+
+/* Hands-on lab / "apply with care" callout. Previously repeated as a block of
+   inline styles on four pages. */
+.callout-lab {
+    background: #ff9800;
+    color: #1a1200;
+    padding: 1.5rem;
+    margin: 2rem 0;
+    border-radius: var(--radius-md);
+    border-left: 6px solid #b26a00;
+}
+
+.callout-lab h3 {
+    margin-top: 0;
+    color: #1a1200;
+}
+
+.callout-lab p:last-child { margin-bottom: 0; }
+.callout-lab a { color: #4a2600; }
 
 /* ============================================
    Scenario & command box styles
@@ -259,6 +316,62 @@ body .breadcrumbs .container {
 /* ============================================
    Responsive Design
    ============================================ */
+
+/* ============================================
+   DIAGRAMS
+   Inline SVG figures. They inherit the page's CSS custom properties, so a
+   single diagram works in both themes and stays crisp at any zoom.
+   ============================================ */
+
+.diagram {
+    margin: 2.5rem 0;
+    padding: 1.5rem 1rem;
+    background: var(--secondary-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    overflow-x: auto;
+}
+
+.diagram svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    margin: 0 auto;
+    font-family: inherit;
+}
+
+.diagram figcaption {
+    margin-top: 1rem;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: var(--secondary-text);
+    text-align: center;
+}
+
+/* Shared SVG primitives */
+.diagram .d-panel      { fill: var(--tertiary-bg); stroke: var(--border-color); stroke-width: 1; }
+.diagram .d-node       { fill: var(--tertiary-bg); stroke: var(--primary-color); stroke-width: 1.5; }
+.diagram .d-node-alt   { fill: var(--tertiary-bg); stroke: var(--accent-color); stroke-width: 1.5; }
+.diagram .d-lifeline   { stroke: var(--border-color); stroke-width: 1.5; stroke-dasharray: 4 5; }
+.diagram .d-rule       { stroke: var(--border-color); stroke-width: 1; }
+.diagram .d-flow       { stroke: var(--accent-color); stroke-width: 2; fill: none; }
+.diagram .d-flow-back  { stroke: var(--primary-color); stroke-width: 2; fill: none; }
+.diagram .d-commit     { fill: var(--primary-color); }
+.diagram .d-commit-alt { fill: var(--accent-color); }
+
+.diagram .d-head  { fill: var(--heading-text); font-size: 14px; font-weight: 700; }
+.diagram .d-label { fill: var(--heading-text); font-size: 13px; font-weight: 600; }
+.diagram .d-text  { fill: var(--primary-text);  font-size: 12.5px; }
+.diagram .d-muted { fill: var(--secondary-text); font-size: 11.5px; }
+.diagram .d-mono  { fill: var(--primary-text); font-family: var(--mono-stack); font-size: 12px; }
+
+.diagram .d-fill-flow { fill: var(--accent-color); }
+.diagram .d-fill-back { fill: var(--primary-color); }
+
+@media (max-width: 600px) {
+    .diagram { padding: 1rem 0.5rem; }
+    .diagram svg { min-width: 480px; }
+}
 
 /* ============================================
    SERIES + RELATED GUIDE NAVIGATION

@@ -41,6 +41,11 @@
     --radius-md: 8px;
     --radius-lg: 12px;
     
+    /* Typography */
+    --mono-stack: ui-monospace, 'SFMono-Regular', 'SF Mono', 'Cascadia Mono',
+                  'Consolas', 'Liberation Mono', 'Menlo', 'DejaVu Sans Mono',
+                  'Courier New', monospace;
+
     /* Transitions */
     --transition-fast: 0.15s ease;
     --transition-normal: 0.3s ease;
@@ -136,8 +141,20 @@ code {
     color: var(--accent-primary);
     padding: 0.2em 0.4em;
     border-radius: var(--radius-sm);
-    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-family: var(--mono-stack);
     font-size: 0.9em;
+}
+
+/* Without an explicit monospace stack, <pre> inherits the proportional body
+   font and any column-aligned output or diagram collapses into something
+   unreadable. */
+pre,
+pre code,
+pre samp,
+pre kbd {
+    font-family: var(--mono-stack);
+    font-variant-ligatures: none;
+    tab-size: 4;
 }
 
 pre {
@@ -146,6 +163,8 @@ pre {
     border-radius: var(--radius-md);
     padding: var(--spacing-md);
     overflow-x: auto;
+    /* Column-aligned output must scroll, never re-wrap. */
+    white-space: pre;
     margin-bottom: var(--spacing-md);
 }
 
@@ -679,8 +698,17 @@ main {
     position: relative;
 }
 
-.code-block:hover .copy-code-btn {
+.code-block:hover .copy-code-btn,
+.code-block:focus-within .copy-code-btn {
     opacity: 1;
+}
+
+/* On touch devices there is no hover, so a hover-only copy button can never
+   be reached. Keep it permanently visible wherever hover is unavailable. */
+@media (hover: none), (pointer: coarse) {
+    .copy-code-btn {
+        opacity: 0.75;
+    }
 }
 
 .copy-code-btn:hover {

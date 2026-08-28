@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -89,37 +89,56 @@
 
 <div class="command-box">
     <h4>End-to-end query for www.example.com (cold cache)</h4>
-<pre>
-  Your laptop                 Recursive resolver (1.1.1.1)        Authoritative tree
-  ───────────                 ──────────────────────────          ──────────────────
-
-  1. www.example.com? ──────▶ Cache miss. Start at the root.
-                                  │
-                                  │   2. www.example.com?
-                                  ├─────────────────────────────▶ Root server
-                                  │   "I don't know, but the
-                                  │    .com TLD servers are
-                                  │    a.gtld-servers.net, ..."
-                                  │◀─────────────────────────────
-                                  │
-                                  │   3. www.example.com?
-                                  ├─────────────────────────────▶ .com TLD server
-                                  │   "I don't know, but
-                                  │    example.com is served
-                                  │    by a.iana-servers.net,
-                                  │    b.iana-servers.net"
-                                  │◀─────────────────────────────
-                                  │
-                                  │   4. www.example.com?
-                                  ├─────────────────────────────▶ example.com auth
-                                  │   "www.example.com IN A
-                                  │    93.184.216.34
-                                  │    TTL 86400"
-                                  │◀─────────────────────────────
-                                  │
-                                  │   Cache the answer until TTL expires.
-  5. 93.184.216.34   ◀──────────  Send the final A record to the stub.
-</pre>
+<figure class="diagram">
+<svg viewBox="0 0 880 560" role="img" aria-labelledby="dnswalk-t dnswalk-d">
+<title id="dnswalk-t">How a recursive resolver answers a query for www.example.com</title>
+<desc id="dnswalk-d">The laptop asks its recursive resolver for www.example.com. The resolver has no cached answer, so it queries a root server, which refers it to the .com TLD servers; the .com servers refer it to example.com’s authoritative servers; those return the A record 93.184.216.34 with a TTL of 86400. The resolver caches the answer for the TTL and returns the address to the laptop.</desc>
+<defs>
+<marker id="dnswalk-ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="d-fill-flow"/></marker>
+<marker id="dnswalk-ab" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="d-fill-back"/></marker>
+</defs>
+<rect class="d-panel" x="20" y="14" width="190" height="46" rx="8"/>
+<text class="d-head" x="115.0" y="34" text-anchor="middle">Your laptop</text>
+<text class="d-muted" x="115.0" y="50" text-anchor="middle">stub resolver</text>
+<rect class="d-panel" x="250" y="14" width="250" height="46" rx="8"/>
+<text class="d-head" x="375.0" y="34" text-anchor="middle">Recursive resolver</text>
+<text class="d-muted" x="375.0" y="50" text-anchor="middle">1.1.1.1 · caches answers</text>
+<rect class="d-panel" x="600" y="14" width="260" height="46" rx="8"/>
+<text class="d-head" x="730.0" y="34" text-anchor="middle">Authoritative servers</text>
+<text class="d-muted" x="730.0" y="50" text-anchor="middle">the DNS tree</text>
+<line class="d-lifeline" x1="115" y1="62" x2="115" y2="530"/>
+<line class="d-lifeline" x1="375" y1="62" x2="375" y2="530"/>
+<line class="d-flow" x1="115" y1="100" x2="369" y2="100" marker-end="url(#dnswalk-ah)"/>
+<text class="d-label" x="245.0" y="92" text-anchor="middle">1. www.example.com ?</text>
+<text class="d-muted" x="387" y="104">cache miss — start at the root</text>
+<rect class="d-node" x="600" y="128" width="260" height="44" rx="8"/>
+<text class="d-label" x="730" y="154" text-anchor="middle">Root server (.)</text>
+<line class="d-flow" x1="375" y1="142" x2="594" y2="142" marker-end="url(#dnswalk-ah)"/>
+<text class="d-text" x="484.5" y="136" text-anchor="middle">2. www.example.com ?</text>
+<line class="d-flow-back" x1="594" y1="172" x2="375" y2="172" marker-end="url(#dnswalk-ab)"/>
+<text class="d-text" x="383" y="192">“I don’t know — ask the .com servers:</text>
+<text class="d-mono" x="383" y="210">a.gtld-servers.net, …</text>
+<rect class="d-node" x="600" y="248" width="260" height="44" rx="8"/>
+<text class="d-label" x="730" y="274" text-anchor="middle">.com TLD server</text>
+<line class="d-flow" x1="375" y1="262" x2="594" y2="262" marker-end="url(#dnswalk-ah)"/>
+<text class="d-text" x="484.5" y="256" text-anchor="middle">3. www.example.com ?</text>
+<line class="d-flow-back" x1="594" y1="292" x2="375" y2="292" marker-end="url(#dnswalk-ab)"/>
+<text class="d-text" x="383" y="312">“I don’t know — example.com is served by:</text>
+<text class="d-mono" x="383" y="330">a.iana-servers.net, b.iana-servers.net</text>
+<rect class="d-node" x="600" y="368" width="260" height="44" rx="8"/>
+<text class="d-label" x="730" y="394" text-anchor="middle">example.com authoritative</text>
+<line class="d-flow" x1="375" y1="382" x2="594" y2="382" marker-end="url(#dnswalk-ah)"/>
+<text class="d-text" x="484.5" y="376" text-anchor="middle">4. www.example.com ?</text>
+<line class="d-flow-back" x1="594" y1="412" x2="375" y2="412" marker-end="url(#dnswalk-ab)"/>
+<text class="d-text" x="383" y="432">“Here is the answer:”</text>
+<text class="d-mono" x="383" y="450">www.example.com  IN  A  93.184.216.34   (TTL 86400)</text>
+<line class="d-rule" x1="235" y1="462" x2="860" y2="462"/>
+<text class="d-muted" x="383" y="482">The resolver caches every referral and the final answer until its TTL expires.</text>
+<line class="d-flow-back" x1="375" y1="512" x2="121" y2="512" marker-end="url(#dnswalk-ab)"/>
+<text class="d-label" x="245.0" y="504" text-anchor="middle">5. 93.184.216.34</text>
+</svg>
+<figcaption>One cache-miss lookup: the stub asks once, the recursive resolver walks the tree from the root and answers from cache for the next 86,400 seconds.</figcaption>
+</figure>
 </div>
 
 <p>The root, TLD and authoritative servers each do one referral step. The recursive resolver is the only party that walks the whole tree.</p>
@@ -247,21 +266,43 @@ dig +tcp www.example.com                    # force TCP (e.g. large responses)
 
 <div class="command-box">
     <h4>The chain in plain English</h4>
-<pre>
-  .                  Root has a DNSKEY. Resolvers ship with its hash (trust anchor).
-  └── com            Root signs com's DS record.
-        └── example.com   .com signs example.com's DS record.
-              └── www      example.com signs the A record for www.
-
-  A resolver validates from the top:
-   1. Root DNSKEY matches the trust anchor on disk? OK.
-   2. DS for com matches root's signed DS RRset? OK.
-   3. com DNSKEY's hash matches that DS? OK.
-   4. DS for example.com matches com's signed DS RRset? OK.
-   5. example.com DNSKEY's hash matches that DS? OK.
-   6. example.com RRSIG over (www IN A 93.184.216.34) validates with that key? OK.
-   → Set the AD flag in the response. Done.
-</pre>
+<figure class="diagram">
+<svg viewBox="0 0 860 330" role="img" aria-labelledby="dnssec-t dnssec-d">
+<title id="dnssec-t">The DNSSEC chain of trust from the root zone down to www.example.com</title>
+<desc id="dnssec-d">Each zone signs a DS record for the zone beneath it. The root zone holds a DNSKEY whose hash resolvers ship as a trust anchor; the root signs the DS record for com; com signs the DS record for example.com; and example.com signs the A record for www. A resolver validates each link in turn from the trust anchor downwards.</desc>
+<defs><marker id="dnssec-ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="d-fill-flow"/></marker><marker id="dnssec-ab" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="d-fill-back"/></marker></defs>
+<rect class="d-node-alt" x="40" y="30" width="230" height="48" rx="8"/>
+<text class="d-label" x="56" y="51">.</text>
+<text class="d-muted" x="56" y="68">Root zone</text>
+<text class="d-text" x="290" y="59">DNSKEY — resolvers ship its hash as the trust anchor</text>
+<rect class="d-node" x="86" y="105" width="230" height="48" rx="8"/>
+<text class="d-label" x="102" y="126">com</text>
+<text class="d-muted" x="102" y="143">TLD zone</text>
+<text class="d-text" x="336" y="134">Root signs the DS record for com</text>
+<path class="d-flow" d="M64 78 V129 H80" marker-end="url(#dnssec-ah)"/>
+<rect class="d-node" x="132" y="180" width="230" height="48" rx="8"/>
+<text class="d-label" x="148" y="201">example.com</text>
+<text class="d-muted" x="148" y="218">Delegated zone</text>
+<text class="d-text" x="382" y="209">com signs the DS record for example.com</text>
+<path class="d-flow" d="M110 153 V204 H126" marker-end="url(#dnssec-ah)"/>
+<rect class="d-node" x="178" y="255" width="230" height="48" rx="8"/>
+<text class="d-label" x="194" y="276">www</text>
+<text class="d-muted" x="194" y="293">Record in the zone</text>
+<text class="d-text" x="428" y="284">example.com signs the A record for www</text>
+<path class="d-flow" d="M156 228 V279 H172" marker-end="url(#dnssec-ah)"/>
+</svg>
+<figcaption>Every link is a signature over the hash of the key below it. Break any one link and the resolver refuses to set the AD flag.</figcaption>
+</figure>
+<p>A validating resolver checks each link from the trust anchor downwards, and stops at the first one that fails:</p>
+<ol>
+    <li>Does the root <code>DNSKEY</code> match the trust anchor shipped on disk?</li>
+    <li>Does the <code>DS</code> record for <code>com</code> match the root's signed DS RRset?</li>
+    <li>Does the hash of <code>com</code>'s <code>DNSKEY</code> match that <code>DS</code>?</li>
+    <li>Does the <code>DS</code> for <code>example.com</code> match <code>com</code>'s signed DS RRset?</li>
+    <li>Does the hash of <code>example.com</code>'s <code>DNSKEY</code> match that <code>DS</code>?</li>
+    <li>Does <code>example.com</code>'s <code>RRSIG</code> over <code>www IN A 93.184.216.34</code> validate with that key?</li>
+</ol>
+<p>If every answer is yes, the resolver sets the <strong>AD</strong> (Authenticated Data) flag in its response.</p>
 </div>
 
 <p>If any link breaks (expired RRSIG, missing DS, wrong key), the resolver returns <code>SERVFAIL</code>. That's why a DNSSEC key rollover gone wrong looks like "the entire domain is down". The classic operational rule: always pre-publish new keys, never let signatures expire.</p>

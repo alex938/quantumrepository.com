@@ -64,37 +64,37 @@
         Handling files is an essential part of programming. Python provides built-in functions to read and write files.<br><br>
 
         a. Reading from a file: The 'open' function is used to open a file. To read from it, you can use the 'read' method.<br>
-<h2 class="white">Code</h2>
+<p class="code-label">Code</p>
 <div class="code-block"><pre ><span style="color: #6ab825; font-weight: bold">with</span> <span style="color: #24909d">open</span><span style="color: #d0d0d0">(</span><span style="color: #ed9d13">&#39;filename.txt&#39;</span><span style="color: #d0d0d0">,</span> <span style="color: #ed9d13">&#39;r&#39;</span><span style="color: #d0d0d0">)</span> <span style="color: #6ab825; font-weight: bold">as</span> <span style="color: #24909d">file</span><span style="color: #d0d0d0">:</span>
     <span style="color: #d0d0d0">content</span> <span style="color: #d0d0d0">=</span> <span style="color: #24909d">file</span><span style="color: #d0d0d0">.read()</span>
 <span style="color: #6ab825; font-weight: bold">print</span><span style="color: #d0d0d0">(content)</span>
 </pre></div>
 
-<h2 class="white">Output</h2>
+<p class="code-label">Output</p>
 <div class="code-block">
 <pre ><span style="color: #d0d0d0">Contents of filename.txt</span>
 </pre></div>
 <br>
 
 b. Writing to a file: You can use the 'write' method to write data to a file.<br>
-<h2 class="white">Code</h2>
+<p class="code-label">Code</p>
 <div class="code-block"><pre ><span style="color: #6ab825; font-weight: bold">with</span> <span style="color: #24909d">open</span><span style="color: #d0d0d0">(</span><span style="color: #ed9d13">&#39;filename.txt&#39;</span><span style="color: #d0d0d0">,</span> <span style="color: #ed9d13">&#39;w&#39;</span><span style="color: #d0d0d0">)</span> <span style="color: #6ab825; font-weight: bold">as</span> <span style="color: #24909d">file</span><span style="color: #d0d0d0">:</span>
     <span style="color: #24909d">file</span><span style="color: #d0d0d0">.write(</span><span style="color: #ed9d13">&#39;Hello, World!&#39;</span><span style="color: #d0d0d0">)</span>
 </pre></div>
 
-<h2 class="white">Output</h2>
+<p class="code-label">Output</p>
 <div class="code-block">
 <pre ><span style="color: #d0d0d0">"Hello, World!" is written to filename.txt</span>
 </pre></div>
 <br>
 
 c. Appending to a file: To add data to an existing file without overwriting its content, use the 'append' mode.<br>
-<h2 class="white">Code</h2>
+<p class="code-label">Code</p>
 <div class="code-block"><pre ><span style="color: #6ab825; font-weight: bold">with</span> <span style="color: #24909d">open</span><span style="color: #d0d0d0">(</span><span style="color: #ed9d13">&#39;filename.txt&#39;</span><span style="color: #d0d0d0">,</span> <span style="color: #ed9d13">&#39;a&#39;</span><span style="color: #d0d0d0">)</span> <span style="color: #6ab825; font-weight: bold">as</span> <span style="color: #24909d">file</span><span style="color: #d0d0d0">:</span>
     <span style="color: #24909d">file</span><span style="color: #d0d0d0">.write(</span><span style="color: #ed9d13">&#39;\nAppended Text.&#39;</span><span style="color: #d0d0d0">)</span>
 </pre></div>
 
-<h2 class="white">Output</h2>
+<p class="code-label">Output</p>
 <div class="code-block">
 <pre ><span style="color: #d0d0d0">"Appended Text." is added to filename.txt on a new line</span>
 </pre></div>

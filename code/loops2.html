@@ -64,24 +64,24 @@
     
     <h3>a. List Comprehensions:</h3>
     <p>List comprehensions offer a succinct way to create lists based on existing lists or iterables. They can also incorporate conditions to filter out unwanted elements.</p>
-    <h2 class="white">Code</h2>
+    <p class="code-label">Code</p>
 <div class="code-block"><pre ><span style="color: #d0d0d0">squared</span> <span style="color: #d0d0d0">=</span> <span style="color: #d0d0d0">[i**</span><span style="color: #3677a9">2</span> <span style="color: #6ab825; font-weight: bold">for</span> <span style="color: #d0d0d0">i</span> <span style="color: #6ab825; font-weight: bold">in</span> <span style="color: #24909d">range</span><span style="color: #d0d0d0">(</span><span style="color: #3677a9">5</span><span style="color: #d0d0d0">)]</span>
 <span style="color: #6ab825; font-weight: bold">print</span><span style="color: #d0d0d0">(squared)</span>
 </pre></div>
 
-    <h2 class="white">Output</h2>
+    <p class="code-label">Output</p>
     <div class="code-block">
         <pre ><span style="color: #3677a9">[0, 1, 4, 9, 16]</span></pre>
     </div>
 
     <h3>b. Using 'enumerate' with Loops:</h3>
     <p>The 'enumerate' function can be used with loops to retrieve both the index and the value from an iterable simultaneously.</p>
-    <h2 class="white">Code</h2>
+    <p class="code-label">Code</p>
 <div class="code-block"><pre ><span style="color: #6ab825; font-weight: bold">for</span> <span style="color: #d0d0d0">index,</span> <span style="color: #d0d0d0">value</span> <span style="color: #6ab825; font-weight: bold">in</span> <span style="color: #24909d">enumerate</span><span style="color: #d0d0d0">([</span><span style="color: #ed9d13">&#39;a&#39;</span><span style="color: #d0d0d0">,</span> <span style="color: #ed9d13">&#39;b&#39;</span><span style="color: #d0d0d0">,</span> <span style="color: #ed9d13">&#39;c&#39;</span><span style="color: #d0d0d0">]):</span>
     <span style="color: #6ab825; font-weight: bold">print</span><span style="color: #d0d0d0">(index,</span> <span style="color: #d0d0d0">value)</span>
 </pre></div>
 
-    <h2 class="white">Output</h2>
+    <p class="code-label">Output</p>
     <div class="code-block">
         <pre ><span style="color: #3677a9">(0, 'a')</span>
 <span style="color: #3677a9">(1, 'b')</span>
@@ -90,13 +90,13 @@
 
     <h3>c. Nested Loops in Comprehensions:</h3>
     <p>Loops can be nested inside comprehensions to produce more complex results.</p>
-    <h2 class="white">Code</h2>
+    <p class="code-label">Code</p>
 
 <div class="code-block"><pre ><span style="color: #d0d0d0">pairs</span> <span style="color: #d0d0d0">=</span> <span style="color: #d0d0d0">[(x,</span> <span style="color: #d0d0d0">y)</span> <span style="color: #6ab825; font-weight: bold">for</span> <span style="color: #d0d0d0">x</span> <span style="color: #6ab825; font-weight: bold">in</span> <span style="color: #d0d0d0">[</span><span style="color: #3677a9">1</span><span style="color: #d0d0d0">,</span><span style="color: #3677a9">2</span><span style="color: #d0d0d0">]</span> <span style="color: #6ab825; font-weight: bold">for</span> <span style="color: #d0d0d0">y</span> <span style="color: #6ab825; font-weight: bold">in</span> <span style="color: #d0d0d0">[</span><span style="color: #3677a9">3</span><span style="color: #d0d0d0">,</span><span style="color: #3677a9">4</span><span style="color: #d0d0d0">]]</span>
 <span style="color: #6ab825; font-weight: bold">print</span><span style="color: #d0d0d0">(pairs)</span>
 </pre></div>
 
-<h2 class="white">Output</h2>
+<p class="code-label">Output</p>
 <div class="code-block"><pre ><span style="color: #d0d0d0">[(</span><span style="color: #3677a9">1</span><span style="color: #d0d0d0">,</span> <span style="color: #3677a9">3</span><span style="color: #d0d0d0">),</span> <span style="color: #d0d0d0">(</span><span style="color: #3677a9">1</span><span style="color: #d0d0d0">,</span> <span style="color: #3677a9">4</span><span style="color: #d0d0d0">),</span> <span style="color: #d0d0d0">(</span><span style="color: #3677a9">2</span><span style="color: #d0d0d0">,</span> <span style="color: #3677a9">3</span><span style="color: #d0d0d0">),</span> <span style="color: #d0d0d0">(</span><span style="color: #3677a9">2</span><span style="color: #d0d0d0">,</span> <span style="color: #3677a9">4</span><span style="color: #d0d0d0">)]</span>
 </pre></div>
 
