@@ -62,7 +62,7 @@
             <p>This is the first step in a series of guides on how to build a small Active Directory (AD) environment in VMware Workstation Pro. The purpose of this build is to 
                 construct an environment where we can test the vulnerabilities of AD. What we will achieve is the following topology:</p>
 
-            <img src="topology.png" alt="topology">
+            <img src="topology.png" alt="topology" width="967" height="676" decoding="async">
 
             <ul>
                 <li>Windows Server 2019 Domain Controller (DC) named <b>BOSS</b>.</li>
@@ -85,32 +85,32 @@
             <h2 id="setting-up-vmware">Setting up VMware</h2>
             <p>This guide assumes you have downloaded and installed VMware Workstation Pro. I am using VMware Workstation Pro 17 for this guide. To start I am going to create a folder within my VMware to house my domain VMs:</p>
 
-            <img src="1.png" alt="1.png">
+            <img src="1.png" alt="1.png" width="331" height="148" loading="lazy" decoding="async">
 
             <p>This is not a required step, I just like my VMs organised. Right click 'My Computer' and select 'New Folder' if you do want to follow this step. Next we need to create private isolated network for our domain to sit in. To do this I am 
                 going to create a new virtual network with no VMware DHCP service (we are going to have our DHCP server in the domain so do not need this feature from VMware). To create an isolated network segment select 'Edit > Virtual Network Editor'</p>
 
-            <img src="2.png" alt="VMware Virtual Network Editor menu option">
+            <img src="2.png" alt="VMware Virtual Network Editor menu option" width="371" height="181" loading="lazy" decoding="async">
 
             <p>You will be faced with the following screen (yours may look slightly different, do not worry at this stage):</p>
 
-            <img src="3.png" alt="Virtual Network Editor interface showing existing networks">
+            <img src="3.png" alt="Virtual Network Editor interface showing existing networks" width="601" height="551" loading="lazy" decoding="async">
 
             <p>Select 'Add Network':</p>
 
-            <img src="4.png" alt="Add Network dialog box in VMware">
+            <img src="4.png" alt="Add Network dialog box in VMware" width="599" height="526" loading="lazy" decoding="async">
 
             <p>From the drop down menu choose a VMnet you are not currently using. I have chosen VMnet2:</p>
 
-            <img src="5.png" alt="5">
+            <img src="5.png" alt="5" width="597" height="524" loading="lazy" decoding="async">
 
             <p>Select the VMnet you created, select 'Host-only', untick 'Use local DHCP service...' and enter the IP and subnet you would like to use. Click 'Apply':</p>
 
-            <img src="6.png" alt="6">
+            <img src="6.png" alt="6" width="597" height="524" loading="lazy" decoding="async">
 
             <p>Once done, you should have a new VMnet with the following settings:</p>
 
-            <img src="7.png" alt="7">
+            <img src="7.png" alt="7" width="598" height="525" loading="lazy" decoding="async">
 
             <p>Again, do not worry if you do not have any others, as long as you can see the single VMnet you just created you are good to go at this step.</p>
             
@@ -119,11 +119,11 @@
                 You can download free evaluation copies of these OS to use in this lab build. You will need to download the Windows Server 2019 evaluation ISO and the Windows 10 evaluation ISO. 
                 We will then use these ISO images to install the OS in our VMs.</p>
 
-            <img src="a1.png" alt="a1">
+            <img src="a1.png" alt="a1" width="1322" height="617" loading="lazy" decoding="async">
 
             <p>Download from: <a href="https://www.microsoft.com/en-us/evalcenter/evaluate-windows-server-2019" target="_blank" rel="noopener noreferrer">Microsoft Windows 2019 Evaluation</a></p>
 
-            <img src="a2.png" alt="a2">
+            <img src="a2.png" alt="a2" width="1310" height="529" loading="lazy" decoding="async">
 
             <p>Download from: <a href="https://www.microsoft.com/en-us/evalcenter/evaluate-windows-10-enterprise" target="_blank" rel="noopener noreferrer">Microsoft Windows 10 Evaluation</a></p>
             <p>Once both have been downloaded, we are ready to start building our VMs.</p>

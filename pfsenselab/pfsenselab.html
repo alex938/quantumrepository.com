@@ -71,107 +71,107 @@
             </ol>
             What we want to achieve is the following:<br><br>
 
-            <img src="topology.png" alt="topology">
+            <img src="topology.png" alt="topology" width="848" height="297" decoding="async">
 
             <h2 id="building-the-lab">Building the lab</h2>
             First, install VMware Workstation Pro accepting the defaults. Note: it is always worth checking through the optional features you are installing for a greater understanding of what you are putting onto your machine. Once installed, 
             extract both your Kali and pfSense ISO. Load up VMware and select Edit > Virtual Network Editor.
-            <img src="10.png" alt="10">
+            <img src="10.png" alt="10" width="595" height="522" loading="lazy" decoding="async">
 
             This is an optional step, but I recommend creating virtual networks as a way to organise your labs. Click 'Change Settings' and add a new network. In the screen above I have created a new network 'VMnet1' which is 'Host-only' (this will be our LAN side of the pfSense VM). 
             The subnet I have given it is 192.168.1.0/24. I've left the settings in the screenshot so you can see exactly how it is setup.
-            <img src="1.png" alt="1">
+            <img src="1.png" alt="1" width="575" height="219" loading="lazy" decoding="async">
 
             Next is to create our VMs - the Kali VM and pfSense. To do this click 'Create a New Virtual Machine' (if you cannot see that option simply click File > New Virtual Machine...). Click next and select the pfSense ISO:
-            <img src="2.png" alt="2">
+            <img src="2.png" alt="2" width="441" height="443" loading="lazy" decoding="async">
 
             I gave my pfSense VM 10gb of disk space (which is more than enough unless you are planning on installing plugins):
-            <img src="3.png" alt="3">
+            <img src="3.png" alt="3" width="439" height="440" loading="lazy" decoding="async">
 
             When you are asked to customise its hardware, click the customise option and add an additional network adapter. We want to set our pfSense VM up with a LAN and WAN side (hence 2 adapters). The LAN side will be in the same subnet as our Kali VM, with the WAN 
             side being on the external side (NAT). See the screen below for my settings:
-            <img src="4.png" alt="4">
+            <img src="4.png" alt="4" width="742" height="701" loading="lazy" decoding="async">
 
             Finialise and create the VM. Finally, create the Kali VM and set its network adapter to 'VMnet1' also. Here are my Kali VM settings:
-            <img src="11.png" alt="11">
+            <img src="11.png" alt="11" width="750" height="729" loading="lazy" decoding="async">
 
             This is what I currently now have in my VMware:
-            <img src="30.png" alt="30">
+            <img src="30.png" alt="30" width="322" height="70" loading="lazy" decoding="async">
 
             If this looks slightly different to yours, do not worry. All I have done is created a folder (right click > New Folder) and dragged my VMs into it to organise my VMware.
 
             <h2 id="configuring-the-lab">Configuring the lab</h2>
             We can now start configuring the two VMs. Boot up your pfSense VM first:
-            <img src="5.png" alt="5">
+            <img src="5.png" alt="5" width="712" height="393" loading="lazy" decoding="async">
 
             Use the defaults in first few options. When you get to the below screen, press space to select the drive:
-            <img src="6.png" alt="6">
+            <img src="6.png" alt="6" width="719" height="404" loading="lazy" decoding="async">
 
             Keep using the defaults in the next options and select reboot at the end:
-            <img src="7.png" alt="7">
+            <img src="7.png" alt="7" width="718" height="399" loading="lazy" decoding="async">
 
             Let the pfSense reboot and load. Once ready, you should be faced with a similar screen as below. Your WAN address will more than likely be different to mine, do not worry, all is still well. As long as you have DHCP and 
             an address on the WAN that's what matters. Your LAN will be set to 192.168.1.1/24, this is the default pfSense LAN address after a fresh install.
-            <img src="8.png" alt="8">
+            <img src="8.png" alt="8" width="650" height="409" loading="lazy" decoding="async">
 
             We are now going to boot up the Kali VM. Once started, we need to statically IP address our Kali to 192.168.1.x/24. This is done so that we can access our pfSense LAN interface which is on 192.168.1.1/24. I've statically assigned my Kali 
             to 192.168.1.2/24:
-            <img src="9.png" alt="9">
+            <img src="9.png" alt="9" width="697" height="543" loading="lazy" decoding="async">
 
             I'd recommend turning your Kali network adapter on/off to ensure it picks up the static address. Once done, open Firefox and access the pfSense VM using its LAN IP:
-            <img src="12.png" alt="12">
+            <img src="12.png" alt="12" width="1275" height="750" loading="lazy" decoding="async">
 
             Click 'Advanced' and accept the risk. Login to pfSense using the default credentials of username: <b>admin</b> and password: <b>pfsense</b>.
-            <img src="13.png" alt="13">
+            <img src="13.png" alt="13" width="1015" height="742" loading="lazy" decoding="async">
 
             The first time we login to pfSense we'll be asked to run through the wizard. Click 'Next' on step 1:
-            <img src="14.png" alt="14">
+            <img src="14.png" alt="14" width="1110" height="804" loading="lazy" decoding="async">
 
             On step 2 I've added a hostname, this is totally optional:
-            <img src="15.png" alt="15">
+            <img src="15.png" alt="15" width="1109" height="847" loading="lazy" decoding="async">
 
             Click through to step 4. On this step I have selected DHCP for my WAN interface i.e. it will be given an IP address from VMWare NAT service.
-            <img src="16.png" alt="16">
+            <img src="16.png" alt="16" width="1111" height="476" loading="lazy" decoding="async">
 
             Step 5 will ask you for a LAN interface address. I'm leaving mine as the default address I am currently using and connected to from my Kali VM. Point to note here, if you change this you'll also need to change your Kali IP to be on 
             the same subnet to re-access the pfSense web interface after it has been restarted following the wizard setup.
-            <img src="17.png" alt="17">
+            <img src="17.png" alt="17" width="1115" height="614" loading="lazy" decoding="async">
 
             The final step is to restart your pfSense VM. Allow it to do this and re-access web interface after a few seconds. You will be faced with the pfSense dashboard:
-            <img src="18.png" alt="18">
+            <img src="18.png" alt="18" width="1112" height="483" loading="lazy" decoding="async">
 
             The first check we are going to do is ensure the pfSense VM itself has working external connectivity (to the internet). Select Diagnostics > Ping.
-            <img src="19.png" alt="19">
+            <img src="19.png" alt="19" width="978" height="611" loading="lazy" decoding="async">
 
             I have entered 'www.Quantum Repository.com' as a test hostname:
-            <img src="20.png" alt="20">
+            <img src="20.png" alt="20" width="852" height="948" loading="lazy" decoding="async">
 
             You will notice I am getting replies. This also tells me DNS is working from the pfSense VM to external. The lab is pretty much ready to go now, we just need to provide some services to our LAN side VMs.
 
             <h2 id="configuring-services-for-the-lan">Configuring services for the LAN</h2>
             The service we are going to configure is DHCP. We will use this to give our LAN VMs an IP address as well as some network configuration information such as a default-gateway (DGW) and DNS. As we are not going to be configuring our pfSense VM as 
             a fully fledged DNS server (we are simply going to forward DNS queries) we need to change a few settings. Select Services > DNS Resolver:
-            <img src="23.png" alt="23">
-            <img src="21.png" alt="21">
+            <img src="23.png" alt="23" width="195" height="76" loading="lazy" decoding="async">
+            <img src="21.png" alt="21" width="1122" height="630" loading="lazy" decoding="async">
             Un-tick 'Enable DNS resolver', scroll to the bottom of the page and 'Save' (do not forget to 'Accept Changes'). Now access Sevices > DNS Forwarder and tick to enable. Scroll down to the interfaces setting and select the LAN interface:
-            <img src="22.png" alt="22">
+            <img src="22.png" alt="22" width="960" height="172" loading="lazy" decoding="async">
 
             We will now enable DHCP service and serve the LAN side DNS and DGW information. Select Services > DHCP Server. Tick to enable this (if it isn't aleady). Feel free to put in a range of IP addresses you wish to issue. I have just 
             selected the defaults (192.168.1.10 to 192.168.1.245):
-            <img src="24.png" alt="24">
+            <img src="24.png" alt="24" width="982" height="848" loading="lazy" decoding="async">
 
             Scroll down to 'DNS servers' and 'Gateway'. Enter the LAN side IP address of your pfSense VM, in my case this has not changed from the default, so I enter 192.168.1.1:
-            <img src="25.png" alt="25">
+            <img src="25.png" alt="25" width="957" height="791" loading="lazy" decoding="async">
 
             Save and accept the settings. All going well we should now be able to give our LAN side VMs an IP address as well as a DNS server and DGW address. To check this, I will change my Kali VM to DHCP and then check what settings I have received:
-            <img src="26.png" alt="26">
+            <img src="26.png" alt="26" width="695" height="542" loading="lazy" decoding="async">
 
             Don't forget to switch your Kali adapter off/on again to ensure it captures the change to DHCP. After a few moments, I check my network settings to see what I have received:
-            <img src="27.png" alt="27">
+            <img src="27.png" alt="27" width="785" height="627" loading="lazy" decoding="async">
 
             The IP address I was given by the pfSense DHCP service was 192.168.1.10 (that seems correct as this is where the range started), my DGW has been set to 192.168.1.1 (my pfSense LAN side interface) and my DNS server has been set to 192.168.1.1 (as we configured in the 
             DHCP offer options). The final check is to try and ping externally from my Kali VM:
-            <img src="28.png" alt="28">
+            <img src="28.png" alt="28" width="886" height="248" loading="lazy" decoding="async">
 
             As exepected external connectivity has been achieved through my pfSense VM, you can now start adding addtional VMs (vulnerable machines etc) and placing them in 'VMnet1'. This was a very quick run through setting up a basic virtualised pfSense lab. I'd highly recommend you have a look through some (if not all!) of what pfSense has to offer as we've only just scratched 
             the surface here. It's a hugely powerful platform with hundreds of options of granular network control.

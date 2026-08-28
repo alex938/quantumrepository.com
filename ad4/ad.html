@@ -64,74 +64,74 @@
             <h2 id="configuring-the-network-interfaces">Configuring the Network Interfaces on the DC (BOSS)</h2>
             <p>Login to the DC VM (BOSS). When we configured the hardware on our BOSS VM, we gave it two network interfaces. One internal, the other outward facing. To make it easier to identify which is which, we are going to label the adapters. My two adapters are shown below:</p>
 
-            <img src="1.png" alt="1.png">
+            <img src="1.png" alt="1.png" width="1390" height="659" decoding="async">
 
             <p>Notice how one adapter has a link-local address (169.254.104.237 - Ethernet1) and the other a private IP (192.168.231.146 - Ethernet0). This tells us that Ethernet0 is the external adapter (NAT) as it has received a DHCP leased address. The link-local address on Ethernet1 is to be expected as we currently do not have a DHCP service running internally; so it has been given 169.254.102.237 by Windows networking. All I am now going to do is rename these adapters:</p>
 
-            <img src="2.png" alt="2.png">
+            <img src="2.png" alt="2.png" width="783" height="631" loading="lazy" decoding="async">
 
             <p>Next, we need to assign the DC its IP address as per the topology. We change the INSIDE adapter to 192.168.100.254 and set its DNS to the same address. We could have used 127.0.0.1; both are valid.</p>
 
-            <img src="3.png" alt="5.png">
+            <img src="3.png" alt="5.png" width="616" height="630" loading="lazy" decoding="async">
 
             <h2 id="installing-active-directory-services">Installing Active Directory Services</h2>
             <p>We are now going to install Active Directory. To do this, access <b>Server Manager</b> and select <b>Manage > Add Roles and Features</b>, which is located in the top right of the Server Manager window:</p>
 
-            <img src="4.png" alt="4.png">
+            <img src="4.png" alt="4.png" width="1042" height="707" loading="lazy" decoding="async">
 
             <p>Click next on the first window (you should recognize the IP addresses set, as these are our two adapter addresses):</p>
 
-            <img src="5.png" alt="5.png">
+            <img src="5.png" alt="5.png" width="1042" height="707" loading="lazy" decoding="async">
 
             <p>On the next window, select <b>Active Directory Domain Services</b> and then <b>Add Features.</b></p>
 
-            <img src="6.png" alt="6.png">
+            <img src="6.png" alt="6.png" width="1043" height="707" loading="lazy" decoding="async">
 
             <p>This should now be ticked as per the screenshot below:</p>
 
-            <img src="7.png" alt="7.png">
+            <img src="7.png" alt="7.png" width="976" height="704" loading="lazy" decoding="async">
 
             <p>Click <b>Next</b> and then <b>Install</b>. This will take a few minutes as per the below screenshots:</p>
 
-            <img src="8.png" alt="8.png">
-            <img src="9.png" alt="9.png">
+            <img src="8.png" alt="8.png" width="936" height="681" loading="lazy" decoding="async">
+            <img src="9.png" alt="9.png" width="1023" height="687" loading="lazy" decoding="async">
             <p>Once this has completed, you will be taken back to the server manager main window. You will notice a yellow warning symbol. Select this and click <b>Promote this server to a domain controller</b>. This selection is promoting this server to a fully-fledged DC. We'll select the role of the DC within our topology in the next option.</p>
 
-            <img src="10.png" alt="10.png">
+            <img src="10.png" alt="10.png" width="1040" height="678" loading="lazy" decoding="async">
 
             <p>We are now asked how we want to deploy this domain controller. We ultimately want to create a new structure i.e. a new forest in DC 'speak'. As we can see with the other options, we could have also added this server to an existing domain. Select <b>Add a new forest</b> and give your domain a name. I've chosen to call my domain <b>slashroot.local</b>.</p>
 
-            <img src="11.png" alt="11.png">
+            <img src="11.png" alt="11.png" width="756" height="556" loading="lazy" decoding="async">
 
             <p>Click <b>Next</b> and enter a password for restoration purposes. Ensure the two boxes are ticked and that the functional level is <b>Windows Server 2016</b>. Microsoft has not added any further functional domain levels since Windows Server 2016, therefore, this is the latest setting.</p>
 
-            <img src="13.png" alt="13.png">
+            <img src="13.png" alt="13.png" width="983" height="678" loading="lazy" decoding="async">
 
             <p>Click <b>Next</b> and enter a NetBIOS name, I have used <b>SLASHROOT</b>. Think of this name as a DNS reference, but with less functionality.</p>
 
-            <img src="14.png" alt="14.png">
+            <img src="14.png" alt="14.png" width="973" height="695" loading="lazy" decoding="async">
 
             <p>Click <b>Next</b> accepting the defaults in the following few options; finally selecting <b>Install</b>. These are shown in the below screenshots:</p>
 
-            <img src="15.png" alt="15.png">
-            <img src="16.png" alt="16.png">
-            <img src="17.png" alt="17.png">
+            <img src="15.png" alt="15.png" width="1031" height="686" loading="lazy" decoding="async">
+            <img src="16.png" alt="16.png" width="1032" height="692" loading="lazy" decoding="async">
+            <img src="17.png" alt="17.png" width="1011" height="667" loading="lazy" decoding="async">
 
             <p>A point to note at this stage, the NTDS is one of the key files on a DC. It holds information on our domain configuration and user password information. The installation may take a few moments, and when completed, the install will sign you out and restart the machine.</p>
 
-            <img src="18.png" alt="18.png">
+            <img src="18.png" alt="18.png" width="1027" height="685" loading="lazy" decoding="async">
 
             <p>Once the system has rebooted you will notice a new login screen. This is a good sign and shows our domain is up and running!</p>
 
-            <img src="19.png" alt="19.png">
+            <img src="19.png" alt="19.png" width="1407" height="1017" loading="lazy" decoding="async">
 
             <p>Login with your administrator credentials and access <b>Server Manager</b> again. You should notice something similar:</p>
 
-            <img src="20.png" alt="20.png">
+            <img src="20.png" alt="20.png" width="1039" height="761" loading="lazy" decoding="async">
 
             <p>This is now telling us that the server is running AD Directory Services, DNS, and a file storage service. To check your DC domain name, open <b>System</b>. You will see your full DC domain name, in my case, this is <b>BOSS.slashroot.local</b>.</p>
 
-            <img src="22.png" alt="22.png">
+            <img src="22.png" alt="22.png" width="1403" height="831" loading="lazy" decoding="async">
 
             <p>This concludes this step in our domain configuration. Next, we will start to populate the domain with resources and most importantly user accounts.</p>
             </article>

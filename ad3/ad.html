@@ -65,74 +65,74 @@
             <h2 id="installing-windows-server-2019">Installing Windows Server 2019 (Domain Controller - BOSS)</h2>
             <p>To begin the installation of Windows Server onto our DC, start the VM named BOSS. Ensure you are ready to 'press any key' to boot from the ISO added to the CD drive when we built the VM:</p>
 
-            <img src="1.png" alt="1.png">
+            <img src="1.png" alt="1.png" width="1023" height="726" decoding="async">
 
             <p>If you miss it, don't worry, just reboot the VM and do it again. You will now be faced with the first installation screen. Select your language and keyboard settings:</p>
 
-            <img src="2.png" alt="2.png">
+            <img src="2.png" alt="2.png" width="1021" height="767" loading="lazy" decoding="async">
 
             <p>On the next screen, be sure to select 'Standard Evaluation (Desktop Experience)':</p>
 
-            <img src="3.png" alt="3.png">
+            <img src="3.png" alt="3.png" width="1017" height="766" loading="lazy" decoding="async">
 
             <p>Select 'Custom' to do a full install:</p>
 
-            <img src="4.png" alt="4.png">
+            <img src="4.png" alt="4.png" width="1024" height="765" loading="lazy" decoding="async">
 
             <p>Choose the drive you wish to install Windows Server onto. There should only be one drive at the size you set when you built the VM. Select this drive:</p>
 
-            <img src="5.png" alt="5.png">
+            <img src="5.png" alt="5.png" width="1019" height="763" loading="lazy" decoding="async">
 
             <p>Once selected, select 'New':</p>
 
-            <img src="6.png" alt="6.png">
+            <img src="6.png" alt="6.png" width="1020" height="764" loading="lazy" decoding="async">
 
             <p>This has now partitioned the disk, select the largest partition to install to (primary):</p>
 
-            <img src="7.png" alt="7.png">
+            <img src="7.png" alt="7.png" width="1016" height="767" loading="lazy" decoding="async">
 
             <p>Click next and let the install complete:</p>
 
-            <img src="8.png" alt="8.png">
+            <img src="8.png" alt="8.png" width="1021" height="763" loading="lazy" decoding="async">
 
             <p>After installation, enter an administrator password. I have used 'Password123!'. Extremely unsecure, I know, however, I just want something simple and easy. Remember we won't be deploying this anywhere near a production environment, this lab will be for education purposes only.</p>
 
-            <img src="9.png" alt="9.png">
+            <img src="9.png" alt="9.png" width="951" height="711" loading="lazy" decoding="async">
 
             <p>Let the final stages complete and boot into Windows Server 2019.</p>
 
-            <img src="10.png" alt="10.png">
+            <img src="10.png" alt="10.png" width="1112" height="912" loading="lazy" decoding="async">
 
             <p>At this stage we are now ready to start configuring this VM as the DC. Before you move on, complete the above steps for the other two servers - DORA and FILO. Starting the VMs and installing Windows Server 2019 in the same fashion.</p>
 
             <h2 id="initial-configuration-of-the-dc">Initial configuration of the DC</h2>
             <p>The first thing we are going to do on the BOSS VM, is install the VMware tools. This will just improve our overall experience by allowing us to use a dynamic resolution within the VMware window. Login to BOSS using the administrator account (to send the alt+ctrl+delete command click the button with the 3 boxes in VMware, you can see this in the top left on the above screenshot). In VMware, select 'VM' and then 'Install VM Tools...'. This will insert the VMware tools CD into the disk drive of the VM.</p>
 
-            <img src="11.png" alt="11.png">
+            <img src="11.png" alt="11.png" width="1422" height="1019" loading="lazy" decoding="async">
 
             <p>Once done, open 'My Computer' and run the CD:</p>
 
-            <img src="12.png" alt="12.png">
+            <img src="12.png" alt="12.png" width="1024" height="769" loading="lazy" decoding="async">
 
             <p>Now run the setup and install using the 'Complete' option:</p>
 
-            <img src="13.png" alt="13.png">
-            <img src="14.png" alt="14.png">
+            <img src="13.png" alt="13.png" width="1023" height="774" loading="lazy" decoding="async">
+            <img src="14.png" alt="14.png" width="1021" height="768" loading="lazy" decoding="async">
             <p>When prompted to restart, select 'No'.</p>
 
-            <img src="15.png" alt="15.png">
+            <img src="15.png" alt="15.png" width="1020" height="768" loading="lazy" decoding="async">
 
             <p>We are going to make one more change before restarting and that is changing the PC name. Open windows settings and search for 'name' to locate the 'View your PC name' option - select this option.</p>
 
-            <img src="16.png" alt="16.png">
-            <img src="17.png" alt="17.png">
+            <img src="16.png" alt="16.png" width="1407" height="1023" loading="lazy" decoding="async">
+            <img src="17.png" alt="17.png" width="1411" height="1022" loading="lazy" decoding="async">
             <p>Rename this server to 'BOSS' and select 'Next':</p>
 
-            <img src="18.png" alt="18.png">
+            <img src="18.png" alt="18.png" width="1410" height="1022" loading="lazy" decoding="async">
 
             <p>Now restart the VM:</p>
 
-            <img src="19.png" alt="19.png">
+            <img src="19.png" alt="19.png" width="1410" height="1023" loading="lazy" decoding="async">
 
             <p>You now need to complete the exact same steps on the other two servers - changing their names to 'DORA' and 'FILO' respectively. At this stage our servers are ready for setup.</p>
             </article>

@@ -64,7 +64,7 @@
             <h2 id="lab-setup">Lab Setup</h2>
             <ul>
                 <li>GNS3 as the network emulation software.</li>
-                <img src="topology.png" alt="topology">
+                <img src="topology.png" alt="topology" width="1023" height="490" decoding="async">
             <li>My PC (Kali) is in the INSIDE ZONE.</li>
                 <li>2x switches.</li>
                 <li>1x CISCO ASA Firewall ASA 9.9(2) - Cisco Modelling Labs Personal for $199.</li>
@@ -78,50 +78,50 @@
             <h2 id="ip-configuration">IP Configuration</h2>
             <p>To start, I am going to set the IP address for the client machines. For the DMZ client:</p>
 
-            <img src="dmzip.png" alt="dmzip">
+            <img src="dmzip.png" alt="dmzip" width="682" height="68" loading="lazy" decoding="async">
 
             <p>For the Outside client:</p>
 
-            <img src="externalip.png" alt="externalip">
+            <img src="externalip.png" alt="externalip" width="663" height="69" loading="lazy" decoding="async">
 
             <p>For the Inside client:</p>
 
-            <img src="kaliip.png" alt="kaliip">
+            <img src="kaliip.png" alt="kaliip" width="695" height="342" loading="lazy" decoding="async">
 
             <p>We can now configure the ASA FW interfaces as per the topology above. I'll configure the INSIDE interface (gi0/1) first:</p>
 
-            <img src="gi00.png" alt="gi00">
+            <img src="gi00.png" alt="gi00" width="698" height="86" loading="lazy" decoding="async">
 
             <p>Next, the DMZ interface (gi0/1):</p>
 
-            <img src="gi01.png" alt="gi01">
+            <img src="gi01.png" alt="gi01" width="666" height="85" loading="lazy" decoding="async">
 
             <p>And finally, the OUTSIDE interface:</p>
 
-            <img src="gi02.png" alt="gi02">
+            <img src="gi02.png" alt="gi02" width="669" height="87" loading="lazy" decoding="async">
 
             <p>At this stage, you might think all should be good when it comes to the client machines within these zones pinging their respective ASA FW gateway addresses. However, this will currently fail:</p>
 
-            <img src="pingfail.png" alt="pingfail">
+            <img src="pingfail.png" alt="pingfail" width="773" height="131" loading="lazy" decoding="async">
 
             <p>In the screenshot above, I tried to ping the Kali IP (inside) from the ASA FW, and as you can see, this clearly failed. It failed because no zone has been applied to the interface.</p>
 
             <h2 id="creating-our-zones">Creating Our Zones</h2>
             <p>To create our zones, we need to edit the interface settings on the ASA FW and use the 'nameif' command:</p>
 
-            <img src="gi00zone.png" alt="gi00zone">
+            <img src="gi00zone.png" alt="gi00zone" width="682" height="66" loading="lazy" decoding="async">
 
             <p>You will notice straight away an INFO message telling us the security level of the INSIDE zone has been set to 100 (security levels can range from 0 to 100). The concept of security levels is relatively simple; the higher the security level, the more trusted the network is. Traffic is allowed into a lower security level zone by default but not vice versa. To allow traffic to pass from a low to a high security level zone, you must explicitly tell the FW using Access Control Lists (ACLs). I will now set the security levels of the remaining two zones, DMZ and OUTSIDE:</p>
 
-            <img src="gi02zone.png" alt="gi02zone">
-            <img src="dmzsecuritylevelchange.png" alt="dmzsecuritylevelchange">
+            <img src="gi02zone.png" alt="gi02zone" width="659" height="86" loading="lazy" decoding="async">
+            <img src="dmzsecuritylevelchange.png" alt="dmzsecuritylevelchange" width="630" height="107" loading="lazy" decoding="async">
             <p>Notice when I set the DMZ tag on gi0/1, the ASA FW automatically assigned it a 0 security level. I manually changed this to 60 as I trust the DMZ more than the OUTSIDE zone but less than the INSIDE zone. With the zones now set on the three interfaces, I will perform a quick connectivity check:</p>
 
-            <img src="pingsuccess.png" alt="pingsuccess">
+            <img src="pingsuccess.png" alt="pingsuccess" width="760" height="111" loading="lazy" decoding="async">
 
             <p>The ASA FW can now ping the Kali IP. The Kali client can now ping the ASA FW INSIDE interface:</p>
 
-            <img src="pingsuccess2.png" alt="pingsuccess2">
+            <img src="pingsuccess2.png" alt="pingsuccess2" width="687" height="248" loading="lazy" decoding="async">
 
             <p>If the zones are working correctly, we should be able to:</p>
             <ul>
@@ -131,31 +131,31 @@
             </ul>
             <p>Firstly, I will try to ping the DMZ from the INSIDE (Kali to DMZ server). As you can see, this immediately fails:</p>
 
-            <img src="pingfail2.png" alt="pingfail2">
+            <img src="pingfail2.png" alt="pingfail2" width="700" height="134" loading="lazy" decoding="async">
 
             <p>There is a simple fix to rectify this, but let's see what's going wrong. By default, the ASA FW global inspection policy does not allow ICMP traffic. Think of the global inspection policy as a set of rules that we, as administrators, set to control the traffic we want to allow through all interfaces on the FW. We can view our current global inspection policy by running the following command:</p>
 
-            <img src="showglobal.png" alt="showglobal">
+            <img src="showglobal.png" alt="showglobal" width="540" height="434" loading="lazy" decoding="async">
 
             <p>Notice that ICMP is missing from the list, so it doesn't have an inspect rule. We simply need to add ICMP to this global policy:</p>
 
-            <img src="icmpadd.png" alt="icmpadd">
+            <img src="icmpadd.png" alt="icmpadd" width="578" height="66" loading="lazy" decoding="async">
 
             <p>Viewing our global inspection policy should now show ICMP:</p>
 
-            <img src="icmpadded2.png" alt="icmpadded2">
+            <img src="icmpadded2.png" alt="icmpadded2" width="561" height="459" loading="lazy" decoding="async">
 
             <p>I will now try to ping all subnets from the INSIDE network:</p>
 
-            <img src="insideping.png" alt="insideping">
+            <img src="insideping.png" alt="insideping" width="675" height="347" loading="lazy" decoding="async">
 
             <p>Success! As expected, the INSIDE network with the highest security level can reach all other networks. I will now try to reach the INSIDE and OUTSIDE networks from the DMZ:</p>
 
-            <img src="dmzping.png" alt="dmzping">
+            <img src="dmzping.png" alt="dmzping" width="709" height="335" loading="lazy" decoding="async">
 
             <p>The DMZ (security level 60) can ping the OUTSIDE (security level 0) but cannot ping the INSIDE (security level 100). This is correct as the INSIDE network has a higher security level. Lastly, I'll check that the OUTSIDE is blocked from pinging the INSIDE and DMZ:</p>
 
-            <img src="outsideping.png" alt="outsideping">
+            <img src="outsideping.png" alt="outsideping" width="641" height="335" loading="lazy" decoding="async">
 
             <p>As expected, the OUTSIDE cannot ping the INSIDE or DMZ as it has the lowest security level of the three networks. We now have three independent zones. We will build on this topology in future guides with NAT and ACLs to allow certain traffic into the DMZ from the OUTSIDE and certain traffic into the INSIDE from the DMZ.</p>
             </article>

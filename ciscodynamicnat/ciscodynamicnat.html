@@ -64,7 +64,7 @@
             <h2 id="lab-setup">Lab Setup</h2>
             <ul>
                 <li>GNS3 as the network emulation software.</li>
-                <img src="topology.png" alt="topology">
+                <img src="topology.png" alt="topology" width="954" height="191" decoding="async">
             <li>1x CISCO router on IOSv 15.7 (Router - Cisco Modelling Labs Personal $199).</li>
                 <li>2x Virtual PC simulator.</li>
             </ul>
@@ -75,45 +75,45 @@
             <h2 id="ip-configuration">IP Configuration</h2>
             <p>Initially, we will configure the IP addresses for the client machines:</p>
 
-            <img src="pc1ip.png" alt="pc1ip">
-            <img src="pc2ip.png" alt="pc2ip">
+            <img src="pc1ip.png" alt="pc1ip" width="608" height="67" loading="lazy" decoding="async">
+            <img src="pc2ip.png" alt="pc2ip" width="617" height="65" loading="lazy" decoding="async">
             <p>Next, we will configure the router interfaces:</p>
 
-            <img src="gi00ip.png" alt="gi00">
-            <img src="gi01ip.png" alt="gi01">
+            <img src="gi00ip.png" alt="gi00" width="685" height="65" loading="lazy" decoding="async">
+            <img src="gi01ip.png" alt="gi01" width="629" height="89" loading="lazy" decoding="async">
             <p>A quick ping check between the client machines, PC1 and PC2, displays the traffic. Note the IP addresses at this stage (no address translation is taking place):</p>
 
-            <img src="pingnonat.png" alt="pingnonat">
-            <img src="pingnonatwireshark.png" alt="pingnonatwireshark">
+            <img src="pingnonat.png" alt="pingnonat" width="675" height="159" loading="lazy" decoding="async">
+            <img src="pingnonatwireshark.png" alt="pingnonatwireshark" width="1023" height="136" loading="lazy" decoding="async">
             <p>To clarify which line we are examining, it is highlighted in red:</p>
 
-            <img src="pingnonatimage.png" alt="pingnonatimage">
+            <img src="pingnonatimage.png" alt="pingnonatimage" width="953" height="189" loading="lazy" decoding="async">
 
             <h2 id="configuring-dynamic-nat">Configuring Dynamic NAT</h2>
             <p>Dynamic NAT allows us to use a POOL of available IP addresses in one subnet for translation. Static NAT translates one defined IP address to another defined IP address. Refer to our other guide for configuring static NAT.</p>
             <p>Firstly, we configure our NAT zones. We need to inform the router about each interface:</p>
 
-            <img src="nat_inside.png" alt="nat_inside">
-            <img src="nat_outside.png" alt="nat_outside">
+            <img src="nat_inside.png" alt="nat_inside" width="602" height="41" loading="lazy" decoding="async">
+            <img src="nat_outside.png" alt="nat_outside" width="581" height="44" loading="lazy" decoding="async">
             <p>As we are configuring dynamic NAT, we need to create a POOL of free addresses in the 172.16.10.0/24 subnet for translating 192.168.10.0/24 traffic. The first address used in translation should be 172.16.10.50.</p>
 
-            <img src="natpool.png" alt="natpool">
+            <img src="natpool.png" alt="natpool" width="790" height="21" loading="lazy" decoding="async">
 
             <p>Next, we create an Access Control List (ACL) to help the router identify the traffic we want to NAT:</p>
 
-            <img src="acl.png" alt="acl">
+            <img src="acl.png" alt="acl" width="671" height="20" loading="lazy" decoding="async">
 
             <p>The final step is to apply (turn on NAT) by specifying the POOL name 'SR' and the ACL:</p>
 
-            <img src="applynat.png" alt="applynat">
+            <img src="applynat.png" alt="applynat" width="678" height="21" loading="lazy" decoding="async">
 
             <p>Let's verify by checking the IP addresses using Wireshark. Ideally, we shouldn't see any 192.168.10.x addresses:</p>
 
-            <img src="pingnat.png" alt="pingnat">
-            <img src="natwireshark.png" alt="natwireshark">
+            <img src="pingnat.png" alt="pingnat" width="666" height="154" loading="lazy" decoding="async">
+            <img src="natwireshark.png" alt="natwireshark" width="1004" height="170" loading="lazy" decoding="async">
             <p>Our address translation is successful. The router's translation can be viewed as follows:</p>
 
-            <img src="sho_nat_translations.png" alt="sho_nat_translations">
+            <img src="sho_nat_translations.png" alt="sho_nat_translations" width="793" height="154" loading="lazy" decoding="async">
             </article>
 
             <div class="guide-footer">

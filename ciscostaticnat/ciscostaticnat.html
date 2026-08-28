@@ -63,7 +63,7 @@
             <h2 id="lab-setup">Lab Setup</h2>
             <ul>
                 <li>GNS3 as the network emulation software.</li>
-                <img src="2.png" alt="2">
+                <img src="2.png" alt="2" width="1032" height="206" decoding="async">
             <li>1x CISCO router on IOSv 15.7 (Router - Cisco Modelling Labs Personal $199).</li>
                 <li>1x Webserver.</li>
                 <li>1x External Client PC.</li>
@@ -77,66 +77,66 @@
 
             <h2 id="ip-configuration">IP Configuration</h2>
             To start I am going to IP address our webserver:
-            <img src="3.png" alt="3">
+            <img src="3.png" alt="3" width="558" height="251" loading="lazy" decoding="async">
 
             I am going to IP address the external client as:
-            <img src="4.png" alt="4">
+            <img src="4.png" alt="4" width="639" height="380" loading="lazy" decoding="async">
 
             Next I IP address the router interfaces:
-            <img src="5.png" alt="5">
-            <img src="6.png" alt="6">
+            <img src="5.png" alt="5" width="660" height="86" loading="lazy" decoding="async">
+            <img src="6.png" alt="6" width="693" height="87" loading="lazy" decoding="async">
             I will now do a quick connectivity check from the external client to our public facing router interface and internal webserver:
-            <img src="7.png" alt="7">
+            <img src="7.png" alt="7" width="595" height="268" loading="lazy" decoding="async">
 
             As expected the external client can reach our routers public facing interface, but not our internal client.
 
             <h2 id="employing-static-nat">Employing Static NAT</h2>
             We want the external client to be able to reach our internal webserver using our ISP provided second public IP address (209.10.109.5). We can achieve this using static NAT; this will translate access to our public address to a specified internal address 
             i.e. our webserver (192.168.10.1). We first need to tell the router which interfaces are the inside and outside NAT:
-            <img src="8.png" alt="8">
+            <img src="8.png" alt="8" width="567" height="87" loading="lazy" decoding="async">
 
             Notice I am not using our router interfaces 209.10.109.4 address, I am using our additional public address. All we need to do now is enable NAT on this address:
-            <img src="9.png" alt="9">
+            <img src="9.png" alt="9" width="783" height="22" loading="lazy" decoding="async">
 
             Lets setup a simple webserver on our 192.168.10.1 server and ensure access is achieved and translation is taking place. I am using a simple Python3 webserver for this demo. The page being hosted is:
-            <img src="10.png" alt="10">
+            <img src="10.png" alt="10" width="522" height="71" loading="lazy" decoding="async">
 
             I will now start the webserver:
-            <img src="11.png" alt="11">
+            <img src="11.png" alt="11" width="598" height="55" loading="lazy" decoding="async">
 
             To test our static NAT configuration, I will first ping our 209.10.109.5 address:
-            <img src="12.png" alt="12">
+            <img src="12.png" alt="12" width="590" height="197" loading="lazy" decoding="async">
 
             This reply is coming from our webserver as we can see the TTL has been reduced by 1 (by the router) from 64 (Linux default). We can see the translated traffic in Wireshark by inspecting the line between the router and webserver:
-            <img src="13.png" alt="13">
+            <img src="13.png" alt="13" width="1091" height="101" loading="lazy" decoding="async">
 
             Lets try to access our webpage on the external client:
-            <img src="14.png" alt="14">
+            <img src="14.png" alt="14" width="608" height="370" loading="lazy" decoding="async">
 
             Success, our webserver is accessible from our public IP address thanks to static NAT. We can view this translation on the router:
-            <img src="17.png" alt="17">
+            <img src="17.png" alt="17" width="827" height="90" loading="lazy" decoding="async">
 
             <h2 id="employing-static-pat">Employing Static PAT</h2>
             The web browser on our external machine is automatically assuming port 80 (default HTTP) when we enter the IP address 209.10.109.5 into our browser, it really looks like this 209.10.109.5:80. We just don't see the port 80 addition. Our static NAT is then 
             translating this to 192.168.10.1:80 on the inside - which is the correct port our webserver is being hosted on. However, if we decided host our webserver on port 9999, our static NAT configuration would fail. Lets test this change:
-            <img src="18.png" alt="18">
+            <img src="18.png" alt="18" width="618" height="36" loading="lazy" decoding="async">
 
             All I have done is re-hosted the website on port 9999 instead of port 80. When we access this from the outside now:
-            <img src="19.png" alt="19">
+            <img src="19.png" alt="19" width="759" height="506" loading="lazy" decoding="async">
 
             What is happening here, is our static NAT is translating 209.10.109.5:80 to 192.168.10.1:80 - which is now incorrect. We could fix this issue through 1 of 2 ways. First, we could access the website in our browser on 209.10.109.5:9999, however, we can't reasonably expect 
             an external visitor to know we are using HTTP on port 9999. Therefore, we need to employ static PAT. First, I remove the static NAT configuration and add a static PAT configuration, the commands to do this is are:
-            <img src="15.png" alt="15">
+            <img src="15.png" alt="15" width="780" height="23" loading="lazy" decoding="async">
 
             <code>ip nat inside source static tcp 192.168.10.1 9999 209.10.109.5 80</code>
             This is telling the router that traffic received on the public address at port 80, translate this to the private address at port 9999. Lets now try to access our webserver from the external client:
-            <img src="21.png" alt="21">
+            <img src="21.png" alt="21" width="812" height="362" loading="lazy" decoding="async">
 
             Checking this translation in Wireshark again confirms our configuration (I have added the src and dst port columns so you can see the port addresses):
-            <img src="20.png" alt="20">
+            <img src="20.png" alt="20" width="1274" height="188" loading="lazy" decoding="async">
 
             Again, we can view the router nat translations to see the detail:
-            <img src="22.png" alt="22">
+            <img src="22.png" alt="22" width="833" height="91" loading="lazy" decoding="async">
 
             That concludes static NAT and PAT. You will more then likely see this configurations to enable external access to internal servers. Dynamic NAT will usually be employed to enable connectivity from internal to external resources. This 
             is covered in another guide.

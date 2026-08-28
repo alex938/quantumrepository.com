@@ -64,7 +64,7 @@
             <h2 id="lab-setup">Lab Setup</h2>
             <ul>
                 <li>GNS3 as the network emulation software.</li>
-                <img src="1.png" alt="1">
+                <img src="1.png" alt="1" width="1093" height="213" decoding="async">
             <li>2 PCs (Virtual PCs).</li>
                 <li>2x CISCO routers on IOSv 15.7 (Router - Cisco Modelling Labs Personal $199).</li>
             </ul>
@@ -79,56 +79,56 @@
             <h2 id="ip-addressing">IP Addressing Router Interfaces and Virtual PCs</h2>
             <p>Let's start by IP addressing the Virtual PCs:</p>
 
-            <img src="2.png" alt="2">
-            <img src="3.png" alt="3">
+            <img src="2.png" alt="2" width="639" height="67" loading="lazy" decoding="async">
+            <img src="3.png" alt="3" width="685" height="66" loading="lazy" decoding="async">
             <p>I'll address the router interfaces attached to these LANs. For simplicity, I have attached interface gi0/0 of each of the routers to the LAN. The address assigned to each interface is the last address in the subnet.</p>
             <p>Router 1:</p>
 
-            <img src="4.png" alt="4">
-            <img src="5.png" alt="5">
+            <img src="4.png" alt="4" width="700" height="87" loading="lazy" decoding="async">
+            <img src="5.png" alt="5" width="661" height="64" loading="lazy" decoding="async">
             <p>Router 2:</p>
 
-            <img src="6.png" alt="6">
+            <img src="6.png" alt="6" width="720" height="173" loading="lazy" decoding="async">
 
             <p>Let's check the basic connectivity. First, a ping from PC1 to router 1:</p>
 
-            <img src="pc1togateway.png" alt="pc1togateway">
+            <img src="pc1togateway.png" alt="pc1togateway" width="739" height="154" loading="lazy" decoding="async">
 
             <p>Now a ping from PC1 to PC2. This should fail as router 1 does not yet recognize the 192.168.20.0/24 network.</p>
 
-            <img src="pc1topc2fail.png" alt="pc1topc2fail">
+            <img src="pc1topc2fail.png" alt="pc1topc2fail" width="1011" height="155" loading="lazy" decoding="async">
 
             <p>Next, we'll enable connectivity between these networks by adding static routes to router 1 and router 2.</p>
 
             <h2 id="configuring-static-routes">Configuring Static Routes</h2>
             <p>When adding a route in one direction and expecting a return, such as with a ping, we need to configure a route back as well. We'll begin by adding a route to router 1, instructing it on how to access the 192.168.20.0/24 network. According to the topology, the path to the 192.168.20.0/24 network is via 10.10.10.2 (router 2's connected interface).</p>
 
-            <img src="7.png" alt="7">
+            <img src="7.png" alt="7" width="726" height="20" loading="lazy" decoding="async">
 
             <p>Remember to add a route back as well. We'll add a route back to the 192.168.10.0/24 network on router 2, specifying that to reach the 192.168.10.0/24 network, traffic should go via 10.10.10.1.</p>
 
-            <img src="8.png" alt="8">
+            <img src="8.png" alt="8" width="711" height="20" loading="lazy" decoding="async">
 
             That is all we needed to do to enable connectivity between these two networks. We can check the routing table to see our static route:
-            <img src="9.png" alt="9">
+            <img src="9.png" alt="9" width="796" height="439" loading="lazy" decoding="async">
 
             Notice the 'S'. This denotes a static route. I will now confirm connectivity with a ping check PC1 to PC2:
-            <img src="gatewayoflastresortpingsuccess.png" alt="gatewayoflastresortpingsuccess">
+            <img src="gatewayoflastresortpingsuccess.png" alt="gatewayoflastresortpingsuccess" width="700" height="152" loading="lazy" decoding="async">
 
             <p>Success, connectivity has now been realised between these two networks.</p>
 
             <h2 id="gateway-of-last-resort">Gateway of Last Resort</h2>
             You may have noticed that when we looked at the routing table of router 1, there was a configuration called ‘gateway of last resort’:
-            <img src="10.png" alt="10">
+            <img src="10.png" alt="10" width="792" height="439" loading="lazy" decoding="async">
 
             While this does not come under the banner of static routing, it does come under the overall term of routing. The gateway of last resort is basically saying 'send all here IP traffic here if there is no specificed static or dynamic routes for the IP packet in question'. 
             This can be useful to set for devices that sit on the access layer and only have connected line. Using our topology, I will demonstrate its functionality on router 1. First, I will remove the static route to 192.168.20.0/24 and then configure the gateway of last resort to be 10.10.10.2:
-            <img src="gatewayoflastresort.png" alt="gatewayoflastresort">
+            <img src="gatewayoflastresort.png" alt="gatewayoflastresort" width="803" height="548" loading="lazy" decoding="async">
 
             Line 2 in the above screenshot is assigning the gateway of last resort, this is basically saying 'all IP addresses (0.0.0.0.0), all subnets (0.0.0.0), send to 10.10.10.2'. In our topolgy this works well as it is only connected to a single router, this would work as a 'catch all' routing statement. 
             Finally, lets check we have connectivity by pinging each way from PC1 to PC2:
-            <img src="gatewayoflastresortpingsuccess.png" alt="gatewayoflastresortpingsuccess">
-            <img src="pc2topc1ping.png" alt="pc2topc1ping">
+            <img src="gatewayoflastresortpingsuccess.png" alt="gatewayoflastresortpingsuccess" width="700" height="152" loading="lazy" decoding="async">
+            <img src="pc2topc1ping.png" alt="pc2topc1ping" width="700" height="157" loading="lazy" decoding="async">
             This concludes this guide, however, a point to note here. Static routing has its advantages (granular routing control, easy to configure on small networks) and disadvantages. The disadvantages being, picture this toplogy having 5+ routers and numerous networks attached. We would have to manually configure routes 
             on every router - this would be cumbersome and in some cases impossible to maintain. To combat this we have dynamic routing, dynamic routing protocols propagate routes across routers automatically and continually update their routing tables. Check my other guides on how to configure some of the well-known dynamic routing protocols.
             </article>

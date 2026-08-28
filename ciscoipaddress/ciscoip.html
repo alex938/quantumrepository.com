@@ -66,7 +66,7 @@
             <ol>
                 <li>GNS3 as the network emulation software.</li>
             </ol>
-            <img src="setup.png" alt="topology">
+            <img src="setup.png" alt="topology" width="757" height="430" decoding="async">
             <ol start="2">
                 <li>I have my PC (host1).</li>
                 <li>A CISCO router on IOSv 15.9 (router).</li>
@@ -80,10 +80,10 @@
 
             <h2 id="ip-config">IP Configuration</h2>
             To IP address the router we must configure the physical interface connected (Gi0/0) to the network (the switch) with the network we want it to be part of. To do this we first must enter CONFIGURATION MODE:
-            <img src="ip1.png" alt="ip">
+            <img src="ip1.png" alt="ip" width="830" height="69" loading="lazy" decoding="async">
 
             We can now access the interface and configure it to our liking, in this case setting the IP address to 192.168.10.254 255.255.255.0.
-            <img src="ip2.png" alt="ip">
+            <img src="ip2.png" alt="ip" width="901" height="176" loading="lazy" decoding="async">
 
             Notice the 'no shutdown' command was used after addressing the interface Gi0/0, this command ultimately turns the port on.
             <br><br>
@@ -93,29 +93,29 @@
                 ip address 192.168.10.254 255.255.255.0<br>
                 no shutdown<br></code><br>
             The 'enable' command is used above to move from USER EXEC mode to PRIVILEGED EXEC mode. At this point the router is ready to route traffic, we just need to statically address the two hosts to the same subnet, but different IP address. Host1 is statically assigned the IP 192.168.10.1/24 with host2 assigned 192.168.10.2/24. Do not worry if you do not recognise the commands used on host2, it's a simple PC simulator with little functionality but useful in demos like this. Host1 setup is as follows: 
-            <img src="host1.png" alt="host1">
+            <img src="host1.png" alt="host1" width="695" height="542" loading="lazy" decoding="async">
 
             Host2 setup is as follows:
-            <img src="host2.png" alt="host2">
+            <img src="host2.png" alt="host2" width="663" height="247" loading="lazy" decoding="async">
 
             Finally, a connectivity check from the router to both hosts can be done using ping from the routers CLI.
-            <img src="routerping.png" alt="host2">
+            <img src="routerping.png" alt="host2" width="758" height="245" loading="lazy" decoding="async">
 
             At this point we can be happy that the routers interface has a basic IP configuration and can communicate with hosts on its network.
 
             <h2 id="network-automation">Network Automation</h2>
             If you are anything like me, configuring tons of interfaces manually probably does not appear appealing, thus the use of network automation can reduce the burden. Consider the following topology:
-            <img src="topology2.png" alt="topology2">
+            <img src="topology2.png" alt="topology2" width="1048" height="725" loading="lazy" decoding="async">
 
             Currently, only the 192.168.10.0/24 subnet is configured. Utilising Python with the telnetlib and getpass module we can automate the configuration of our central CISCO router with a small script. To do this we must first setup 
             a method in which we will allow a remote a connection to the router. This example uses TELNET, however, it is never a good idea to use unencrypted communications, especially when 
             configuring a central router such as this.
-            <img src="telnetsetup.png" alt="telnet">
+            <img src="telnetsetup.png" alt="telnet" width="696" height="154" loading="lazy" decoding="async">
 
             This combination of commands has simply enabled the virtual lines 0 to 4 (lines that allow remote connections) to accept TELNET connections; set the console to never timeout (exec timeout 0 0); not break our line output 
             when typing in commands (logg sync) and finally to use the LOCAL database for login attempts. We add an account with the username 'slash' and the password 'root' with a privilege level of 15 (highest) to the LOCAL database. 
             To check our TELNET lines are working, we can attempt a TELNET connection from one of our hosts. In the example below I created a TELNET session from host1 to the routers IP.
-            <img src="telnetcheck.png" alt="telnetcheck">
+            <img src="telnetcheck.png" alt="telnetcheck" width="892" height="618" loading="lazy" decoding="async">
 
             With connectivity proved, we can now put together a script to automatically login into the router, setup the remaining interfaces and logout. To do this we are going to use Python3 in conjuction with the telnetlib module. 
             The script looks like this:<br><br>
@@ -160,10 +160,10 @@
 
             The script is run on host1 (don't forget to make it executable 'chmod +x routerScript.py' in my case), which TELNETS into the router at 192.168.10.254/24 and executes the commands in order they appear ultimately assigning the interfaces the IPs stated, all within a second or 2. The 
             output in the host1 terminal is as follows:
-            <img src="automationresult.png" alt="automationresult">
+            <img src="automationresult.png" alt="automationresult" width="894" height="678" loading="lazy" decoding="async">
 
             The output on the router in real-time is as follows:
-            <img src="automation.png" alt="automationrouter">
+            <img src="automation.png" alt="automationrouter" width="1113" height="484" loading="lazy" decoding="async">
 
             While not ground breaking at this level, these simple actions potentially saved us 2-3 minutes of manual configuration as well as removed the chance of us making any errors, typos etc. Another key benefit of this 
             automated administration is these scripts can be saved and utilised at anytime - they are extremely handy when replacing hardware or recovering from an accidental configuration wipe.

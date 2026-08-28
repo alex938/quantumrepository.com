@@ -64,7 +64,7 @@
             <h2 id="lab-setup">Lab Setup</h2>
             <ul>
                 <li>GNS3 as the network emulation software.</li>
-                <img src="topology.png" alt="topology">
+                <img src="topology.png" alt="topology" width="875" height="349" decoding="async">
             <li>2 PCs (Virtual PCs).</li>
                 <li>2 switches.</li>
                 <li>2 CISCO routers on IOSv 15.7 (Router - Cisco Modelling Labs Personal $199).</li>
@@ -80,50 +80,50 @@
             <h2 id="ip-addressing">IP Addressing Interfaces and Virtual PCs</h2>
             <p>First, let's address the Virtual PCs:</p>
 
-            <img src="pc1.png" alt="pc1">
-            <img src="pc2.png" alt="pc2">
+            <img src="pc1.png" alt="pc1" width="610" height="71" loading="lazy" decoding="async">
+            <img src="pc2.png" alt="pc2" width="621" height="65" loading="lazy" decoding="async">
             <p>Next, I'll configure the router interfaces attached to each of these LANs. The address assigned to each of these interfaces is the last address in the subnet:</p>
 
-            <img src="r1inside.png" alt="r1">
-            <img src="r2inside.png" alt="r2">
+            <img src="r1inside.png" alt="r1" width="635" height="64" loading="lazy" decoding="async">
+            <img src="r2inside.png" alt="r2" width="641" height="65" loading="lazy" decoding="async">
             <p>Finally, let's address the interfaces connected on the router-to-router link:</p>
 
-            <img src="r1inside.png" alt="r1">
-            <img src="r2inside.png" alt="r2">
+            <img src="r1inside.png" alt="r1" width="635" height="64" loading="lazy" decoding="async">
+            <img src="r2inside.png" alt="r2" width="641" height="65" loading="lazy" decoding="async">
             <p>The hostnames of the routers have been changed to R1 and R2 for clarity:</p>
 
-            <img src="r1hostname.png" alt="r1">
-            <img src="r2hostname.png" alt="r2">
+            <img src="r1hostname.png" alt="r1" width="517" height="45" loading="lazy" decoding="async">
+            <img src="r2hostname.png" alt="r2" width="552" height="44" loading="lazy" decoding="async">
             To prove their is currently no routing between the 192.168.1.0 and 10.10.10.0 subnets I am going to perform a ping check:
-            <img src="pc1pc2hostunreachable.png" alt="pc1topc2">
+            <img src="pc1pc2hostunreachable.png" alt="pc1topc2" width="991" height="157" loading="lazy" decoding="async">
 
             PC1 reaches its default gateway, but then fails to get any further.
             <h2 id="employing-eigrp">Employing EIGRP</h2>
             <p>We will now employ EIGRP as a routing protocol to enable connectivity. We enable EIGRP, set the Autonomous System Number (ASN) to the same on both routers, and advertise some networks:</p>
 
-            <img src="r1eigrpa.png" alt="r1">
-            <img src="r2eigrp.png" alt="r2">
+            <img src="r1eigrpa.png" alt="r1" width="608" height="85" loading="lazy" decoding="async">
+            <img src="r2eigrp.png" alt="r2" width="569" height="87" loading="lazy" decoding="async">
            
             Think of the AS as a grouping number. If we wanted to add another router, we would need to set the ASN to same value if we wanted to share routes with it. The next step is to add some authentication, we'll do this 
             by first creating a key chain called 'secrets' that holds a single key with the value 'slashroot':
-            <img src="r1keychain.png" alt="keychain1">
-            <img src="r2keychain.png" alt="kechain2">
+            <img src="r1keychain.png" alt="keychain1" width="627" height="87" loading="lazy" decoding="async">
+            <img src="r2keychain.png" alt="kechain2" width="622" height="85" loading="lazy" decoding="async">
             We need to do this on both routers - they both need the same key value, but you could name your key chains differently (point to note at this stage, you would use your organisations naming conventions). 
             With the key chains and key now created, all we need to do is add this to interface we are using for EIGRP (the router to router link). We do this using the following commands:
-            <img src="r1eigrpauthentication.png" alt="r1auth">
-            <img src="r2eigrpadjacency.png" alt="r2auth">
+            <img src="r1eigrpauthentication.png" alt="r1auth" width="769" height="85" loading="lazy" decoding="async">
+            <img src="r2eigrpadjacency.png" alt="r2auth" width="998" height="131" loading="lazy" decoding="async">
             <p>You'll notice in the R2 screenshot above I've included the EIGRP neighbour message. The screenshot below shows the same appearing on R1:</p>
 
-            <img src="r1adjacency.png" alt="r1auth">
+            <img src="r1adjacency.png" alt="r1auth" width="1019" height="64" loading="lazy" decoding="async">
 
             This is a good sign! We can be relatively confident that R1 and R2 are authenticating and sharing routes. I will do a quick ping check from PC1 to PC2 to confirm connectivity:
-            <img src="pingcheck.png" alt="pingcheck">
+            <img src="pingcheck.png" alt="pingcheck" width="636" height="155" loading="lazy" decoding="async">
 
             Let us quickly see what this looks like in Wireshark. From a capture on the line between R1 and R2 we can see the EIGRP HELLO messages being exchanged:
-            <img src="multicast.png" alt="multicast">
+            <img src="multicast.png" alt="multicast" width="617" height="67" loading="lazy" decoding="async">
 
             These HELLO messages are used to establish the relationship on the multicast address 224.0.0.10. Looking into one of these packets you will see the MD5 digest and the ASN:
-            <img src="eigrppacket.png" alt="eigrppacket">
+            <img src="eigrppacket.png" alt="eigrppacket" width="482" height="578" loading="lazy" decoding="async">
             </article>
 
             <div class="guide-footer">

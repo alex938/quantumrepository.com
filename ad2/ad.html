@@ -60,7 +60,7 @@
             <article>
 <h1>Active Directory Lab Build - Creating the VirtualMachines</h1>
             <p>This is the second step in a series of guides on how to build a small Active Directory (AD) environment in VMware Workstation Pro. By the end of this guide you should have 5 VMs within your domain environment in VMware.</p>
-            <img src="1.png" alt="1.png">
+            <img src="1.png" alt="1.png" width="201" height="125" decoding="async">
             <ol>
                 <li>Windows Server 2019 Domain Controller (DC) named BOSS.</li>
                 <li>Windows Server 2019 Fileserver named FILO.</li>
@@ -71,45 +71,45 @@
             <h2 id="creating-the-domain-controller">Creating the Domain Controller</h2>
             <p>The first VM we are going to be build is our DC (BOSS). Create a new VM in VMware:</p>
 
-            <img src="3.png" alt="3.png">
+            <img src="3.png" alt="3.png" width="348" height="280" loading="lazy" decoding="async">
 
             Select 'Typical' and on the following screen, browse and select our Windows Server 2019 ISO image we downloaded in the previous step.
-            <img src="4.png" alt="4.png">
+            <img src="4.png" alt="4.png" width="426" height="426" loading="lazy" decoding="async">
 
             Select 'Windows Server Datacentre Core' and leave the other settings as default:
-            <img src="5.png" alt="5.png">
+            <img src="5.png" alt="5.png" width="425" height="427" loading="lazy" decoding="async">
 
             Enter a VM name and create it in a location of your choosing:
-            <img src="6.png" alt="6.png">
+            <img src="6.png" alt="6.png" width="423" height="424" loading="lazy" decoding="async">
 
             Choose a suitable disk size for the VM - I've selected 60GB which is the default but also overkill. You should not need more than 30GB.
-            <img src="7.png" alt="7.png">
+            <img src="7.png" alt="7.png" width="423" height="425" loading="lazy" decoding="async">
 
             On the next screen select 'Customise Hardware':
-            <img src="8.png" alt="8.png">
+            <img src="8.png" alt="8.png" width="425" height="424" loading="lazy" decoding="async">
 
             If you remember back to the topology, our DC was going to sit on the boundary of our network serving external connectivity to our domain. 
             For this we need the DC to have two Network Interface Cards (NICs) - one INTERNAL and one EXTERNAL.
-            <img src="topology.png" alt="topology.png">
+            <img src="topology.png" alt="topology.png" width="453" height="204" loading="lazy" decoding="async">
 
             As our DC VM only has one NIC currently we need to add another. Click 'Add':
-            <img src="9.png" alt="9.png">
+            <img src="9.png" alt="9.png" width="744" height="709" loading="lazy" decoding="async">
 
             Select 'Network Adapter' and finish.
-            <img src="10.png" alt="10.png">
+            <img src="10.png" alt="10.png" width="671" height="710" loading="lazy" decoding="async">
 
             IMPORTANT! Ensure one NIC is set to NAT and the other NIC is set to 'VMnet2' (or whichever VMnet number you chose when setting up your networking in the previous guide).
-            <img src="11.png" alt="11.png">
+            <img src="11.png" alt="11.png" width="742" height="707" loading="lazy" decoding="async">
 
             This is ultimately assigning either side of our DC VM to the INTERNAL or EXTERNAL network. Click to the next step and ensure you are happy with the hardware configuration. You may notice in the screenshot 
             below my VM has 4096mb of memory - you do not have to do this, however, if you have the spare RAM to play with I recommend giving the DC VM a bit more juice.
-            <img src="12.png" alt="12.png">
+            <img src="12.png" alt="12.png" width="422" height="426" loading="lazy" decoding="async">
 
             There is a final configuration step before this VM is ready for booting - we need to remove the floppy disk from the hardware configuration. Right-click your newly created 'BOSS' VM and select settings:
-            <img src="13.png" alt="13.png">
+            <img src="13.png" alt="13.png" width="283" height="430" loading="lazy" decoding="async">
 
             Select the floppy disk and 'Remove':
-            <img src="14.png" alt="14.png">
+            <img src="14.png" alt="14.png" width="751" height="730" loading="lazy" decoding="async">
 
             At this stage the DC is ready to install the OS.
 
@@ -117,18 +117,18 @@
             Before we boot the DC VM lets create all our VMs first and do the installs in one go. To create the DHCP and file servers follow the above steps creating two more Windows Server 2019 VMs labelling them 'DORA' and 'FILO'. 
             IMPORTANT: DO NOT add a second NIC to these VMs, a single NIC attached to 'VMnet2' is all they need. By default the NIC configuration in these VMs when you create them will more than likely be NAT, don't forget to change this 
             to 'VMnet2' (or whatever VMnet number you configured in the previous guide). Remove the floppy disk from these VMs also. Once done, you should have three VMs:
-            <img src="15.png" alt="15.png">
+            <img src="15.png" alt="15.png" width="397" height="91" loading="lazy" decoding="async">
 
             <h2 id="creating-client-vms">Creating client VMs</h2>
 
             Finally, we need to create two Windows 10 client VMs. Using the above steps create two VMs but this time ensure to use the Windows 10 Evaluation ISO, not the Windows Server ISO:
-            <img src="16.png" alt="16.png">
+            <img src="16.png" alt="16.png" width="421" height="426" loading="lazy" decoding="async">
 
             Select 'Windows 10 Enterprise' and accept the defaults:
-            <img src="17.png" alt="17.png">
+            <img src="17.png" alt="17.png" width="423" height="423" loading="lazy" decoding="async">
 
             IMPORTANT: As before, do not forget to assign the network adapters to 'VMnet2' and remove the floppy disk drive from the hardware configuration. Once done, you should be left with the following 5 VMs:
-            <img src="18.png" alt="18.png">
+            <img src="18.png" alt="18.png" width="421" height="128" loading="lazy" decoding="async">
 
             We are now ready to install our OS into these VMs.
             </article>

@@ -64,130 +64,130 @@
             <h2 id="setting-the-dhcp-server-ip">Setting the DHCP server IP address and joining the Domain</h2>
             <p>To use this server as a DHCP server for our domain, we must give it an IP address and join it to the domain we want it to serve.</p>
 
-            <img src="1.png" alt="1.png">
+            <img src="1.png" alt="1.png" width="802" height="648" decoding="async">
 
             <p>We will now give the DHCP server a name. In our case this is 'DORA'.</p>
 
-            <img src="2.png" alt="2.png">
+            <img src="2.png" alt="2.png" width="997" height="762" loading="lazy" decoding="async">
 
             <p>Next we will join the server to our domain. Remember you'll need to use a domain administrator account to authorise joining the domain.</p>
 
-            <img src="3.png" alt="3.png">
+            <img src="3.png" alt="3.png" width="887" height="612" loading="lazy" decoding="async">
 
             <h2 id="confirm">Confirming settings and connectivity check</h2>
             <p>To confirm our DC has picked up our new domain joined server, log into the DC - BOSS.</p>
 
-            <img src="4.png" alt="4.png">
+            <img src="4.png" alt="4.png" width="1387" height="980" loading="lazy" decoding="async">
 
             <p>Using the 'Server Manager', load 'Active Directory Users and Computers' from the 'Manage' menu. Select 'Computers' and you should see DORA, the server we just joined to the domain.</p>
 
-            <img src="5.png" alt="5.png">
+            <img src="5.png" alt="5.png" width="1192" height="819" loading="lazy" decoding="async">
 
             <p>Back on the DORA server, load up PowerShell or CMD and run 'ipconfig /all'. You should see domain information.</p>
 
-            <img src="6.png" alt="6.png">
+            <img src="6.png" alt="6.png" width="1072" height="669" loading="lazy" decoding="async">
 
             <p>We now need to add the DHCP role to DORA and configure the DHCP settings.</p>
             <h2 id="add-role">Adding the DHCP role to Windows Server</h2>
             <p>On DORA, load 'Server Manager'.</p>
 
-            <img src="7.png" alt="7.png">
+            <img src="7.png" alt="7.png" width="1098" height="744" loading="lazy" decoding="async">
 
             <p>Select 'Manage' and then 'Add Roles and Features'.</p>
 
-            <img src="8.png" alt="8.png">
+            <img src="8.png" alt="8.png" width="1090" height="741" loading="lazy" decoding="async">
 
             <p>Select next.</p>
 
-            <img src="9.png" alt="9.png">
+            <img src="9.png" alt="9.png" width="1080" height="731" loading="lazy" decoding="async">
 
             <p>Select next (your IP address information will differ to mine if you used a differing schema for your domain).</p>
 
-            <img src="10.png" alt="10.png">
+            <img src="10.png" alt="10.png" width="1085" height="741" loading="lazy" decoding="async">
 
             <p>Select the 'DHCP Server' role and 'Add Features'.</p>
 
-            <img src="11.png" alt="11.png">
+            <img src="11.png" alt="11.png" width="1087" height="746" loading="lazy" decoding="async">
 
             <p>DHCP will now be selected. Click next.</p>
 
-            <img src="12.png" alt="12.png">
+            <img src="12.png" alt="12.png" width="1085" height="743" loading="lazy" decoding="async">
 
             <p>We are now ready to install the role. Select install.</p>
 
-            <img src="13.png" alt="13.png">
+            <img src="13.png" alt="13.png" width="1094" height="744" loading="lazy" decoding="async">
 
             <p>This may take a few moments. Once completed, select close.</p>
 
-            <img src="14.png" alt="14.png">
+            <img src="14.png" alt="14.png" width="1091" height="741" loading="lazy" decoding="async">
 
             <p>With the DHCP service now installed, however, before we can start using this DHCP server it needs to be authorised by a domain administrator.</p>
             <h2 id="authorising-the-server">Authorising the DHCP server</h2>
             <p>On the main server manager screen, you will notice a notification flag (!). Select this and 'Complete DHCP configuration'.</p>
 
-            <img src="15.png" alt="15.png">
+            <img src="15.png" alt="15.png" width="1086" height="736" loading="lazy" decoding="async">
 
             <p>Select next.</p>
 
-            <img src="16.png" alt="16.png">
+            <img src="16.png" alt="16.png" width="1081" height="745" loading="lazy" decoding="async">
 
             <p>On the authorisation section, we need to specify a domain administrator. Select 'Commit'.</p>
 
-            <img src="17.png" alt="17.png">
+            <img src="17.png" alt="17.png" width="1094" height="745" loading="lazy" decoding="async">
 
             <p>Select close.</p>
 
-            <img src="18.png" alt="18.png">
+            <img src="18.png" alt="18.png" width="1100" height="744" loading="lazy" decoding="async">
 
             <p>The final step is to configure a scope of IP addresses we want to serve to the domain.</p>
             <h2 id="configure-scope">Configuring the DHCP server network settings</h2>
             <p>On the server manager select 'Tools' and 'DHCP'.</p>
 
-            <img src="19.png" alt="19.png">
+            <img src="19.png" alt="19.png" width="1299" height="740" loading="lazy" decoding="async">
 
             <p>This will allow us to configure the DHCP role of this server. Expand your domain (in my case dora.slashroot.local) and right-click IPv4. Now select 'New Scope'.</p>
 
-            <img src="20.png" alt="20.png">
+            <img src="20.png" alt="20.png" width="1027" height="757" loading="lazy" decoding="async">
 
             <p>Give the scope a name, for me, this scope will server client machines. I have called this scope 'slashroot_clients'.</p>
 
-            <img src="21.png" alt="21.png">
+            <img src="21.png" alt="21.png" width="1035" height="756" loading="lazy" decoding="async">
 
             <p>Set a start IP address and end IP address (these are the addresses your DHCP server will give out).</p>
 
-            <img src="22.png" alt="22.png">
+            <img src="22.png" alt="22.png" width="1045" height="751" loading="lazy" decoding="async">
 
             <p>Add any exclusions. These could be other servers, printers etc that you are going to statically assign within your defined scope.</p>
 
-            <img src="23.png" alt="23.png">
+            <img src="23.png" alt="23.png" width="1063" height="758" loading="lazy" decoding="async">
 
             <p>Set a time for IP address lease.</p>
 
-            <img src="24.png" alt="24.png">
+            <img src="24.png" alt="24.png" width="1049" height="760" loading="lazy" decoding="async">
 
             <p>We also want to give our clients network information such as deafault-gateway and DNS. To do this select 'Yes, I want to configure these options now'.</p>
 
-            <img src="25.png" alt="25.png">
+            <img src="25.png" alt="25.png" width="1051" height="787" loading="lazy" decoding="async">
 
             <p>The first option allows us to set a default-gateway. For my domain this will be our DC. Enter the IP address of your default-gateway. Do not forget to press 'Add'.</p>
 
-            <img src="26.png" alt="26.png">
+            <img src="26.png" alt="26.png" width="1030" height="771" loading="lazy" decoding="async">
 
             <p>The next screen allows us to dessiminate DNS server information. For my domain this is again my DC - BOSS. Enter its IP address again followed by 'Add'.</p>
 
-            <img src="27.png" alt="27.png">
+            <img src="27.png" alt="27.png" width="1040" height="758" loading="lazy" decoding="async">
 
             <p>If you want to configure a WINS server, enter this information now. I am not using this service in my domain.</p>
 
-            <img src="28.png" alt="28.png">
+            <img src="28.png" alt="28.png" width="1034" height="763" loading="lazy" decoding="async">
 
             <p>The final option asks if we would like to activate this scope. In our case we do, so select yes.</p>
 
-            <img src="29.png" alt="29.png">
+            <img src="29.png" alt="29.png" width="1042" height="760" loading="lazy" decoding="async">
 
             <p>That's it. The DHCP server is now up and running.</p>
 
-            <img src="30.png" alt="30.png">
+            <img src="30.png" alt="30.png" width="1074" height="759" loading="lazy" decoding="async">
 
             <p>We'll test this when we start adding clients to the domain.</p>
             </article>

@@ -70,7 +70,7 @@
             <h2 id="lab-setup">Lab Setup</h2>
             <ul>
                 <li>GNS3 as the network emulation software.</li>
-                <img src="setup.png" alt="topology">
+                <img src="setup.png" alt="topology" width="767" height="589" decoding="async">
             <li>My PC (host1).</li>
                 <li>A CISCO router on IOSv 15.9 (Router - Dynamips Pack for $56).</li>
                 <li>Two additional PCs (host2 and host3).</li>
@@ -93,20 +93,20 @@
             <h2 id="dhcp-exclude">DHCP Excluding an IP</h2>
             <p>We first need to assign the router's connected interface an IP address of 10.10.10.254 255.255.255.0. As we're statically assigning 10.10.10.200, we must exclude this from the DHCP allocations:</p>
 
-            <img src="routerip.png" alt="routerip">
-            <img src="excludeip.png" alt="excludeip">
+            <img src="routerip.png" alt="routerip" width="816" height="109" loading="lazy" decoding="async">
+            <img src="excludeip.png" alt="excludeip" width="698" height="47" loading="lazy" decoding="async">
 
             <h2 id="dhcp-static">DHCP Statically Assigning an IP to a Host</h2>
             <p>Host1 must receive IP 10.10.10.5 when it's connected. To achieve this, we need either its MAC address (for Linux) or client identifier (for Windows). We can inspect host1's properties in GNS3 to get this information:</p>
 
-            <img src="host1mac.png" alt="host1mac">
+            <img src="host1mac.png" alt="host1mac" width="679" height="571" loading="lazy" decoding="async">
 
             <p>Even though host1 is a Kali Linux machine, it's emulated by my Windows 11 host OS. So, we'll treat it as a Windows host for this emulation in GNS3. To convert this MAC address to a client identifier, we add "01" to the MAC address. We then input this into the router:</p>
             <pre>
                 010c.3ef7.da00.00
             </pre>
             We now need to create a DHCP pool for this static assignment as follows:
-            <img src="host1dhcp.png" alt="host1dhcp">
+            <img src="host1dhcp.png" alt="host1dhcp" width="700" height="150" loading="lazy" decoding="async">
 
             You will notice I made a mistake in that assignment by not including the subnet mask with the IP address. Simply use the 'no' command to remove a setting. All going well host1 
             should now receive the IP address 10.10.10.5 when connected.<br>
@@ -114,18 +114,18 @@
 
             Finally, we need to assign the remaining host (and any others that may be connected in the future) a dynamically allocated IP address from the remaining pool, with a lease time 
             of 30 days. To create a dynamic pool we run the following:
-            <img src="host2dhcp2.png" alt="homedhcp">
+            <img src="host2dhcp2.png" alt="homedhcp" width="742" height="131" loading="lazy" decoding="async">
 
             At this point our DHCP server should be fully configured to meet our specification. We can switch host1 and host2 to DHCP IP address assignment and statically assign host3. Host1 is 
             switched DHCP and picks up the correct 10.10.10.5 address:
-            <img src="host1ip.png" alt="host1ip">
+            <img src="host1ip.png" alt="host1ip" width="767" height="395" loading="lazy" decoding="async">
 
             Host2 is set to DHCP and should pick up a dynamic assignment from the pool (should be 10.10.10.1 as this is the first available address). This host is switched DHCP:
-            <img src="hostip.png" alt="host2ip">
+            <img src="hostip.png" alt="host2ip" width="707" height="48" loading="lazy" decoding="async">
 
             You will notice the simple PC emulator at host2 shows the DORA process when you switch it to DHCP assigment, this reinforces the process mentioned earlier. We can view the DHCP bindings 
             on the router by using the following command:
-            <img src="dhcpbinding.png" alt="bindings">
+            <img src="dhcpbinding.png" alt="bindings" width="853" height="131" loading="lazy" decoding="async">
 
             If you are wondering where host2's lease is, it won't appear as the PC emulator at host2 is just replicating a TELNET client with no hardware address, therefore does not show up. If this was a fully 
             fledged machine it would be showing up in the bindings table. This concludes the demonstration, we've covered the key types of DHCP assignment you'll probably see/use but bear in mind the DHCP application 

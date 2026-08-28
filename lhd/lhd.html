@@ -65,37 +65,37 @@
                 <li>I am using VMware with 2 Virtual Machines. I am trying to locate the IP address of the 'Unknown' machine.</li>
             </ol>
 
-            <img src="setup.png" alt="vm setup"><br><br>
+            <img src="setup.png" alt="vm setup" width="399" height="122" decoding="async"><br><br>
             <ol start="2">
                 <li>My Kali Linux machine is at 192.168.231.135.</li>
             </ol>
 
-            <img src="kali.png" alt="kali setup image">
+            <img src="kali.png" alt="kali setup image" width="841" height="396" loading="lazy" decoding="async">
 
             <h2>Method 1: ARP Scan</h2>
 This tool comes packaged with Kali Linux and can be used to send an ARP request to every IP address on the given subnet. It run using the following command:<br><br>
                 <code>sudo arp-scan -l</code><br><br>
 
-            <img src="arpscan.png" alt="arp scan"><br><br>
+            <img src="arpscan.png" alt="arp scan" width="798" height="170" loading="lazy" decoding="async"><br><br>
                 As you can probably guess, this is scanning the LOCAL net (-l flag) by sending out an ARP request to every IP address within the subnet. These can be seen in Wireshark:<br><br>
 
-            <img src="arpreply.png" alt="arp replies"><br><br>
+            <img src="arpreply.png" alt="arp replies" width="1179" height="504" loading="lazy" decoding="async"><br><br>
                 The tool indicates the response (ignore .1, .2 & .254 as these are VMware controllers):<br><br>
 
-            <img src="arpscan.png" alt="arp scan"><br><br>
+            <img src="arpscan.png" alt="arp scan" width="798" height="170" loading="lazy" decoding="async"><br><br>
                 At this stage we could be reasonably sure that 192.168.231.136 is the Unknown machines IP address.
                 
                 <h2>Method 2: Netdiscover</h2>
 This tool also comes packaged with Kali Linux and can be used to send an ARP request to every IP address on the given subnet. It run using the following command:<br><br>
                 <code>sudo netdiscover -r 192.168.231.0/24</code><br><br>
 
-            <img src="netdiscovercommand.png" alt="netdiscover scan"><br><br>
+            <img src="netdiscovercommand.png" alt="netdiscover scan" width="773" height="54" loading="lazy" decoding="async"><br><br>
                 Netdiscover will also attempt to locate machines by sending out ARP requests; presenting replies in the following table:<br><br>
 
-            <img src="netdiscoverresults.png" alt="netdiscover results"><br><br>
+            <img src="netdiscoverresults.png" alt="netdiscover results" width="794" height="207" loading="lazy" decoding="async"><br><br>
                 What I particularly like about this tool is its ability to passive scan meaning it will simply sit there and sniff traffic presenting results in a live window as shown here:<br><br>
 
-            <img src="netdiscoverpassive.png" alt="netdiscoverpassive scan">
+            <img src="netdiscoverpassive.png" alt="netdiscoverpassive scan" width="909" height="289" loading="lazy" decoding="async">
 
             <h2>Method 3: Scripting</h2>
 Sometimes all tools will fail, or more than likely won't always be available to us depending on what machine we land on (unfortunately, not all networks have a nice Kali Linux machine for us to use!) so 
@@ -114,10 +114,10 @@ Sometimes all tools will fail, or more than likely won't always be available to 
                 </code><br><br>
                 I used Mousepad, but any text editor will work. Save as pingsweep.sh and do not forget to make the file executable.<br><br>
 
-            <img src="pingsweepscript.png" alt="ping sweep script"><br><br>
+            <img src="pingsweepscript.png" alt="ping sweep script" width="754" height="285" loading="lazy" decoding="async"><br><br>
                 Execute the script and await results. Something to bear in mind at this point, if the target machine has been set to not respond to PING we could miss a result.<br><br>
 
-            <img src="pingsweep.png" alt="ping sweep script"><br><br>
+            <img src="pingsweep.png" alt="ping sweep script" width="651" height="186" loading="lazy" decoding="async"><br><br>
                 In this example, disregard .1 and our own IP .135. We can be confident there is something at .136 as it responded to a PING request.
                 <h2>Method 4: Creating your own tool</h2>
                 Host discovery can be done with numerous programming languages, Python being one. You can create a simple PING scanner in as little as 20 lines. As an example I have provided
@@ -125,11 +125,11 @@ Sometimes all tools will fail, or more than likely won't always be available to 
                 will then cycle through all values from 1 to 254 pinging each 1 time with a reply wait time of 1 second (better to increase the wait time in reality as machines will usually take 
                 a little longer to respond depending on network dynamics, I just wanted quick results for this demo).<br><br>
 
-            <img src="pingsweeppy.png" alt="ping sweep py script"><br><br>
+            <img src="pingsweeppy.png" alt="ping sweep py script" width="779" height="406" loading="lazy" decoding="async"><br><br>
                 Any IPs that respond to the ping (returncode 0) are appended to a list (ips_responding). At the end of the run, the results are printed to the screen. First the number of hosts that
                 responded (bear in mind one of these is ours) is displayed, followed by the IPs on the hosts themselves. The complete output resembles the following:<br><br>
 
-            <img src="pingsweeppyresults.png" alt="ping sweep results"><br><br>
+            <img src="pingsweeppyresults.png" alt="ping sweep results" width="822" height="133" loading="lazy" decoding="async"><br><br>
                 A final point to note, there are hundreds of tools out there to perform host discovery tasks, its always good to have one of each type in your arsenal. Please report any errors to the 
                 address below.
             </p>

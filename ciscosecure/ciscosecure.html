@@ -68,7 +68,7 @@
                     <li>GNS3 as the network emulation software.</li>
                 </ol>
 
-            <img src="topology.png" alt="topology">
+            <img src="topology.png" alt="topology" width="625" height="347" decoding="async">
                 <ol start="2">
                     <li>I have my PC (host1).</li>
                     <li>A CISCO router on IOSv 15.7 (Router - Cisco Modelling Labs Personal $199).</li>
@@ -92,44 +92,44 @@
 
                 <h2 id="router-configuration">Router Configuration</h2>
                 <p>The routers interface is configured with an IP address:
-                <img src="interface.png" alt="routerip">
+                <img src="interface.png" alt="routerip" width="765" height="87" loading="lazy" decoding="async">
 
             We next enforce the password length of policy of 10 characters minimum:
-                <img src="minlength.png" alt="minlengthpasswords">
+                <img src="minlength.png" alt="minlengthpasswords" width="792" height="23" loading="lazy" decoding="async">
 
             We set the enable secret as follows:
-                <img src="enablesecret.png" alt="enablesecret">
+                <img src="enablesecret.png" alt="enablesecret" width="804" height="20" loading="lazy" decoding="async">
 
             We add a user with a privilege level of 15 to the LOCAL database using SCRYPT password obfuscation:
-                <img src="passwordlengthcheck.png" alt="passwordlengthcheck">
+                <img src="passwordlengthcheck.png" alt="passwordlengthcheck" width="932" height="68" loading="lazy" decoding="async">
 
             Notice how I tried to circumvent my own password policy by entering a password of 4 characters - the router would not let me. To see what this obfuscation type looks like, we can view it by looking at the configuration:
-                <img src="passwordhashed.png" alt="scrypt">
+                <img src="passwordhashed.png" alt="scrypt" width="989" height="69" loading="lazy" decoding="async">
 
             The next task is to create a new AAA model that will reference the LOCAL database for authentication and display a warning message. To do this we will create a reference called 'auth-list'.
-                <img src="aaa new model.png" alt="aaa">
+                <img src="aaa new model.png" alt="aaa" width="690" height="67" loading="lazy" decoding="async">
 
             We are only permitted to allow the IP of host1 which will be 10.10.10.1 to SSH into the router. To do this we need to first create an Access Control List (ACL) specifying that host address:
-                <img src="acl2.png" alt="acl">
+                <img src="acl2.png" alt="acl" width="741" height="25" loading="lazy" decoding="async">
 
             We are now ready to configure the VTY lines, to do so we run the following:
-                <img src="linevty.png" alt="vty">
+                <img src="linevty.png" alt="vty" width="721" height="153" loading="lazy" decoding="async">
 
             What we are doing here is first accessing the correct lines (lines 0 to 4), setting the executive timeout to 5minutes 0seconds, attaching the AAA model (auth-list), allowing SSH as a transport method and finally attaching the ACL ('in' to the routers interface). The final step is to setup and enable a SSH service on the router.
-                <img src="enablessh.png" alt="enablessh">
+                <img src="enablessh.png" alt="enablessh" width="794" height="239" loading="lazy" decoding="async">
 
             To do this we need to rename the router, which we do with hostname. We create a domain name and generate 1024-bit RSA keys. To check the SSH server is running we do the following:
-                <img src="sshversion.png" alt="sshversion">
+                <img src="sshversion.png" alt="sshversion" width="899" height="306" loading="lazy" decoding="async">
 
             You may notice that SSH v2 is running compared to v1.99 in the earlier screenshot. To enable SSH v2 simply enter:
                 <br><br><code>ip ssh version 2</code>
     
                 <h2 id="starting-ssh">Starting a SSH session</h2>
                 After configuring host1 (10.10.10.1) and host2 (10.10.10.2) we are now ready test our configuring. Lets try and SSH into the router from host2 first:
-                <img src="connectionrefused.png" alt="connectionrefused">
+                <img src="connectionrefused.png" alt="connectionrefused" width="932" height="432" loading="lazy" decoding="async">
 
             As expected, host2 which has an IP address of 10.10.10.2 is refused a SSH session (we are only allowing SSH sessions from 10.10.10.1). Let's start a SSH session from host1:
-                <img src="loggedin.png" alt="host1ssh">
+                <img src="loggedin.png" alt="host1ssh" width="728" height="804" loading="lazy" decoding="async">
 
             You will notice that when initiated the SSH session I had to include some additional parameters, these were just used to force it to connect with the cipher suites the router supported. 
                 As expected host1 connects without issue as its IP address is 10.10.10.1. Entering the enable password and showing our privilege we can see we are assigned a level of 15 as setup on the router.

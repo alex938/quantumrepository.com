@@ -62,15 +62,15 @@
             <p>Routing Information Protocol (RIP) is a distance vector routing protocol. This means the protocol routes based on the smallest hop count between source and destination. 
                 RIP itself sends routing updates every 30seconds before throwing away any routes that it has not received updates for every 240seconds. Now if you are wondering what the difference is 
                 between a distance vector protocol and link state protoctol, I've put together two diagrams below to highlight the difference. The scenario is a packet going from R1 to R4.
-                <img src="distancevector1.png" alt="distancevector">
+                <img src="distancevector1.png" alt="distancevector" width="468" height="397" decoding="async">
 
             A distance vector protocol such as RIP will evaluate best routing based on the lowest hop count. In this case the 128Kbps ISDN line is chosen. A link state protocol such 
                 as Open Shortest Path First (OSPF) will evaluate best pathing based on least cost i.e. bandwidth. The diagram below shows its selected path.
-                <img src="linkstate1.png" alt="linkstate">
+                <img src="linkstate1.png" alt="linkstate" width="517" height="412" loading="lazy" decoding="async">
 
             <h2 id="lab-setup">Lab setup</h2>
             <p>1. GNS3 as the network emulation software.
-            <img src="topology.png" alt="topology">
+            <img src="topology.png" alt="topology" width="911" height="816" loading="lazy" decoding="async">
 
             <p>2. I have my 3 PC's (Virtual PC's).
             <p>3. 3x switches.
@@ -86,61 +86,61 @@
             <h2 id="ip-addressing">IP addressing interfaces and Virtual PC's</h2>
             <p>First, let's IP address the Virtual PC's:</p>
 
-            <img src="pc1.png" alt="pc1">
-            <img src="pc2.png" alt="pc2">
-            <img src="pc3.png" alt="pc3">
+            <img src="pc1.png" alt="pc1" width="633" height="66" loading="lazy" decoding="async">
+            <img src="pc2.png" alt="pc2" width="620" height="67" loading="lazy" decoding="async">
+            <img src="pc3.png" alt="pc3" width="605" height="68" loading="lazy" decoding="async">
 
             <p>I am now going to IP address the router interfaces attached to each of these LAN's. To make things easier to follow, I have attached interface gi0/0 of each of the routers to the LAN. The address I am going to assign to each of these interfaces is the last address in the subnet.</p>
 
-            <img src="r1.png" alt="r1">
-            <img src="r2.png" alt="r2">
-            <img src="r3.png" alt="r3">
+            <img src="r1.png" alt="r1" width="633" height="64" loading="lazy" decoding="async">
+            <img src="r2.png" alt="r2" width="617" height="64" loading="lazy" decoding="async">
+            <img src="r3.png" alt="r3" width="613" height="63" loading="lazy" decoding="async">
 
             <p>Finally, let's IP address the interfaces connected on the router-to-router links:</p>
 
-            <img src="p2p_configs.png" alt="r1">
-            <img src="p2p_configsR2.png" alt="r2">
-            <img src="p2p_configsR3.png" alt="r3">
+            <img src="p2p_configs.png" alt="r1" width="626" height="129" loading="lazy" decoding="async">
+            <img src="p2p_configsR2.png" alt="r2" width="634" height="107" loading="lazy" decoding="async">
+            <img src="p2p_configsR3.png" alt="r3" width="595" height="130" loading="lazy" decoding="async">
 
             <p>At this point I recommend firing a few pings around from the devices to ensure they have connectivity and no mistakes have been made:</p>
 
-            <img src="pingcheck.png" alt="ping">
+            <img src="pingcheck.png" alt="ping" width="760" height="217" loading="lazy" decoding="async">
 
             <p>Just so there is no confusion at this stage, this is how my router links are set up:</p>
 
-            <img src="p2p_setup.png" alt="ping">
+            <img src="p2p_setup.png" alt="ping" width="422" height="298" loading="lazy" decoding="async">
 
             <h2 id="employing-rip">Employing RIP</h2>
             In our current setup none of our PC's can speak. Basically, our routers do not know about any other networks other than those they are directly connected. We could at this stage simply add 
             static routes and all would be well. This can become cumbersome as the network evolves so we will employ RIP to advertise its known networks to peers. We can utilise basic authentication with RIPv2, 
             while it is not great, it is better than nothing. 
             Let us start by creating a key chain called 'secrets' with a key value of 'slashroot' (point to note here, you would follow your organisations naming conventions). This is the key all routers must have to be able to authenticate.
-            <img src="keychain.png" alt="keychain">
+            <img src="keychain.png" alt="keychain" width="531" height="90" loading="lazy" decoding="async">
 
             We now apply it to the interfaces (you can also use plain text, I have chose MD5 here):
-            <img src="applykey.png" alt="applykey">
+            <img src="applykey.png" alt="applykey" width="605" height="153" loading="lazy" decoding="async">
 
             Bear in mind, I have only shown this process on R2; you will need to do it on all routers you want to RIP authenticate. The next step is to enable RIP and start advertising some networks. 
             To do this I enable RIP, set RIP to version 2 and simply enter the networks I want to share.
-            <img src="r2rip.png" alt="r2rip">
+            <img src="r2rip.png" alt="r2rip" width="552" height="133" loading="lazy" decoding="async">
 
             Here is the same process on router 3:
-            <img src="routerripr3.png" alt="routerripr3">
+            <img src="routerripr3.png" alt="routerripr3" width="525" height="128" loading="lazy" decoding="async">
 
             Once the process has been applied to all routers, you can view the RIP traffic in Wireshark, here is a capture from the R1 to R2 link in which you can clearly see the MD5:
-            <img src="authentication.png" alt="authentication">
+            <img src="authentication.png" alt="authentication" width="600" height="242" loading="lazy" decoding="async">
 
             At this stage we are all setup, as we are sharing all networks through at least 1 router, there is no device on this collection of networks that should not be able to ping eachother. Carrying out a quick check from PC1 to PC2 and PC3 
             gives us confidence:
-            <img src="final_check.png" alt="final_check">
+            <img src="final_check.png" alt="final_check" width="599" height="338" loading="lazy" decoding="async">
 
             For further information, it is worth using the following 2 commands on your routers to visibly see your configuration:
             <br><br><code>show ip protocols</code>
-            <img src="riproutingtabler3.png" alt="riproutingtabler3">
+            <img src="riproutingtabler3.png" alt="riproutingtabler3" width="785" height="774" loading="lazy" decoding="async">
 
             This shows the output on R3. You can clearly see the 'Last Update' time and 'Key-chain' being used. Next have a look at:
             <br><br><code>show ip route</code>
-            <img src="r3_iproutes.png" alt="r3_iproutes">
+            <img src="r3_iproutes.png" alt="r3_iproutes" width="809" height="592" loading="lazy" decoding="async">
 
             Here you can see all the routes that your router now knows.
             </article>

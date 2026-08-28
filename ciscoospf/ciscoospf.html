@@ -75,7 +75,7 @@
             <ol>
                 <li>GNS3 as the network emulation software.</li>
             </ol>
-            <img src="topology.png" alt="topology">
+            <img src="topology.png" alt="topology" width="1134" height="629" decoding="async">
             <ol start="2">
                 <li>I have my 3 PC's (Virtual PC's).</li>
                 <li>3x CISCO routers on IOSv 15.7 (Router - Cisco Modelling Labs Personal $199).</li>
@@ -90,27 +90,27 @@
 
             <h2 id="ip-addressing">IP addressing interfaces and Virtual PC's</h2>
             First, let's IP address the Virtual PC's:
-            <img src="pc1ip.png" alt="pc1ip">
-            <img src="pc2ip.png" alt="pc2ip">
-            <img src="pc2ip.png" alt="pc2">
+            <img src="pc1ip.png" alt="pc1ip" width="612" height="65" loading="lazy" decoding="async">
+            <img src="pc2ip.png" alt="pc2ip" width="652" height="65" loading="lazy" decoding="async">
+            <img src="pc2ip.png" alt="pc2" width="652" height="65" loading="lazy" decoding="async">
 
             I am now going to IP address the router interfaces attached to each of these LAN's. To make things easier to follow, I have attached interface gi0/0 of each of the routers 
             to the LAN. The address I am going to assign to each of these interfaces is the last address in the subnet.
-            <img src="r1gi00ip.png" alt="r1gi00ip">
-            <img src="r2gi00ip.png" alt="r2gi00ip">
-            <img src="r3gi00ip.png" alt="r3gi00ip">
+            <img src="r1gi00ip.png" alt="r1gi00ip" width="653" height="64" loading="lazy" decoding="async">
+            <img src="r2gi00ip.png" alt="r2gi00ip" width="597" height="64" loading="lazy" decoding="async">
+            <img src="r3gi00ip.png" alt="r3gi00ip" width="574" height="65" loading="lazy" decoding="async">
 
             Finally, lets IP address the interfaces connected on the router-to-router links. Router 1:
-            <img src="r1gi01ip.png" alt="r1gi01ip">
-            <img src="r1gi02ip.png" alt="r1gi02ip">
+            <img src="r1gi01ip.png" alt="r1gi01ip" width="602" height="63" loading="lazy" decoding="async">
+            <img src="r1gi02ip.png" alt="r1gi02ip" width="624" height="64" loading="lazy" decoding="async">
             Router 2:
-            <img src="r2gi01ip.png" alt="r2gi01ip">
-            <img src="r2gi02ip.png" alt="r2gi02ip">
+            <img src="r2gi01ip.png" alt="r2gi01ip" width="587" height="66" loading="lazy" decoding="async">
+            <img src="r2gi02ip.png" alt="r2gi02ip" width="610" height="64" loading="lazy" decoding="async">
             And finally router 3:
-            <img src="r3gi01ip.png" alt="r3gi01ip">
-            <img src="r3gi02ip.png" alt="r3gi02ip">
+            <img src="r3gi01ip.png" alt="r3gi01ip" width="568" height="64" loading="lazy" decoding="async">
+            <img src="r3gi02ip.png" alt="r3gi02ip" width="574" height="64" loading="lazy" decoding="async">
             Before we start configuring OSPF, I will do a quick ping check to ensure no connectivity apart from that to default-gateway exists:
-            <img src="pingfailed.png" alt="pingfailed">
+            <img src="pingfailed.png" alt="pingfailed" width="871" height="441" loading="lazy" decoding="async">
 
             <h2 id="configuring-ospf">Configuring OSPF</h2>
             I am going to configure OSPF utilising some authentication (this will help mitigate the injection of rogue OSPF traffic). To do this I am going to use 
@@ -121,60 +121,60 @@
             <i>"The OSPFv2 Cryptographic Authentication feature allows you to configure a key chain on the OSPF interface to authenticate OSPFv2 packets by using HMAC-SHA algorithms. 
             You can use an existing key chain that is being used by another protocol, or you can create a key chain specifically for OSPFv2" - CISCO manual.</i>
             To define a key chain and key to use, I first to need to create it (I am doing the new few steps on R1, but all routers will need the same configuration to share OSPF information):
-            <img src="keycreation.png" alt="keycreation">
+            <img src="keycreation.png" alt="keycreation" width="780" height="130" loading="lazy" decoding="async">
 
             This has created a key chain called 'slashroot' and defined a key 1 with the value 'password'. The algorithm I have chosen as discussed above is SHA-256 with HMAC. 
             The send lifetime defines a period in which the key can be used, in this case from 11:00:00 01 March 2023 with no end time. To confirm it has been accepted I will view the key status:
-            <img src="keystatus.png" alt="keystatus">
+            <img src="keystatus.png" alt="keystatus" width="780" height="109" loading="lazy" decoding="async">
 
             To allow OSPF to use this key chain as its authentication parameter we need to apply it to the interfaces being used by OSPF or alternatively apply the key chain to the OSPF area. We have not defined 
             any areas as of yet so what I am going to do is apply the key chain to the interface:
-            <img src="ospfauthtointgi01.png" alt="ospfauthtointgi01">
-            <img src="ospfauthtointgi02.png" alt="ospfauthtointgi02">
+            <img src="ospfauthtointgi01.png" alt="ospfauthtointgi01" width="633" height="66" loading="lazy" decoding="async">
+            <img src="ospfauthtointgi02.png" alt="ospfauthtointgi02" width="663" height="66" loading="lazy" decoding="async">
             OSPF will now use this key chain for OSPF traffic on that interface. We can check this by looking at our OSPF configuration. Notice how the following command fails at this stage 
             as we have not actually enabled OSPF yet.
-            <img src="ospfnotenabled.png" alt="ospfnotenabled">
+            <img src="ospfnotenabled.png" alt="ospfnotenabled" width="632" height="42" loading="lazy" decoding="async">
 
             I will correct this now and enable OSPF routing as well as advertise some networks. 
-            <img src="ospfnetworks1.png" alt="ospfnetworks1">
-            <img src="ospfnetworks2.png" alt="ospfnetworks2">
+            <img src="ospfnetworks1.png" alt="ospfnetworks1" width="616" height="66" loading="lazy" decoding="async">
+            <img src="ospfnetworks2.png" alt="ospfnetworks2" width="568" height="42" loading="lazy" decoding="async">
             The above commands have done 3 things. 1. It has created an OSPF group 1 (this is information that is relevant locally to the router only). 2. It has advertised 
             3 networks to an OSPF area of 0 (a logical grouping to share networks, this will need to be shared with other routers in the area). 3. Enabled OSPF. To check our OSPF configuration 
             we should be able to type the same command as above and receive an output:
-            <img src="ospfenabledhmacsha.png" alt="ospfenabledhmacsha">
+            <img src="ospfenabledhmacsha.png" alt="ospfenabledhmacsha" width="757" height="509" loading="lazy" decoding="async">
 
             You will notice at the bottom of the configuration our key chain is displayed as confirmation it is being utilised. It is worth having a look at the settings before moving on to ensure 
             you fully understand what is going on - in particular the timings of Hello, Dead, Wait and Retransmit. The Hello message uses multicast address 224.0.0.5, is sent every 10 seconds and has the purpose 
             of identifying OSPF neighbours. You can see this in Wiseshark when looking at the line connected to an OSPF enabled interface:
-            <img src="ospfhello.png" alt="ospfhello">
+            <img src="ospfhello.png" alt="ospfhello" width="1581" height="359" loading="lazy" decoding="async">
 
             All we need to do at this stage is put the same configuration information into each of the other two routers (advertising their respective networks). I do this next on router 2:
-            <img src="router2keychain.png" alt="router2keychain">
+            <img src="router2keychain.png" alt="router2keychain" width="801" height="132" loading="lazy" decoding="async">
 
             Apply the key chain to OSPF authentication on the interfaces:
-            <img src="r2authentication.png" alt="r2authentication">
+            <img src="r2authentication.png" alt="r2authentication" width="700" height="43" loading="lazy" decoding="async">
 
             And finally advertise some networks:
-            <img src="r2networks.png" alt="r2networks">
+            <img src="r2networks.png" alt="r2networks" width="695" height="108" loading="lazy" decoding="async">
 
             The first thing you will notice after entering a configuration on another router is a status message will pop-up:
-            <img src="neighbour.png" alt="neighbour">
+            <img src="neighbour.png" alt="neighbour" width="890" height="47" loading="lazy" decoding="async">
 
             What this is telling us, is that an OSPF neighbour partnership has been estbalished with the router ID 192.168.10.254. This is router 1. We just didn't change the router ID 
             when we set OSPF up so it auto populated this with the first interfaces ID on R1 i.e. 192.168.10.254. We can view OSPF neighbours using the following command:
-            <img src="neighbourestablished.png" alt="neighbourestablished">
+            <img src="neighbourestablished.png" alt="neighbourestablished" width="877" height="87" loading="lazy" decoding="async">
 
             The final step is to complete the topology and enter the same configuration into router 3. Once done, we can view the neighbour relationships on router 3 to see the following:
-            <img src="r3neighbour.png" alt="r3neighbour">
+            <img src="r3neighbour.png" alt="r3neighbour" width="897" height="108" loading="lazy" decoding="async">
 
             We can also view the routes that router 3 now knows through OSPF using the following command:
-            <img src="r3routes.png" alt="r3routes">
+            <img src="r3routes.png" alt="r3routes" width="810" height="549" loading="lazy" decoding="async">
 
             It worth checking what all this looks like in Wireshark to fully understand the OSPF messaging. Here you can see the 'update' and 'description' messages being transmitted between router 1 and router 3:
-            <img src="wiresharkospf.png" alt="wiresharkospf">
+            <img src="wiresharkospf.png" alt="wiresharkospf" width="712" height="572" loading="lazy" decoding="async">
 
             At this point we should be ready to go. As a final check I will ping the 192.168.20.0/24 and 192.168.30.0/24 networks from PC1, which is in the 192.168.10.0/24 network:
-            <img src="pingsuccess.png" alt="pingsuccess">
+            <img src="pingsuccess.png" alt="pingsuccess" width="676" height="331" loading="lazy" decoding="async">
             </article>
 
             <div class="guide-footer">

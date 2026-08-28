@@ -64,7 +64,7 @@
             <h2 id="lab-setup">Lab setup</h2>
             <ul>
                 <li>GNS3 as the network emulation software.</li>
-                <img src="topology.png" alt="topology">
+                <img src="topology.png" alt="topology" width="737" height="344" decoding="async">
             <li>I have my PC (host1).</li>
                 <li>A CISCO router on IOSv 15.7 (Router - Cisco Modelling Labs Personal $199).</li>
                 <li>One additional PC (host2) which is going to host a webserver.</li>
@@ -89,58 +89,58 @@
             <h2 id="router-configuration">Router Configuration</h2>
             <p>The routers interfaces are configured with IP addresses:</p>
 
-            <img src="gi00.png" alt="inside interface"> The inside interface Gi0/0 is configured with an internal address within the selected schema; in this case 10.10.10.254.
-                <img src="gi01.png" alt="outside interface"> The outside interface, the interface representing connectivity to my ISP is set to DHCP to receive an external IP from my ISP. I know in this case it is a private network address, but just imagine this being a public IP assigned by your ISP. At this stage trying to PING the outside world will fail as domain-lookup has not been enabled:
-                <img src="dnserror.png" alt="dnserror">
+            <img src="gi00.png" alt="inside interface" width="750" height="131" loading="lazy" decoding="async"> The inside interface Gi0/0 is configured with an internal address within the selected schema; in this case 10.10.10.254.
+                <img src="gi01.png" alt="outside interface" width="1009" height="247" loading="lazy" decoding="async"> The outside interface, the interface representing connectivity to my ISP is set to DHCP to receive an external IP from my ISP. I know in this case it is a private network address, but just imagine this being a public IP assigned by your ISP. At this stage trying to PING the outside world will fail as domain-lookup has not been enabled:
+                <img src="dnserror.png" alt="dnserror" width="728" height="68" loading="lazy" decoding="async">
 
-            To enable DNS, simply enter: <img src="enabledns.png" alt="enabledns"> Trying to PING the outside world (www.google.com in this case) now yields results.
-                <img src="pingsuccess.png" alt="ping success"> Something to bear in mind at this stage, my recursive nameserver in this instance is the DNS settings provided by my DHCP on the external interface. This can be seen here: <img src="dnsettings.png" alt="dnssettings">
+            To enable DNS, simply enter: <img src="enabledns.png" alt="enabledns" width="596" height="45" loading="lazy" decoding="async"> Trying to PING the outside world (www.google.com in this case) now yields results.
+                <img src="pingsuccess.png" alt="ping success" width="753" height="154" loading="lazy" decoding="async"> Something to bear in mind at this stage, my recursive nameserver in this instance is the DNS settings provided by my DHCP on the external interface. This can be seen here: <img src="dnsettings.png" alt="dnssettings" width="597" height="355" loading="lazy" decoding="async">
 
             If we wanted to change our recursive nameserver to something different, we can using the following process:
-                <img src="changenameserver.png" alt="changenameserver">
+                <img src="changenameserver.png" alt="changenameserver" width="845" height="687" loading="lazy" decoding="async">
 
             What we have done here; first we have removed the DHCP provided nameserver of 192.168.122.1 and then added 8.8.8.8 (Googles DNS service), confirmed the change by viewing our DNS settings and then ensuring it 
                 is working by using PING to an external domain (wwww.slash-root.com). At this stage we can now enable a DNS service to serve our internal network:
-                <img src="enablednsserver.png" alt="enablednsserver">
+                <img src="enablednsserver.png" alt="enablednsserver" width="571" height="48" loading="lazy" decoding="async">
 
             <h2 id="configuring-the-hosts">Configuring the hosts and fixing issues</h2>
                 <p>The next step is to configure host1 and host2 to use our router as their default-gateway and DNS server:</p>
 
-            <img src="host1dns.png" alt="host1dns"> Once configured we can attempt to PING the default-gateway and then an external domain name to ensure our DNS service is working correctly.
-                <img src="dnsissue1.png" alt="dnsissue1"> You will notice we could PING the default-gateway (our router) but we could not PING an external domain name. The issue we have run into here is; when our router receives a packet from host1 with the source IP address of 10.10.10.1 (private address) it refuses to route it any further without explicit instruction. The solution is address translation (Overload in CISCO speak).
+            <img src="host1dns.png" alt="host1dns" width="696" height="543" loading="lazy" decoding="async"> Once configured we can attempt to PING the default-gateway and then an external domain name to ensure our DNS service is working correctly.
+                <img src="dnsissue1.png" alt="dnsissue1" width="692" height="257" loading="lazy" decoding="async"> You will notice we could PING the default-gateway (our router) but we could not PING an external domain name. The issue we have run into here is; when our router receives a packet from host1 with the source IP address of 10.10.10.1 (private address) it refuses to route it any further without explicit instruction. The solution is address translation (Overload in CISCO speak).
                 You will notice we could PING the default-gateway (our router) but we could not PING an external domain name. The issue we have run into here is; when our router receives a packet from host1 with the source 
                 IP address of 10.10.10.1 (private address) it refuses to route it any further without explicit instruction. The solution is address translation (Overload in CISCO speak).
                 The first step is to identify which interfaces are inside and outside; we do this using the following commands:
-                <img src="natinterfaces.png" alt="natinterfaces">
+                <img src="natinterfaces.png" alt="natinterfaces" width="989" height="153" loading="lazy" decoding="async">
 
             Here we have said the internal interface Gi0/0 (the one connected to our LAN) is the NAT inside. We've also said interface Gi0/1 is the NAT outside. To link this together we now run the following commands:
-                <img src="overload.png" alt="overload">
+                <img src="overload.png" alt="overload" width="754" height="46" loading="lazy" decoding="async">
 
             All this command is doing, is first creating a list of IPs we want to include in this address translation (10.10.10.0/24) and then applying this address translation from the inside to the outside interface Gi0/1. Once executed 
                 we save the configuration, restart the hosts and test our DNS service again:
-                <img src="host1success.png" alt="host1success">
+                <img src="host1success.png" alt="host1success" width="978" height="368" loading="lazy" decoding="async">
 
             If you are interested in seeing the actual translations this is performing, you can view them by running the following command:
                 <br><br><code>show ip nat translations</code><br><br>
                 The next step as per the specification for this lab is to create an internal webserver on host2 and map a domain name to its IP address so host1 can access it using this name. To this we first need to IP address and create a simple 
                 webserver on host2:
-                <img src="pythonwebserver.png" alt="pythonwebserver">
+                <img src="pythonwebserver.png" alt="pythonwebserver" width="623" height="470" loading="lazy" decoding="async">
 
             The above command is run on host2; it simply starts a very simple Python webserver on the port desigated. The file it is hosting is index.html I created as below:
-                <img src="simpleindex.png" alt="simpleindex">
+                <img src="simpleindex.png" alt="simpleindex" width="668" height="542" loading="lazy" decoding="async">
 
             Just a reminder, the Python simple webserver will serve the files in its executed directory. As a check at this point, lets try and access the webserver now running on host2 using a browser on host1.
-                <img src="host1access.png" alt="host1access">
+                <img src="host1access.png" alt="host1access" width="744" height="380" loading="lazy" decoding="async">
 
             It all seems good so far, however, if we were to try and access http://slash-root.local now in our browser, it would fail. Basically, our recursive nameserver doesn't know where slash-root.local is (what IP address to point us to!). 
                 To add a record to our DNS service running on our router, all we need to do is the following:
-                <img src="addrecord.png" alt="addrecord">
+                <img src="addrecord.png" alt="addrecord" width="601" height="21" loading="lazy" decoding="async">
 
             At this stage, lets just do a quick PING check from our router to slash-root.local to ensure its correct:
-                <img src="pingcheck.png" alt="pingcheck">
+                <img src="pingcheck.png" alt="pingcheck" width="782" height="112" loading="lazy" decoding="async">
 
             Finally, lets now try to access http://slash-root.local using a browser on host1:
-                <img src="slashrootlocal.png" alt="slashrootlocal">
+                <img src="slashrootlocal.png" alt="slashrootlocal" width="767" height="482" loading="lazy" decoding="async">
 
             When accessing slash-root.local in our browser, host1 will make a DNS query for slash-root.local, because we've added a record to point that domain name to the address 10.10.10.200 (host2), host1 can make a successful connection to the webserver using 
                 a memorable domain name rather than host2's IP address.

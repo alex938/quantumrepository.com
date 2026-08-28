@@ -64,7 +64,7 @@
             <h2 id="lab-setup">Lab setup</h2>
             <ul>
                 <li>GNS3 as the network emulation software.</li>
-                <img src="topology.png" alt="topology">
+                <img src="topology.png" alt="topology" width="762" height="453" decoding="async">
             <li>2 PCs (Linux and Windows10).</li>
                 <li>A layer 2 switch (Switch).</li>
                 <li>A CISCO router on IOSv 15.7 (Router - Cisco Modelling Labs Personal $199).</li>
@@ -76,62 +76,62 @@
 
             <h2 id="lab-configuration">Lab configuration</h2>
             First, I will IP address the router interface and 2x client PCs:
-            <img src="1.png" alt="1">
-            <img src="2.png" alt="2">
-            <img src="3.png" alt="3">
+            <img src="1.png" alt="1" width="648" height="88" loading="lazy" decoding="async">
+            <img src="2.png" alt="2" width="560" height="259" loading="lazy" decoding="async">
+            <img src="3.png" alt="3" width="395" height="449" loading="lazy" decoding="async">
 
             Let us perform a quick ping check from my Windows10 client to the router interface. This is just to ensure connectivity.
-            <img src="4.png" alt="4">
+            <img src="4.png" alt="4" width="751" height="197" loading="lazy" decoding="async">
 
             Great, we are now ready to configure our telnet lines on the router.
 
             <h2 id="configuring-remote-access">Configuring remote access through telnet</h2>
             CISCO routers utilise a number of virtual lines (vty) that we can configure for certain accesses (SSH and telnet). We will use 5 of these (16 in total), this means  
             we are allowing 5 simultaneous telnet connections.
-            <img src="5.png" alt="5">
+            <img src="5.png" alt="5" width="641" height="108" loading="lazy" decoding="async">
 
             In the above screenshot, I first accessed lines 0 to 4, set the transport method for these lines to telnet, set the login authentication to local (local database of users on this router) and removed any 
             legacy telnet passwords that may have been set. As I have specified the local user database for authentication, I now need to add a user:
-            <img src="6.png" alt="6">
+            <img src="6.png" alt="6" width="866" height="20" loading="lazy" decoding="async">
 
             This has created a user with the username 'slashroot' and the password 'example'. It has also specified that this user has highest privilege level (15) and that the password should be stored on the router using 
             the scrypt algorithm. Part of the command has been cut off by my console, here is the full command:
             <br><br><code>username slashroot privilege 15 algorithm-type scrypt secret example</code><br><br>
             To emphasize what the algorithm-type parameter has done, you can check the 'show running config' and see the hashed password using the type 9 algorithm (scrypt):
-            <img src="7.png" alt="7">
+            <img src="7.png" alt="7" width="1035" height="67" loading="lazy" decoding="async">
 
             At this stage everything is ready to go. All we need to do now is test access with a telnet client. I am going to do this using the built in telnet client on my Linux client first:
-            <img src="loginsuccess.png" alt="loginsuccess">
+            <img src="loginsuccess.png" alt="loginsuccess" width="732" height="540" loading="lazy" decoding="async">
 
             On my Windows10 client I have installed PuTTY as remote access client:
-            <img src="puttylogin1.png" alt="puttylogin1">
+            <img src="puttylogin1.png" alt="puttylogin1" width="447" height="438" loading="lazy" decoding="async">
 
             If you are using PuTTY as a telnet client, ensure you select 'Telnet' and the port is set to '23'.
-            <img src="puttylogin2.png" alt="puttylogin2">
+            <img src="puttylogin2.png" alt="puttylogin2" width="657" height="415" loading="lazy" decoding="async">
 
             In both cases you can clearly see I authenticated with the 'slashroot' account and connected successfully. When running commends in these sessions you may also notice status messages appearing on your router:
-            <img src="8.png" alt="Router console showing telnet connection status messages">
+            <img src="8.png" alt="Router console showing telnet connection status messages" width="1013" height="24" loading="lazy" decoding="async">
 
             This will also show the remote IP address as in the above screenshot.
 
             <h2 id="locking-telnet">Locking telnet access down to a certain IP</h2>
             If you are using telnet you may want to lockdown this access to a certain IP. For example, giving access to an administrator machine only. This is relatively easy to implement using an Access Control List (ACL) and applying it to the 
             vty lines we are using.
-            <img src="9.png" alt="Router configuration showing ACL setup for telnet access control">
+            <img src="9.png" alt="Router configuration showing ACL setup for telnet access control" width="719" height="67" loading="lazy" decoding="async">
 
             In my design, I want to give access to the Linux client only (192.168.10.2) and thus block telnet access from the Windows10 client. First I create an ACL which permits host IP 192.168.10.2. I then access the vty lines 0 to 4 
             and apply the ACL for any connections coming into these lines. To test this, I now try to connect from both clients:
-            <img src="loginsuccess.png" alt="Successful telnet login from Linux client">
-            <img src="connrefused.png" alt="Connection refused message from Windows client">
+            <img src="loginsuccess.png" alt="Successful telnet login from Linux client" width="732" height="540" loading="lazy" decoding="async">
+            <img src="connrefused.png" alt="Connection refused message from Windows client" width="657" height="414" loading="lazy" decoding="async">
             As expected, my Linux client can connect, with my Windows10 client being refused connectivity.
 
             <h2 id="security-concerns">Security concerns</h2>
             As I mentioned at the very start, one of the key security issues with telnet is that it operates in the clear i.e. all its messages transmitted or received are clearly visible to anyone snooping the network. To demonstrate 
             this I have removed the ACL from the vty lines and captured the traffic on the Windows10 client to router line using Wireshark. I have then logged into the router using telnet:
-            <img src="telnetcapture.png" alt="telnetcapture.png">
+            <img src="telnetcapture.png" alt="telnetcapture.png" width="878" height="651" loading="lazy" decoding="async">
 
             I have now followed the TCP stream in Wireshark:
-            <img src="telnetcapture2.png" alt="telnetcapture2.png">
+            <img src="telnetcapture2.png" alt="telnetcapture2.png" width="543" height="505" loading="lazy" decoding="async">
 
             Worringly, but as expected, you can see all of the traffic in cleartext. You could easily now record my username and password and access the device.
             </article>
