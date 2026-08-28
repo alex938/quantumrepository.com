@@ -260,6 +260,93 @@ body .breadcrumbs .container {
    Responsive Design
    ============================================ */
 
+/* ============================================
+   SERIES + RELATED GUIDE NAVIGATION
+   Gives every guide a next step instead of a dead end.
+   ============================================ */
+
+.series-nav {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-md);
+    margin-top: 4rem;
+    padding-top: 2rem;
+    border-top: 2px solid var(--border-color);
+}
+
+.series-link {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    padding: 1rem 1.25rem;
+    background: var(--secondary-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    color: var(--primary-text);
+    transition: border-color var(--transition-normal), transform var(--transition-normal);
+}
+
+.series-link:hover,
+.series-link:focus-visible {
+    border-color: var(--primary-color);
+    transform: translateY(-2px);
+}
+
+.series-next { text-align: right; }
+
+.series-dir {
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: var(--accent-color);
+}
+
+.series-title {
+    font-weight: 600;
+    color: var(--heading-text);
+    line-height: 1.4;
+}
+
+/* Keeps a lone Previous/Next aligned to its own side of the grid. */
+.series-placeholder {
+    display: block;
+    background: none;
+    border: none;
+    padding: 0;
+}
+
+.related-guides {
+    margin-top: 3rem;
+    padding: 1.5rem;
+    background: var(--secondary-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+}
+
+.related-guides h2 {
+    margin-top: 0;
+    margin-bottom: var(--spacing-md);
+    padding-bottom: 0;
+    border-bottom: none;
+    font-size: 1.25rem;
+}
+
+.related-guides ul {
+    margin: 0;
+    padding-left: 1.25rem;
+}
+
+.related-guides li { margin-bottom: 0.5rem; }
+.related-guides li:last-child { margin-bottom: 0; }
+
+@media (max-width: 600px) {
+    .series-nav { grid-template-columns: 1fr; }
+    .series-next { text-align: left; }
+    .series-placeholder { display: none; }
+}
+
 @media (max-width: 768px) {
     .guide-container {
         padding: 0 1rem;
@@ -295,6 +382,7 @@ body .breadcrumbs .container {
     .site-header,
     .breadcrumbs,
     .guide-footer,
+    .series-nav,
     .back-to-top,
     .site-footer,
     .reading-progress-bar {
