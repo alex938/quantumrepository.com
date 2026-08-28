@@ -368,9 +368,22 @@ body .breadcrumbs .container {
 .diagram .d-fill-flow { fill: var(--accent-color); }
 .diagram .d-fill-back { fill: var(--primary-color); }
 
-@media (max-width: 600px) {
-    .diagram { padding: 1rem 0.5rem; }
-    .diagram svg { min-width: 480px; }
+@media (max-width: 700px) {
+    .diagram { padding: 1rem 0.75rem; }
+
+    /* Below this width the diagram text would be too small to read if it
+       scaled to fit, so the figure scrolls instead — say so. */
+    .diagram svg { min-width: 560px; }
+
+    .diagram::after {
+        content: "Scroll sideways to see the whole diagram";
+        display: block;
+        margin-top: 0.75rem;
+        font-size: 0.8rem;
+        color: var(--secondary-text);
+        position: sticky;
+        left: 0;
+    }
 }
 
 /* ============================================
