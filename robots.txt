@@ -1,0 +1,9 @@
+# https://quantumrepository.com/robots.txt
+User-agent: *
+Allow: /
+
+# Raw supporting notes: not part of the published guides and not linked
+# from anywhere on the site.
+Disallow: /notes/
+
+Sitemap: https://quantumrepository.com/sitemap.xml
