@@ -348,26 +348,6 @@ body .breadcrumbs .container {
     text-align: center;
 }
 
-/* Shared SVG primitives */
-.diagram .d-panel      { fill: var(--tertiary-bg); stroke: var(--border-color); stroke-width: 1; }
-.diagram .d-node       { fill: var(--tertiary-bg); stroke: var(--primary-color); stroke-width: 1.5; }
-.diagram .d-node-alt   { fill: var(--tertiary-bg); stroke: var(--accent-color); stroke-width: 1.5; }
-.diagram .d-lifeline   { stroke: var(--border-color); stroke-width: 1.5; stroke-dasharray: 4 5; }
-.diagram .d-rule       { stroke: var(--border-color); stroke-width: 1; }
-.diagram .d-flow       { stroke: var(--accent-color); stroke-width: 2; fill: none; }
-.diagram .d-flow-back  { stroke: var(--primary-color); stroke-width: 2; fill: none; }
-.diagram .d-commit     { fill: var(--primary-color); }
-.diagram .d-commit-alt { fill: var(--accent-color); }
-
-.diagram .d-head  { fill: var(--heading-text); font-size: 14px; font-weight: 700; }
-.diagram .d-label { fill: var(--heading-text); font-size: 13px; font-weight: 600; }
-.diagram .d-text  { fill: var(--primary-text);  font-size: 12.5px; }
-.diagram .d-muted { fill: var(--secondary-text); font-size: 11.5px; }
-.diagram .d-mono  { fill: var(--primary-text); font-family: var(--mono-stack); font-size: 12px; }
-
-.diagram .d-fill-flow { fill: var(--accent-color); }
-.diagram .d-fill-back { fill: var(--primary-color); }
-
 @media (max-width: 700px) {
     .diagram { padding: 1rem 0.75rem; }
 

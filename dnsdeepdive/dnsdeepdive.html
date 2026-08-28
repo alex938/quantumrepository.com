@@ -18,9 +18,9 @@
     <link rel="canonical" href="https://quantumrepository.com/dnsdeepdive/dnsdeepdive.html">
     <title>DNS Deep Dive | Quantum Repository</title>
     <meta name="description" content="DNS from the ground up: resolvers and authoritative servers, query flow, record types, dig anatomy, DNSSEC, DoH/DoT, and the pitfalls that bite operators.">
-    <link rel="stylesheet" href="../main.css">
-    <link rel="stylesheet" href="../guide.css">
-    <link rel="stylesheet" href="../accessibility.css">
+    <link rel="stylesheet" href="../main.css?v=7239f79f">
+    <link rel="stylesheet" href="../guide.css?v=7a8a3491">
+    <link rel="stylesheet" href="../accessibility.css?v=3dda6acd">
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.1/css/all.css">
 </head>
 <body>
@@ -90,7 +90,26 @@
 <div class="command-box">
     <h4>End-to-end query for www.example.com (cold cache)</h4>
 <figure class="diagram">
-<svg viewBox="0 0 880 560" role="img" aria-labelledby="dnswalk-t dnswalk-d">
+<svg class="qr-dia" style="width:100%;height:auto;display:block;max-width:900px;margin:0 auto" viewBox="0 0 880 560" role="img" aria-labelledby="dnswalk-t dnswalk-d">
+<style>
+.qr-dia{font-family:inherit}
+.qr-dia .d-panel{fill:var(--tertiary-bg,#1a1f3a);stroke:var(--border-color,#2d3354);stroke-width:1}
+.qr-dia .d-node{fill:var(--tertiary-bg,#1a1f3a);stroke:var(--primary-color,#8b5cf6);stroke-width:1.5}
+.qr-dia .d-node-alt{fill:var(--tertiary-bg,#1a1f3a);stroke:var(--accent-color,#06b6d4);stroke-width:1.5}
+.qr-dia .d-lifeline{stroke:var(--border-color,#2d3354);stroke-width:1.5;stroke-dasharray:4 5}
+.qr-dia .d-rule{stroke:var(--border-color,#2d3354);stroke-width:1}
+.qr-dia .d-flow{stroke:var(--accent-color,#06b6d4);stroke-width:2;fill:none}
+.qr-dia .d-flow-back{stroke:var(--primary-color,#8b5cf6);stroke-width:2;fill:none}
+.qr-dia .d-commit{fill:var(--primary-color,#8b5cf6)}
+.qr-dia .d-commit-alt{fill:var(--accent-color,#06b6d4)}
+.qr-dia .d-fill-flow{fill:var(--accent-color,#06b6d4)}
+.qr-dia .d-fill-back{fill:var(--primary-color,#8b5cf6)}
+.qr-dia .d-head{fill:var(--heading-text,#e8ecff);font-size:14px;font-weight:700}
+.qr-dia .d-label{fill:var(--heading-text,#e8ecff);font-size:13px;font-weight:600}
+.qr-dia .d-text{fill:var(--primary-text,#c9d1f0);font-size:12.5px}
+.qr-dia .d-muted{fill:var(--secondary-text,#8b94b5);font-size:11.5px}
+.qr-dia .d-mono{fill:var(--primary-text,#c9d1f0);font-size:12px;font-family:var(--mono-stack,ui-monospace,Consolas,'Courier New',monospace)}
+</style>
 <title id="dnswalk-t">How a recursive resolver answers a query for www.example.com</title>
 <desc id="dnswalk-d">The laptop asks its recursive resolver for www.example.com. The resolver has no cached answer, so it queries a root server, which refers it to the .com TLD servers; the .com servers refer it to example.com’s authoritative servers; those return the A record 93.184.216.34 with a TTL of 86400. The resolver caches the answer for the TTL and returns the address to the laptop.</desc>
 <defs>
@@ -267,7 +286,26 @@ dig +tcp www.example.com                    # force TCP (e.g. large responses)
 <div class="command-box">
     <h4>The chain in plain English</h4>
 <figure class="diagram">
-<svg viewBox="0 0 860 330" role="img" aria-labelledby="dnssec-t dnssec-d">
+<svg class="qr-dia" style="width:100%;height:auto;display:block;max-width:900px;margin:0 auto" viewBox="0 0 860 330" role="img" aria-labelledby="dnssec-t dnssec-d">
+<style>
+.qr-dia{font-family:inherit}
+.qr-dia .d-panel{fill:var(--tertiary-bg,#1a1f3a);stroke:var(--border-color,#2d3354);stroke-width:1}
+.qr-dia .d-node{fill:var(--tertiary-bg,#1a1f3a);stroke:var(--primary-color,#8b5cf6);stroke-width:1.5}
+.qr-dia .d-node-alt{fill:var(--tertiary-bg,#1a1f3a);stroke:var(--accent-color,#06b6d4);stroke-width:1.5}
+.qr-dia .d-lifeline{stroke:var(--border-color,#2d3354);stroke-width:1.5;stroke-dasharray:4 5}
+.qr-dia .d-rule{stroke:var(--border-color,#2d3354);stroke-width:1}
+.qr-dia .d-flow{stroke:var(--accent-color,#06b6d4);stroke-width:2;fill:none}
+.qr-dia .d-flow-back{stroke:var(--primary-color,#8b5cf6);stroke-width:2;fill:none}
+.qr-dia .d-commit{fill:var(--primary-color,#8b5cf6)}
+.qr-dia .d-commit-alt{fill:var(--accent-color,#06b6d4)}
+.qr-dia .d-fill-flow{fill:var(--accent-color,#06b6d4)}
+.qr-dia .d-fill-back{fill:var(--primary-color,#8b5cf6)}
+.qr-dia .d-head{fill:var(--heading-text,#e8ecff);font-size:14px;font-weight:700}
+.qr-dia .d-label{fill:var(--heading-text,#e8ecff);font-size:13px;font-weight:600}
+.qr-dia .d-text{fill:var(--primary-text,#c9d1f0);font-size:12.5px}
+.qr-dia .d-muted{fill:var(--secondary-text,#8b94b5);font-size:11.5px}
+.qr-dia .d-mono{fill:var(--primary-text,#c9d1f0);font-size:12px;font-family:var(--mono-stack,ui-monospace,Consolas,'Courier New',monospace)}
+</style>
 <title id="dnssec-t">The DNSSEC chain of trust from the root zone down to www.example.com</title>
 <desc id="dnssec-d">Each zone signs a DS record for the zone beneath it. The root zone holds a DNSKEY whose hash resolvers ship as a trust anchor; the root signs the DS record for com; com signs the DS record for example.com; and example.com signs the A record for www. A resolver validates each link in turn from the trust anchor downwards.</desc>
 <defs><marker id="dnssec-ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="d-fill-flow"/></marker><marker id="dnssec-ab" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="d-fill-back"/></marker></defs>
@@ -423,6 +461,6 @@ dig +noall +authority example.com
         </div>
     </footer>
 
-    <script src="../guide.js"></script>
+    <script src="../guide.js?v=6e393a67"></script>
 </body>
 </html>

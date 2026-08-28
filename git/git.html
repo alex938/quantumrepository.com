@@ -18,9 +18,9 @@
     <link rel="canonical" href="https://quantumrepository.com/git/git.html">
     <title>Git Fundamentals to Intermediate | Quantum Repository</title>
     <meta name="description" content="A hands-on Git guide covering the three trees, branching, rebase vs merge, interactive rebase, stash, reset, reflog recovery, cherry-pick, tags, remotes, and hooks.">
-    <link rel="stylesheet" href="../main.css">
-    <link rel="stylesheet" href="../guide.css">
-    <link rel="stylesheet" href="../accessibility.css">
+    <link rel="stylesheet" href="../main.css?v=7239f79f">
+    <link rel="stylesheet" href="../guide.css?v=7a8a3491">
+    <link rel="stylesheet" href="../accessibility.css?v=3dda6acd">
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.1/css/all.css">
 </head>
 <body>
@@ -77,7 +77,26 @@
 </ul>
 
 <figure class="diagram">
-<svg viewBox="0 0 860 260" role="img" aria-labelledby="gitareas-t gitareas-d">
+<svg class="qr-dia" style="width:100%;height:auto;display:block;max-width:900px;margin:0 auto" viewBox="0 0 860 260" role="img" aria-labelledby="gitareas-t gitareas-d">
+<style>
+.qr-dia{font-family:inherit}
+.qr-dia .d-panel{fill:var(--tertiary-bg,#1a1f3a);stroke:var(--border-color,#2d3354);stroke-width:1}
+.qr-dia .d-node{fill:var(--tertiary-bg,#1a1f3a);stroke:var(--primary-color,#8b5cf6);stroke-width:1.5}
+.qr-dia .d-node-alt{fill:var(--tertiary-bg,#1a1f3a);stroke:var(--accent-color,#06b6d4);stroke-width:1.5}
+.qr-dia .d-lifeline{stroke:var(--border-color,#2d3354);stroke-width:1.5;stroke-dasharray:4 5}
+.qr-dia .d-rule{stroke:var(--border-color,#2d3354);stroke-width:1}
+.qr-dia .d-flow{stroke:var(--accent-color,#06b6d4);stroke-width:2;fill:none}
+.qr-dia .d-flow-back{stroke:var(--primary-color,#8b5cf6);stroke-width:2;fill:none}
+.qr-dia .d-commit{fill:var(--primary-color,#8b5cf6)}
+.qr-dia .d-commit-alt{fill:var(--accent-color,#06b6d4)}
+.qr-dia .d-fill-flow{fill:var(--accent-color,#06b6d4)}
+.qr-dia .d-fill-back{fill:var(--primary-color,#8b5cf6)}
+.qr-dia .d-head{fill:var(--heading-text,#e8ecff);font-size:14px;font-weight:700}
+.qr-dia .d-label{fill:var(--heading-text,#e8ecff);font-size:13px;font-weight:600}
+.qr-dia .d-text{fill:var(--primary-text,#c9d1f0);font-size:12.5px}
+.qr-dia .d-muted{fill:var(--secondary-text,#8b94b5);font-size:11.5px}
+.qr-dia .d-mono{fill:var(--primary-text,#c9d1f0);font-size:12px;font-family:var(--mono-stack,ui-monospace,Consolas,'Courier New',monospace)}
+</style>
 <title id="gitareas-t">Git’s three areas and the commands that move changes between them</title>
 <desc id="gitareas-d">Changes move rightwards from the working directory to the index with git add, and from the index into commit history with git commit. They move back leftwards with git restore, git restore --staged and git reset.</desc>
 <defs><marker id="gitareas-ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="d-fill-flow"/></marker><marker id="gitareas-ab" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="d-fill-back"/></marker></defs>
@@ -170,7 +189,26 @@ git branch -D feature/scratch
 <p>Both integrate changes from one branch into another. They produce <em>different histories</em>, and the trade-off matters.</p>
 
 <figure class="diagram">
-<svg viewBox="0 0 860 430" role="img" aria-labelledby="mr-t mr-d">
+<svg class="qr-dia" style="width:100%;height:auto;display:block;max-width:900px;margin:0 auto" viewBox="0 0 860 430" role="img" aria-labelledby="mr-t mr-d">
+<style>
+.qr-dia{font-family:inherit}
+.qr-dia .d-panel{fill:var(--tertiary-bg,#1a1f3a);stroke:var(--border-color,#2d3354);stroke-width:1}
+.qr-dia .d-node{fill:var(--tertiary-bg,#1a1f3a);stroke:var(--primary-color,#8b5cf6);stroke-width:1.5}
+.qr-dia .d-node-alt{fill:var(--tertiary-bg,#1a1f3a);stroke:var(--accent-color,#06b6d4);stroke-width:1.5}
+.qr-dia .d-lifeline{stroke:var(--border-color,#2d3354);stroke-width:1.5;stroke-dasharray:4 5}
+.qr-dia .d-rule{stroke:var(--border-color,#2d3354);stroke-width:1}
+.qr-dia .d-flow{stroke:var(--accent-color,#06b6d4);stroke-width:2;fill:none}
+.qr-dia .d-flow-back{stroke:var(--primary-color,#8b5cf6);stroke-width:2;fill:none}
+.qr-dia .d-commit{fill:var(--primary-color,#8b5cf6)}
+.qr-dia .d-commit-alt{fill:var(--accent-color,#06b6d4)}
+.qr-dia .d-fill-flow{fill:var(--accent-color,#06b6d4)}
+.qr-dia .d-fill-back{fill:var(--primary-color,#8b5cf6)}
+.qr-dia .d-head{fill:var(--heading-text,#e8ecff);font-size:14px;font-weight:700}
+.qr-dia .d-label{fill:var(--heading-text,#e8ecff);font-size:13px;font-weight:600}
+.qr-dia .d-text{fill:var(--primary-text,#c9d1f0);font-size:12.5px}
+.qr-dia .d-muted{fill:var(--secondary-text,#8b94b5);font-size:11.5px}
+.qr-dia .d-mono{fill:var(--primary-text,#c9d1f0);font-size:12px;font-family:var(--mono-stack,ui-monospace,Consolas,'Courier New',monospace)}
+</style>
 <title id="mr-t">How git merge and git rebase differ on the same starting history</title>
 <desc id="mr-d">Starting from commits A, B and C on main with D and E branching off B onto feature: git merge creates an extra merge commit M on main that joins C and E, keeping both lines of history. git rebase instead replays D and E as new commits D-prime and E-prime on top of C, producing a straight line and discarding the original D and E.</desc>
 <defs><marker id="mr-ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="d-fill-flow"/></marker><marker id="mr-ab" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="d-fill-back"/></marker></defs>
@@ -586,6 +624,6 @@ git ls-remote origin
         </div>
     </footer>
 
-    <script src="../guide.js"></script>
+    <script src="../guide.js?v=6e393a67"></script>
 </body>
 </html>
