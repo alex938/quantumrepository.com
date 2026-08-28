@@ -219,7 +219,7 @@ header,
     background-clip: text;
 }
 
-.logo h1 {
+.logo .logo-text {
     font-size: 2.5rem;
     margin: 0;
     background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
@@ -807,7 +807,7 @@ footer {
     h2 { font-size: 1.5rem; }
     h3 { font-size: 1.2rem; }
     
-    .logo h1 {
+    .logo .logo-text {
         font-size: 1.5rem;
     }
     
@@ -901,6 +901,7 @@ main.guide-content {
 }
 
 /* First heading should not be pushed down */
+.guide-content h1:first-child,
 .guide-content h2:first-child {
     margin-top: 0 !important;
 }
