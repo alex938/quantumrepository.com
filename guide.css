@@ -352,8 +352,10 @@ body .breadcrumbs .container {
     .diagram { padding: 1rem 0.75rem; }
 
     /* Below this width the diagram text would be too small to read if it
-       scaled to fit, so the figure scrolls instead — say so. */
-    .diagram svg { min-width: 560px; }
+       scaled to fit, so the figure scrolls instead — say so. Diagrams are
+       authored around 880px wide, and 560px shrank their smallest labels to
+       roughly 7px; 760px keeps them near 10px, which is legible on a phone. */
+    .diagram svg { min-width: 760px; }
 
     .diagram::after {
         content: "Scroll sideways to see the whole diagram";

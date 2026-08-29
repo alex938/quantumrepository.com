@@ -71,42 +71,152 @@
 <p>The handshake's job is to (1) prove the server's identity, (2) agree on cryptographic parameters, and (3) derive symmetric keys for the rest of the conversation. TLS 1.3 changed how it does this and cut a round-trip out of the process.</p>
 
 <h3>TLS 1.2 — Two Round Trips</h3>
-<pre>
-Client                                              Server
-  | --- ClientHello (versions, cipher list, ----&gt;    |
-  |     random nonce, extensions, SNI)               |
-  |                                                  |
-  | &lt;--- ServerHello (chosen cipher, random) -----   |
-  | &lt;--- Certificate (server chain)                  |
-  | &lt;--- ServerKeyExchange (ECDHE params, signature) |
-  | &lt;--- ServerHelloDone                             |
-  |                                                  |
-  | --- ClientKeyExchange (ECDHE public) ---------&gt;  |
-  | --- ChangeCipherSpec, Finished -----------------&gt;|
-  |                                                  |
-  | &lt;--- ChangeCipherSpec, Finished -----------------|
-  |                                                  |
-  | === Encrypted application data === both ways === |
-</pre>
+<p>TLS 1.2 negotiates in the clear first and only switches to encryption once both sides have exchanged key material. That ordering costs two round trips, and it leaves the certificate — and therefore the hostname you are visiting — readable to anyone on the path.</p>
+
+<figure class="diagram">
+<svg class="qr-dia" style="width:100%;height:auto;display:block;max-width:900px;margin:0 auto" viewBox="0 0 880 604" role="img" aria-labelledby="tls12-t tls12-d">
+<style>
+.qr-dia{font-family:inherit}
+.qr-dia .d-panel{fill:var(--tertiary-bg,#1a1f3a);stroke:var(--border-color,#2d3354);stroke-width:1}
+.qr-dia .d-node{fill:var(--tertiary-bg,#1a1f3a);stroke:var(--primary-color,#8b5cf6);stroke-width:1.5}
+.qr-dia .d-node-alt{fill:var(--tertiary-bg,#1a1f3a);stroke:var(--accent-color,#06b6d4);stroke-width:1.5}
+.qr-dia .d-node-ok{fill:var(--tertiary-bg,#1a1f3a);stroke:var(--success,#238636);stroke-width:1.5}
+.qr-dia .d-node-bad{fill:var(--tertiary-bg,#1a1f3a);stroke:var(--danger,#da3633);stroke-width:1.5}
+.qr-dia .d-badge-ok{fill:var(--success,#238636)}
+.qr-dia .d-badge-bad{fill:var(--danger,#da3633)}
+.qr-dia .d-glyph{stroke:#fff;stroke-width:2;stroke-linecap:round;fill:none}
+.qr-dia .d-zone{fill:none;stroke:var(--border-color,#2d3354);stroke-width:1;stroke-dasharray:5 5}
+.qr-dia .d-lifeline{stroke:var(--border-color,#2d3354);stroke-width:1.5;stroke-dasharray:4 5}
+.qr-dia .d-rule{stroke:var(--border-color,#2d3354);stroke-width:1;fill:none}
+.qr-dia .d-flow{stroke:var(--accent-color,#06b6d4);stroke-width:2;fill:none}
+.qr-dia .d-flow-back{stroke:var(--primary-color,#8b5cf6);stroke-width:2;fill:none}
+.qr-dia .d-fill-flow{fill:var(--accent-color,#06b6d4)}
+.qr-dia .d-fill-back{fill:var(--primary-color,#8b5cf6)}
+.qr-dia .d-head{fill:var(--heading-text,#e8ecff);font-size:14px;font-weight:700}
+.qr-dia .d-label{fill:var(--heading-text,#e8ecff);font-size:13px;font-weight:600}
+.qr-dia .d-text{fill:var(--primary-text,#c9d1f0);font-size:12.5px}
+.qr-dia .d-muted{fill:var(--secondary-text,#8b94b5);font-size:11.5px}
+.qr-dia .d-mono{fill:var(--primary-text,#c9d1f0);font-size:12px;font-family:var(--mono-stack,ui-monospace,Consolas,'Courier New',monospace)}
+.qr-dia .d-msg{fill:var(--heading-text,#e8ecff);font-size:12.5px;font-weight:700;font-family:var(--mono-stack,ui-monospace,Consolas,'Courier New',monospace)}
+</style>
+<title id="tls12-t">The TLS 1.2 handshake, which costs two round trips</title>
+<desc id="tls12-d">The client sends a ClientHello listing its supported versions, cipher suites, a random nonce and the SNI hostname. The server replies with ServerHello, its certificate chain in cleartext, a ServerKeyExchange carrying signed ECDHE parameters, and ServerHelloDone. That is the first round trip. The client then sends its ClientKeyExchange public value followed by ChangeCipherSpec and Finished, and the server answers with its own ChangeCipherSpec and Finished. That is the second round trip. Only then can encrypted application data flow.</desc>
+<defs><marker id="tls12-ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="d-fill-flow"/></marker><marker id="tls12-ab" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="d-fill-back"/></marker></defs>
+<rect class="d-panel" x="76" y="14" width="218" height="46" rx="8"/>
+<text class="d-head" x="185" y="36" text-anchor="middle">Client</text>
+<text class="d-muted" x="185" y="52" text-anchor="middle">sends the first message</text>
+<rect class="d-panel" x="626" y="14" width="218" height="46" rx="8"/>
+<text class="d-head" x="735" y="36" text-anchor="middle">Server</text>
+<text class="d-muted" x="735" y="52" text-anchor="middle">holds the certificate</text>
+<line class="d-lifeline" x1="185" y1="62" x2="185" y2="596"/>
+<line class="d-lifeline" x1="735" y1="62" x2="735" y2="596"/>
+<line class="d-flow" x1="185" y1="112" x2="729" y2="112" marker-end="url(#tls12-ah)"/>
+<text class="d-msg" x="460" y="103" text-anchor="middle">ClientHello</text>
+<text class="d-muted" x="460" y="128" text-anchor="middle">supported versions · cipher suite list · client random · SNI</text>
+<line class="d-flow-back" x1="735" y1="176" x2="191" y2="176" marker-end="url(#tls12-ab)"/>
+<text class="d-msg" x="460" y="167" text-anchor="middle">ServerHello</text>
+<text class="d-muted" x="460" y="192" text-anchor="middle">chosen cipher suite · server random</text>
+<line class="d-flow-back" x1="735" y1="222" x2="191" y2="222" marker-end="url(#tls12-ab)"/>
+<text class="d-msg" x="460" y="213" text-anchor="middle">Certificate</text>
+<text class="d-muted" x="460" y="238" text-anchor="middle">the leaf and intermediate chain — sent in cleartext</text>
+<line class="d-flow-back" x1="735" y1="268" x2="191" y2="268" marker-end="url(#tls12-ab)"/>
+<text class="d-msg" x="460" y="259" text-anchor="middle">ServerKeyExchange</text>
+<text class="d-muted" x="460" y="284" text-anchor="middle">ECDHE curve and public value, signed with the certificate key</text>
+<line class="d-flow-back" x1="735" y1="314" x2="191" y2="314" marker-end="url(#tls12-ab)"/>
+<text class="d-msg" x="460" y="305" text-anchor="middle">ServerHelloDone</text>
+<path class="d-rule" d="M56 100 H40 V330 H56"/>
+<text class="d-muted" x="30" y="215" text-anchor="middle" transform="rotate(-90 30 215)">round trip 1</text>
+<line class="d-flow" x1="185" y1="372" x2="729" y2="372" marker-end="url(#tls12-ah)"/>
+<text class="d-msg" x="460" y="363" text-anchor="middle">ClientKeyExchange</text>
+<text class="d-muted" x="460" y="388" text-anchor="middle">client ECDHE public value — both ends now derive the master secret</text>
+<line class="d-flow" x1="185" y1="418" x2="729" y2="418" marker-end="url(#tls12-ah)"/>
+<text class="d-msg" x="460" y="409" text-anchor="middle">ChangeCipherSpec · Finished</text>
+<text class="d-muted" x="460" y="434" text-anchor="middle">switch to the negotiated keys; Finished is a MAC over the transcript</text>
+<line class="d-flow-back" x1="735" y1="474" x2="191" y2="474" marker-end="url(#tls12-ab)"/>
+<text class="d-msg" x="460" y="465" text-anchor="middle">ChangeCipherSpec · Finished</text>
+<text class="d-muted" x="460" y="490" text-anchor="middle">the server proves it derived the same keys</text>
+<path class="d-rule" d="M56 360 H40 V490 H56"/>
+<text class="d-muted" x="30" y="425" text-anchor="middle" transform="rotate(-90 30 425)">round trip 2</text>
+<line class="d-rule" x1="76" y1="518" x2="844" y2="518"/>
+<line class="d-flow" x1="191" y1="554" x2="729" y2="554" marker-start="url(#tls12-ah)" marker-end="url(#tls12-ah)"/>
+<text class="d-label" x="460" y="545" text-anchor="middle">Application data — encrypted both ways</text>
+<text class="d-muted" x="460" y="580" text-anchor="middle">Two full round trips before the first byte of HTTP leaves the client.</text>
+
+</svg>
+<figcaption>TLS 1.2 spends two round trips on the handshake, and the certificate travels in cleartext where anyone on the path can read it.</figcaption>
+</figure>
 
 <h3>TLS 1.3 — One Round Trip</h3>
 <p>TLS 1.3 collapses the handshake. The client guesses the key-share parameters in the first message; the server responds with everything it needs to derive session keys. By the second flight the client can already send encrypted data.</p>
 
-<pre>
-Client                                              Server
-  | --- ClientHello (versions, ciphers, ---------&gt;   |
-  |     key_share, signature_algorithms,             |
-  |     SNI, ALPN, ...)                              |
-  |                                                  |
-  | &lt;--- ServerHello (chosen suite, key_share) -----|
-  | &lt;--- {EncryptedExtensions}                       |
-  | &lt;--- {Certificate}                               |
-  | &lt;--- {CertificateVerify}                         |
-  | &lt;--- {Finished}                                  |
-  |                                                  |
-  | --- {Finished} ---------------------------------&gt;|
-  | === Encrypted application data === both ways === |
-</pre>
+<figure class="diagram">
+<svg class="qr-dia" style="width:100%;height:auto;display:block;max-width:900px;margin:0 auto" viewBox="0 0 880 566" role="img" aria-labelledby="tls13-t tls13-d">
+<style>
+.qr-dia{font-family:inherit}
+.qr-dia .d-panel{fill:var(--tertiary-bg,#1a1f3a);stroke:var(--border-color,#2d3354);stroke-width:1}
+.qr-dia .d-node{fill:var(--tertiary-bg,#1a1f3a);stroke:var(--primary-color,#8b5cf6);stroke-width:1.5}
+.qr-dia .d-node-alt{fill:var(--tertiary-bg,#1a1f3a);stroke:var(--accent-color,#06b6d4);stroke-width:1.5}
+.qr-dia .d-node-ok{fill:var(--tertiary-bg,#1a1f3a);stroke:var(--success,#238636);stroke-width:1.5}
+.qr-dia .d-node-bad{fill:var(--tertiary-bg,#1a1f3a);stroke:var(--danger,#da3633);stroke-width:1.5}
+.qr-dia .d-badge-ok{fill:var(--success,#238636)}
+.qr-dia .d-badge-bad{fill:var(--danger,#da3633)}
+.qr-dia .d-glyph{stroke:#fff;stroke-width:2;stroke-linecap:round;fill:none}
+.qr-dia .d-zone{fill:none;stroke:var(--border-color,#2d3354);stroke-width:1;stroke-dasharray:5 5}
+.qr-dia .d-lifeline{stroke:var(--border-color,#2d3354);stroke-width:1.5;stroke-dasharray:4 5}
+.qr-dia .d-rule{stroke:var(--border-color,#2d3354);stroke-width:1;fill:none}
+.qr-dia .d-flow{stroke:var(--accent-color,#06b6d4);stroke-width:2;fill:none}
+.qr-dia .d-flow-back{stroke:var(--primary-color,#8b5cf6);stroke-width:2;fill:none}
+.qr-dia .d-fill-flow{fill:var(--accent-color,#06b6d4)}
+.qr-dia .d-fill-back{fill:var(--primary-color,#8b5cf6)}
+.qr-dia .d-head{fill:var(--heading-text,#e8ecff);font-size:14px;font-weight:700}
+.qr-dia .d-label{fill:var(--heading-text,#e8ecff);font-size:13px;font-weight:600}
+.qr-dia .d-text{fill:var(--primary-text,#c9d1f0);font-size:12.5px}
+.qr-dia .d-muted{fill:var(--secondary-text,#8b94b5);font-size:11.5px}
+.qr-dia .d-mono{fill:var(--primary-text,#c9d1f0);font-size:12px;font-family:var(--mono-stack,ui-monospace,Consolas,'Courier New',monospace)}
+.qr-dia .d-msg{fill:var(--heading-text,#e8ecff);font-size:12.5px;font-weight:700;font-family:var(--mono-stack,ui-monospace,Consolas,'Courier New',monospace)}
+</style>
+<title id="tls13-t">The TLS 1.3 handshake, which costs one round trip</title>
+<desc id="tls13-d">The client sends a ClientHello that already contains a guessed key_share, along with cipher suites, signature_algorithms, SNI and ALPN. The server replies with ServerHello carrying its own key_share, at which point both ends can derive handshake keys. Everything the server sends after that — EncryptedExtensions, Certificate, CertificateVerify and Finished — is encrypted under the handshake traffic key, so the certificate is no longer visible on the wire. The client answers with its own encrypted Finished. Application data flows after a single round trip.</desc>
+<defs><marker id="tls13-ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="d-fill-flow"/></marker><marker id="tls13-ab" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="d-fill-back"/></marker></defs>
+<rect class="d-panel" x="76" y="14" width="218" height="46" rx="8"/>
+<text class="d-head" x="185" y="36" text-anchor="middle">Client</text>
+<text class="d-muted" x="185" y="52" text-anchor="middle">sends the first message</text>
+<rect class="d-panel" x="626" y="14" width="218" height="46" rx="8"/>
+<text class="d-head" x="735" y="36" text-anchor="middle">Server</text>
+<text class="d-muted" x="735" y="52" text-anchor="middle">holds the certificate</text>
+<line class="d-lifeline" x1="185" y1="62" x2="185" y2="520"/>
+<line class="d-lifeline" x1="735" y1="62" x2="735" y2="520"/>
+<line class="d-flow" x1="185" y1="112" x2="729" y2="112" marker-end="url(#tls13-ah)"/>
+<text class="d-msg" x="460" y="103" text-anchor="middle">ClientHello</text>
+<text class="d-muted" x="460" y="128" text-anchor="middle">key_share — a guessed ECDHE public value — plus cipher suites,</text>
+<text class="d-muted" x="460" y="144" text-anchor="middle">signature_algorithms, SNI and ALPN</text>
+<line class="d-flow-back" x1="735" y1="186" x2="191" y2="186" marker-end="url(#tls13-ab)"/>
+<text class="d-msg" x="460" y="177" text-anchor="middle">ServerHello</text>
+<text class="d-muted" x="460" y="202" text-anchor="middle">chosen suite · server key_share — both ends can now derive handshake keys</text>
+<rect class="d-zone" x="140" y="222" width="640" height="186" rx="10"/>
+<text class="d-muted" x="460" y="244" text-anchor="middle">Everything below is encrypted under the handshake traffic key</text>
+<line class="d-flow-back" x1="735" y1="282" x2="191" y2="282" marker-end="url(#tls13-ab)"/>
+<text class="d-msg" x="460" y="273" text-anchor="middle">{EncryptedExtensions}</text>
+<text class="d-muted" x="460" y="298" text-anchor="middle">ALPN result and other extensions — no longer visible on the wire</text>
+<line class="d-flow-back" x1="735" y1="330" x2="191" y2="330" marker-end="url(#tls13-ab)"/>
+<text class="d-msg" x="460" y="321" text-anchor="middle">{Certificate} · {CertificateVerify}</text>
+<text class="d-muted" x="460" y="346" text-anchor="middle">the chain, plus a signature over the transcript proving the server holds the key</text>
+<line class="d-flow-back" x1="735" y1="380" x2="191" y2="380" marker-end="url(#tls13-ab)"/>
+<text class="d-msg" x="460" y="371" text-anchor="middle">{Finished}</text>
+<text class="d-muted" x="460" y="396" text-anchor="middle">MAC over the transcript — the server’s flight is complete</text>
+<line class="d-flow" x1="185" y1="440" x2="729" y2="440" marker-end="url(#tls13-ah)"/>
+<text class="d-msg" x="460" y="431" text-anchor="middle">{Finished}</text>
+<text class="d-muted" x="460" y="456" text-anchor="middle">the client validates the chain and confirms — also encrypted</text>
+<path class="d-rule" d="M56 100 H40 V456 H56"/>
+<text class="d-muted" x="30" y="278" text-anchor="middle" transform="rotate(-90 30 278)">round trip 1 — the only one</text>
+<line class="d-rule" x1="76" y1="484" x2="844" y2="484"/>
+<line class="d-flow" x1="191" y1="516" x2="729" y2="516" marker-start="url(#tls13-ah)" marker-end="url(#tls13-ah)"/>
+<text class="d-label" x="460" y="507" text-anchor="middle">Application data — application traffic keys</text>
+<text class="d-muted" x="460" y="542" text-anchor="middle">One round trip before application data. TLS 1.2 needed two.</text>
+
+</svg>
+<figcaption>TLS 1.3 puts a key share in the very first message, so the server can start encrypting immediately — the certificate included.</figcaption>
+</figure>
 
 <p>Curly braces mean "encrypted under the handshake key." Everything after <code>ServerHello</code> is hidden from on-path observers — including the server's certificate, which used to be in cleartext in TLS 1.2.</p>
 
@@ -141,18 +251,132 @@ Client                                              Server
 
 <p>TLS 1.3 makes this non-negotiable: every TLS 1.3 connection has forward secrecy. In TLS 1.2 we have to explicitly disable RSA key exchange and require an ECDHE/DHE-based suite.</p>
 
+<figure class="diagram">
+<svg class="qr-dia" style="width:100%;height:auto;display:block;max-width:900px;margin:0 auto" viewBox="0 0 880 390" role="img" aria-labelledby="tlsfs-t tlsfs-d">
+<style>
+.qr-dia{font-family:inherit}
+.qr-dia .d-panel{fill:var(--tertiary-bg,#1a1f3a);stroke:var(--border-color,#2d3354);stroke-width:1}
+.qr-dia .d-node{fill:var(--tertiary-bg,#1a1f3a);stroke:var(--primary-color,#8b5cf6);stroke-width:1.5}
+.qr-dia .d-node-alt{fill:var(--tertiary-bg,#1a1f3a);stroke:var(--accent-color,#06b6d4);stroke-width:1.5}
+.qr-dia .d-node-ok{fill:var(--tertiary-bg,#1a1f3a);stroke:var(--success,#238636);stroke-width:1.5}
+.qr-dia .d-node-bad{fill:var(--tertiary-bg,#1a1f3a);stroke:var(--danger,#da3633);stroke-width:1.5}
+.qr-dia .d-badge-ok{fill:var(--success,#238636)}
+.qr-dia .d-badge-bad{fill:var(--danger,#da3633)}
+.qr-dia .d-glyph{stroke:#fff;stroke-width:2;stroke-linecap:round;fill:none}
+.qr-dia .d-zone{fill:none;stroke:var(--border-color,#2d3354);stroke-width:1;stroke-dasharray:5 5}
+.qr-dia .d-lifeline{stroke:var(--border-color,#2d3354);stroke-width:1.5;stroke-dasharray:4 5}
+.qr-dia .d-rule{stroke:var(--border-color,#2d3354);stroke-width:1;fill:none}
+.qr-dia .d-flow{stroke:var(--accent-color,#06b6d4);stroke-width:2;fill:none}
+.qr-dia .d-flow-back{stroke:var(--primary-color,#8b5cf6);stroke-width:2;fill:none}
+.qr-dia .d-fill-flow{fill:var(--accent-color,#06b6d4)}
+.qr-dia .d-fill-back{fill:var(--primary-color,#8b5cf6)}
+.qr-dia .d-head{fill:var(--heading-text,#e8ecff);font-size:14px;font-weight:700}
+.qr-dia .d-label{fill:var(--heading-text,#e8ecff);font-size:13px;font-weight:600}
+.qr-dia .d-text{fill:var(--primary-text,#c9d1f0);font-size:12.5px}
+.qr-dia .d-muted{fill:var(--secondary-text,#8b94b5);font-size:11.5px}
+.qr-dia .d-mono{fill:var(--primary-text,#c9d1f0);font-size:12px;font-family:var(--mono-stack,ui-monospace,Consolas,'Courier New',monospace)}
+.qr-dia .d-msg{fill:var(--heading-text,#e8ecff);font-size:12.5px;font-weight:700;font-family:var(--mono-stack,ui-monospace,Consolas,'Courier New',monospace)}
+</style>
+<title id="tlsfs-t">Why forward secrecy depends on the key exchange, not the certificate</title>
+<desc id="tlsfs-d">Two columns compare the same attack. With RSA key exchange the client encrypts the session key to the server’s long-term public key and sends it, so an attacker who records the traffic and later obtains that private key can decrypt every stored session. With ECDHE each side contributes a throwaway keypair and the shared secret is never transmitted; the long-term key only signs the handshake. When it leaks later, the ephemeral halves are already destroyed and the recorded sessions stay unreadable.</desc>
+<defs><marker id="tlsfs-ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="d-fill-flow"/></marker><marker id="tlsfs-ab" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="d-fill-back"/></marker></defs>
+<rect class="d-panel" x="20" y="20" width="410" height="350" rx="10"/>
+<text class="d-head" x="38" y="46">RSA key exchange</text>
+<text class="d-muted" x="38" y="66">TLS 1.2 and earlier · removed in TLS 1.3</text>
+<circle class="d-badge-bad" cx="404" cy="42" r="13"/>
+<path class="d-glyph" d="M399,36 L409,48 M409,36 L399,48"/>
+<rect class="d-node" x="32" y="84" width="386" height="76" rx="8"/>
+<text class="d-label" x="46" y="108">1 · The handshake today</text>
+<text class="d-text" x="46" y="130">The client picks the session key and encrypts it</text>
+<text class="d-text" x="46" y="148">to the server’s long-term RSA public key.</text>
+<rect class="d-node" x="32" y="172" width="386" height="48" rx="8"/>
+<text class="d-label" x="46" y="201">2 · An observer records the traffic</text>
+<rect class="d-node-bad" x="32" y="236" width="386" height="118" rx="8"/>
+<text class="d-label" x="46" y="260">3 · The private key leaks next year</text>
+<text class="d-text" x="46" y="282">That same key decrypts the recorded</text>
+<text class="d-text" x="46" y="300">ClientKeyExchange, which carries the session</text>
+<text class="d-text" x="46" y="318">key — so every stored session becomes readable.</text>
+<rect class="d-panel" x="450" y="20" width="410" height="350" rx="10"/>
+<text class="d-head" x="468" y="46">ECDHE key exchange</text>
+<text class="d-muted" x="468" y="66">optional in TLS 1.2 · mandatory in TLS 1.3</text>
+<circle class="d-badge-ok" cx="834" cy="42" r="13"/>
+<path class="d-glyph" d="M828,42 L832,47 L840,36"/>
+<rect class="d-node" x="462" y="84" width="386" height="76" rx="8"/>
+<text class="d-label" x="476" y="108">1 · The handshake today</text>
+<text class="d-text" x="476" y="130">Each side sends a throwaway public value and</text>
+<text class="d-text" x="476" y="148">derives the shared secret. The private halves stay put.</text>
+<rect class="d-node" x="462" y="172" width="386" height="48" rx="8"/>
+<text class="d-label" x="476" y="201">2 · An observer records the traffic</text>
+<rect class="d-node-ok" x="462" y="236" width="386" height="118" rx="8"/>
+<text class="d-label" x="476" y="260">3 · The private key leaks next year</text>
+<text class="d-text" x="476" y="282">That key only ever signed the handshake. The</text>
+<text class="d-text" x="476" y="300">ephemeral halves were destroyed when the session</text>
+<text class="d-text" x="476" y="318">ended, so the recording stays unreadable.</text>
+
+</svg>
+<figcaption>Forward secrecy is a property of the key exchange, not of the certificate. The certificate key signs; only the ephemeral key exchange decides what a future leak exposes.</figcaption>
+</figure>
+
 <h2 id="certificates">Certificates and the Chain</h2>
 <p>A server certificate is just a signed assertion that "this public key belongs to this hostname." The signature comes from an <strong>intermediate CA</strong>, which is itself signed by a <strong>root CA</strong> already trusted by the client. Browsers and OSes ship a list of root CAs. The chain is leaf → intermediate(s) → root.</p>
 
-<pre>
-[Root CA: ISRG Root X1]              (in OS/browser trust store)
-            |
-            v signs
-[Intermediate CA: R10 / R11]         (served by your web server)
-            |
-            v signs
-[Leaf certificate for example.com]   (served by your web server)
-</pre>
+<figure class="diagram">
+<svg class="qr-dia" style="width:100%;height:auto;display:block;max-width:900px;margin:0 auto" viewBox="0 0 860 414" role="img" aria-labelledby="tlschain-t tlschain-d">
+<style>
+.qr-dia{font-family:inherit}
+.qr-dia .d-panel{fill:var(--tertiary-bg,#1a1f3a);stroke:var(--border-color,#2d3354);stroke-width:1}
+.qr-dia .d-node{fill:var(--tertiary-bg,#1a1f3a);stroke:var(--primary-color,#8b5cf6);stroke-width:1.5}
+.qr-dia .d-node-alt{fill:var(--tertiary-bg,#1a1f3a);stroke:var(--accent-color,#06b6d4);stroke-width:1.5}
+.qr-dia .d-node-ok{fill:var(--tertiary-bg,#1a1f3a);stroke:var(--success,#238636);stroke-width:1.5}
+.qr-dia .d-node-bad{fill:var(--tertiary-bg,#1a1f3a);stroke:var(--danger,#da3633);stroke-width:1.5}
+.qr-dia .d-badge-ok{fill:var(--success,#238636)}
+.qr-dia .d-badge-bad{fill:var(--danger,#da3633)}
+.qr-dia .d-glyph{stroke:#fff;stroke-width:2;stroke-linecap:round;fill:none}
+.qr-dia .d-zone{fill:none;stroke:var(--border-color,#2d3354);stroke-width:1;stroke-dasharray:5 5}
+.qr-dia .d-lifeline{stroke:var(--border-color,#2d3354);stroke-width:1.5;stroke-dasharray:4 5}
+.qr-dia .d-rule{stroke:var(--border-color,#2d3354);stroke-width:1;fill:none}
+.qr-dia .d-flow{stroke:var(--accent-color,#06b6d4);stroke-width:2;fill:none}
+.qr-dia .d-flow-back{stroke:var(--primary-color,#8b5cf6);stroke-width:2;fill:none}
+.qr-dia .d-fill-flow{fill:var(--accent-color,#06b6d4)}
+.qr-dia .d-fill-back{fill:var(--primary-color,#8b5cf6)}
+.qr-dia .d-head{fill:var(--heading-text,#e8ecff);font-size:14px;font-weight:700}
+.qr-dia .d-label{fill:var(--heading-text,#e8ecff);font-size:13px;font-weight:600}
+.qr-dia .d-text{fill:var(--primary-text,#c9d1f0);font-size:12.5px}
+.qr-dia .d-muted{fill:var(--secondary-text,#8b94b5);font-size:11.5px}
+.qr-dia .d-mono{fill:var(--primary-text,#c9d1f0);font-size:12px;font-family:var(--mono-stack,ui-monospace,Consolas,'Courier New',monospace)}
+.qr-dia .d-msg{fill:var(--heading-text,#e8ecff);font-size:12.5px;font-weight:700;font-family:var(--mono-stack,ui-monospace,Consolas,'Courier New',monospace)}
+</style>
+<title id="tlschain-t">A certificate chain: which parts the server sends and which the client already has</title>
+<desc id="tlschain-d">The root CA certificate, ISRG Root X1, is self-signed and already present in the client’s trust store, so the server must not send it. The server sends two certificates: the intermediate CA, R10, which is signed by the root, and the leaf certificate for example.com, which is signed by the intermediate. Signing runs downwards from root to intermediate to leaf; validation runs upwards from the leaf back to a root the client already trusts. Omitting the intermediate is the common cause of a site that works in Chrome but fails in curl.</desc>
+<defs><marker id="tlschain-ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="d-fill-flow"/></marker><marker id="tlschain-ab" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="d-fill-back"/></marker></defs>
+<rect class="d-zone" x="30" y="26" width="800" height="96" rx="10"/>
+<text class="d-muted" x="814" y="46" text-anchor="end">Already in the client’s trust store</text>
+<rect class="d-node-alt" x="50" y="56" width="300" height="54" rx="8"/>
+<text class="d-label" x="66" y="80">Root CA — ISRG Root X1</text>
+<text class="d-muted" x="66" y="98">self-signed · ships with the OS or browser</text>
+<text class="d-text" x="372" y="80">The client already trusts this one.</text>
+<text class="d-text" x="372" y="98">Sending it again only wastes handshake bytes.</text>
+<rect class="d-zone" x="30" y="146" width="800" height="234" rx="10"/>
+<text class="d-muted" x="814" y="166" text-anchor="end">Sent by your server in the Certificate message — fullchain.pem</text>
+<rect class="d-node" x="50" y="180" width="300" height="54" rx="8"/>
+<text class="d-label" x="66" y="204">Intermediate CA — R10</text>
+<text class="d-muted" x="66" y="222">signed by the root · rotated every few years</text>
+<text class="d-text" x="372" y="204">Serve this. Leaving it out is the classic</text>
+<text class="d-text" x="372" y="222">“works in Chrome, fails in curl” bug.</text>
+<rect class="d-node" x="50" y="292" width="300" height="54" rx="8"/>
+<text class="d-label" x="66" y="316">Leaf — example.com</text>
+<text class="d-muted" x="66" y="334">signed by the intermediate · 90-day lifetime</text>
+<text class="d-text" x="372" y="316">The hostname is matched against this cert’s</text>
+<text class="d-text" x="372" y="334">SAN list, never the deprecated CN field.</text>
+<path class="d-flow" d="M80 110 V174" marker-end="url(#tlschain-ah)"/>
+<text class="d-muted" x="92" y="148">signs</text>
+<path class="d-flow" d="M80 234 V286" marker-end="url(#tlschain-ah)"/>
+<text class="d-muted" x="92" y="266">signs</text>
+<text class="d-muted" x="46" y="400">Validation runs the other way: the client checks the leaf against the intermediate, then the intermediate against a root it already holds.</text>
+
+</svg>
+<figcaption>The server sends the leaf and every intermediate. The root stays where it already is: in the client’s trust store.</figcaption>
+</figure>
 
 <p><strong>Important:</strong> the server must send the leaf <em>and</em> the intermediate(s). It must <em>not</em> send the root — the client already has it. The classic "works in Chrome, breaks in curl" bug is a missing intermediate.</p>
 
