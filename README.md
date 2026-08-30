@@ -1,5 +1,7 @@
 # Quantum Repository
 
+![Quantum Repository overview](.github/assets/overview.gif)
+
 The Quantum Repository is a free, open educational site sharing hands-on guides for **cybersecurity, networking, Linux, Windows, Python, Docker, Kubernetes**, and homelab projects.
 
 Live at: **[quantumrepository.com](https://quantumrepository.com)**

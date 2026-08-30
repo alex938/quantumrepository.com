@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Quantum Repository — overview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;800&family=Albert+Sans:ital,wght@0,400;0,500;0,700;1,400&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+/* ============ reset ============ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+img, svg { display: block; max-width: 100%; }
+
+/* ============ tokens (dark-glass) ============ */
+:root {
+  --canvas-w: 1920px;
+  --canvas-h: 1080px;
+
+  --bg:#0B0E17; --bg-2:#10141F;
+  --glass:rgb(255 255 255 / 0.06); --glass-border:1px solid rgb(255 255 255 / 0.14);
+  --ink:#EDF1FA; --ink-muted:#8B93A7;
+  --accent:#2B8CC4;
+  --chart-1:#2B8CC4; --chart-2:#BF7A20; --chart-3:#12A379;
+  --chart-4:#8B6CF0; --chart-5:#E05590; --de-emphasis:#3A4157;
+  --font-display:'Sora',sans-serif; --font-body:'Albert Sans',sans-serif;
+  --font-data:'IBM Plex Mono',monospace;
+  --space-1:8px; --space-2:16px; --space-3:24px; --space-4:40px; --space-5:64px;
+  --radius:16px; --radius-sm:8px;
+}
+
+html, body { background: var(--bg); }
+body { width: var(--canvas-w); font-family: var(--font-body); color: var(--ink); }
+
+.canvas {
+  position: relative;
+  width: var(--canvas-w);
+  height: var(--canvas-h);
+  overflow: hidden;
+  background: var(--bg);
+}
+
+/* ============ signature devices ============ */
+.aurora { position:absolute; border-radius:50%; filter:blur(2px); pointer-events:none; }
+.aurora-1 { width:760px; height:760px; left:-220px; top:-260px;
+  background:radial-gradient(circle, rgb(43 140 196 / .20), transparent 70%); }
+.aurora-2 { width:820px; height:820px; right:-260px; bottom:-320px;
+  background:radial-gradient(circle, rgb(139 108 240 / .16), transparent 70%); }
+.aurora-3 { width:560px; height:560px; left:50%; top:38%; transform:translate(-50%,-50%);
+  background:radial-gradient(circle, rgb(18 163 121 / .12), transparent 70%); }
+
+.dotgrid { position:absolute; inset:0; pointer-events:none;
+  background-image: radial-gradient(rgb(255 255 255 / 0.10) 1px, transparent 1.4px);
+  background-size: 28px 28px; }
+
+.grain { position:absolute; inset:0; pointer-events:none; z-index:50;
+  opacity:.22; mix-blend-mode:multiply;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.6 0.6 0.6 0 0'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23n)' opacity='0.35'/%3E%3C/svg%3E"); }
+
+/* ============ header ============ */
+.kicker-row { position:absolute; top:52px; left:0; right:0; display:flex;
+  align-items:center; justify-content:center; gap:14px; }
+.kicker { font:500 15px/1 var(--font-data); text-transform:uppercase; letter-spacing:.22em; color:var(--accent); }
+.kicker-dot { width:5px; height:5px; border-radius:50%; background:var(--de-emphasis); }
+
+/* ============ spoke svg layer ============ */
+.spokes { position:absolute; inset:0; }
+.spoke { fill:none; stroke-width:2; stroke-linecap:round; }
+.spoke-1 { stroke: var(--chart-1); filter: drop-shadow(0 0 6px rgb(43 140 196 / .55)); }
+.spoke-2 { stroke: var(--chart-5); filter: drop-shadow(0 0 6px rgb(224 85 144 / .55)); }
+.spoke-3 { stroke: var(--chart-2); filter: drop-shadow(0 0 6px rgb(191 122 32 / .55)); }
+.spoke-4 { stroke: var(--chart-3); filter: drop-shadow(0 0 6px rgb(18 163 121 / .55)); }
+.spoke-5 { stroke: var(--chart-4); filter: drop-shadow(0 0 6px rgb(139 108 240 / .55)); }
+.spoke-6 { stroke: var(--chart-1); filter: drop-shadow(0 0 6px rgb(43 140 196 / .55)); }
+.node-dot { filter: drop-shadow(0 0 5px rgb(255 255 255 / .5)); }
+
+/* ============ hub ============ */
+.hub {
+  position:absolute; left:50%; top:522px; transform:translate(-50%,-50%);
+  width:700px; height:344px;
+  background: var(--glass); border: var(--glass-border); border-radius: 26px;
+  backdrop-filter: blur(14px);
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  text-align:center; gap:18px; padding:0 32px;
+}
+.hub .brand { font-family:var(--font-display); font-weight:800; letter-spacing:-0.03em;
+  line-height:0.96; font-size:88px;
+  background: linear-gradient(120deg, var(--ink) 0%, var(--accent) 55%, var(--chart-4) 100%);
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+  filter: drop-shadow(0 0 16px rgb(43 140 196 / .5)) drop-shadow(0 0 52px rgb(139 108 240 / .32));
+}
+.hub .tagline { font:400 21px/1.5 var(--font-body); color: var(--ink-muted); max-width: 540px; }
+
+.badge {
+  position:absolute; left:50%; top:522px;
+  transform: translate(198px, 138px);
+  background: var(--bg-2); border: var(--glass-border); border-radius: 999px;
+  padding: 10px 20px; display:flex; align-items:baseline; gap:8px;
+  box-shadow: 0 0 0 6px var(--bg), 0 0 24px rgb(43 140 196 / .35);
+}
+.badge .num { font:500 22px/1 var(--font-data); color: var(--ink); }
+.badge .lbl { font:500 12px/1 var(--font-data); text-transform:uppercase; letter-spacing:.14em; color: var(--accent); }
+
+/* ============ category panels ============ */
+.panel {
+  position:absolute; width: var(--pw); height: var(--ph);
+  background: var(--glass); border: var(--glass-border); border-radius: var(--radius);
+  backdrop-filter: blur(14px);
+  padding: 20px 22px;
+  display:flex; flex-direction:column; gap:8px; justify-content:center;
+}
+.panel .row { display:flex; align-items:center; gap:12px; }
+.panel .icon-wrap { width:40px; height:40px; flex:none; border-radius:10px;
+  display:flex; align-items:center; justify-content:center; background: rgb(255 255 255 / .05); }
+.panel .icon-wrap svg { width:26px; height:26px; }
+.panel .name { font-family:var(--font-display); font-weight:600; font-size:19px; color: var(--ink); letter-spacing:-0.01em; }
+.panel .topics { font:500 12.5px/1.5 var(--font-data); color: var(--ink-muted); letter-spacing:.01em; }
+
+/* ============ footer ============ */
+.footer { position:absolute; left:0; right:0; bottom:40px; text-align:center; }
+.footer .line { font:500 14px/1 var(--font-data); color: var(--ink-muted); letter-spacing:.04em; }
+.footer .line span { color: var(--accent); }
+
+/* ============ motion ============ */
+@keyframes rise { from { opacity: 0; transform: translateY(16px); } }
+@keyframes rise-x { from { opacity: 0; transform: translateY(-50%) translateX(var(--rx, 0)); } to { opacity: 1; transform: translateY(-50%) translateX(0); } }
+@keyframes fadein { from { opacity: 0; } }
+@keyframes draw { to { stroke-dashoffset: 0; } }
+@keyframes pulse-glow {
+  0%, 100% { filter: drop-shadow(0 0 14px rgb(43 140 196 / .45)) drop-shadow(0 0 46px rgb(139 108 240 / .28)); }
+  50% { filter: drop-shadow(0 0 20px rgb(43 140 196 / .65)) drop-shadow(0 0 60px rgb(139 108 240 / .42)); }
+}
+@keyframes drift {
+  to { transform: translate(30px, -18px); }
+}
+@keyframes drift-2 {
+  to { transform: translate(-24px, 22px); }
+}
+
+.kicker-row { animation: rise .6s cubic-bezier(.2,.8,.2,1) backwards; }
+.hub { animation: rise .7s cubic-bezier(.2,.8,.2,1) .25s backwards; }
+.hub .brand { animation: pulse-glow 3.4s ease-in-out 1.6s infinite; }
+.badge { animation: fadein .6s ease-out 2.5s backwards; }
+.panel { animation: rise .7s cubic-bezier(.2,.8,.2,1) backwards; }
+.spoke { stroke-dasharray: 400; stroke-dashoffset: 400; animation: draw 1s ease-in-out both; }
+.footer { animation: fadein .8s ease-out 2.7s backwards; }
+.aurora-1 { animation: drift 9s ease-in-out infinite alternate; }
+.aurora-2 { animation: drift-2 10s ease-in-out infinite alternate; }
+.aurora-3 { animation: drift 12s ease-in-out infinite alternate; }
+
+/* stagger: spokes draw first, panels land shortly after each spoke */
+.p1 { animation-delay: .55s; } .s1 { animation-delay: .40s; }
+.p2 { animation-delay: .70s; } .s2 { animation-delay: .55s; }
+.p3 { animation-delay: .85s; } .s3 { animation-delay: .70s; }
+.p4 { animation-delay: 1.00s; } .s4 { animation-delay: .85s; }
+.p5 { animation-delay: 1.15s; } .s5 { animation-delay: 1.00s; }
+.p6 { animation-delay: 1.30s; } .s6 { animation-delay: 1.15s; }
+</style>
+</head>
+<body>
+<!-- Composition: The Big Object — a glowing hub-and-spoke network core is
+     the dominant object (Quantum Repository itself), with the site's six
+     content clusters as satellite nodes wired into it. The metaphor is
+     diegetic: this IS a network diagram, on a site that teaches networking. -->
+<div class="canvas">
+  <div class="aurora aurora-1"></div>
+  <div class="aurora aurora-2"></div>
+  <div class="aurora aurora-3"></div>
+  <div class="dotgrid"></div>
+
+  <div class="kicker-row">
+    <span class="kicker">Free</span><span class="kicker-dot"></span>
+    <span class="kicker">Open&nbsp;Source</span><span class="kicker-dot"></span>
+    <span class="kicker">No Login Required</span>
+  </div>
+
+  <!-- spokes: hub center (960,522), hub half-extents 300x142 -->
+  <svg class="spokes" viewBox="0 0 1920 1080">
+    <!-- Networking: upper-left panel edge ~ (508,255) -->
+    <path class="spoke spoke-1 s1" d="M 655,378 C 590,340 550,300 508,255"/>
+    <!-- Security: upper-right panel edge ~ (1412,248) -->
+    <path class="spoke spoke-2 s2" d="M 1265,378 C 1330,340 1372,298 1412,248"/>
+    <!-- Systems Admin: mid-left ~ (420,548) -->
+    <path class="spoke spoke-3 s3" d="M 610,522 C 540,530 480,538 420,548"/>
+    <!-- DevOps: mid-right ~ (1500,548) -->
+    <path class="spoke spoke-4 s4" d="M 1310,522 C 1380,530 1440,538 1500,548"/>
+    <!-- Programming: lower-left ~ (508,788) -->
+    <path class="spoke spoke-5 s5" d="M 655,666 C 590,706 550,748 508,788"/>
+    <!-- Homelab: lower-right ~ (1412,800) -->
+    <path class="spoke spoke-6 s6" d="M 1265,666 C 1330,706 1372,754 1412,800"/>
+
+    <circle class="node-dot" cx="508" cy="255" r="5" fill="var(--chart-1)"/>
+    <circle class="node-dot" cx="1412" cy="248" r="5" fill="var(--chart-5)"/>
+    <circle class="node-dot" cx="420" cy="548" r="5" fill="var(--chart-2)"/>
+    <circle class="node-dot" cx="1500" cy="548" r="5" fill="var(--chart-3)"/>
+    <circle class="node-dot" cx="508" cy="788" r="5" fill="var(--chart-4)"/>
+    <circle class="node-dot" cx="1412" cy="800" r="5" fill="var(--chart-1)"/>
+  </svg>
+
+  <!-- hub -->
+  <div class="hub" data-hero data-overlap-ok>
+    <div class="brand">QUANTUM<br>REPOSITORY</div>
+    <div class="tagline">Hands-on guides for networking, security, systems administration &amp; code — learn by building real, working systems.</div>
+  </div>
+  <div class="badge" data-overlap-ok>
+    <span class="num">79</span><span class="lbl">Guides &amp; Labs</span>
+  </div>
+
+  <!-- category panels -->
+  <!-- 1. Networking — upper-left -->
+  <div class="panel p1" style="--pw:322px; --ph:158px; left:150px; top:150px;">
+    <div class="row">
+      <div class="icon-wrap">
+        <svg viewBox="0 0 32 32" fill="none" stroke="var(--chart-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="4" y="13" width="24" height="8" rx="2"/>
+          <circle cx="9" cy="17" r="1.4" fill="var(--chart-1)" stroke="none"/>
+          <circle cx="14" cy="17" r="1.4" fill="var(--chart-1)" stroke="none"/>
+          <path d="M9 13 V8 h6 M23 13 V8 h-6 M16 8 V5"/>
+        </svg>
+      </div>
+      <div class="name">Networking</div>
+    </div>
+    <div class="topics">CISCO · VLANS · IPV6 · DNS · TLS · WIRESHARK</div>
+  </div>
+
+  <!-- 2. Security — upper-right -->
+  <div class="panel p2" style="--pw:322px; --ph:158px; right:150px; top:150px;">
+    <div class="row">
+      <div class="icon-wrap">
+        <svg viewBox="0 0 32 32" fill="none" stroke="var(--chart-5)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M16 4 L27 8 V15 C27 22 22 26.5 16 28 C10 26.5 5 22 5 15 V8 Z"/>
+          <circle cx="16" cy="15" r="3" fill="var(--chart-5)" stroke="none"/>
+          <path d="M16 18 v4"/>
+        </svg>
+      </div>
+      <div class="name">Security</div>
+    </div>
+    <div class="topics">OWASP TOP 10 · AD ATTACKS · LINUX HARDENING</div>
+  </div>
+
+  <!-- 3. Systems Admin — mid-left -->
+  <div class="panel p3" style="--pw:300px; --ph:150px; left:64px; top:452px;">
+    <div class="row">
+      <div class="icon-wrap">
+        <svg viewBox="0 0 32 32" fill="none" stroke="var(--chart-2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="4" y="6" width="24" height="18" rx="2.5"/>
+          <path d="M9 14 L13 17 L9 20 M16 20 h6"/>
+        </svg>
+      </div>
+      <div class="name">Systems Admin</div>
+    </div>
+    <div class="topics">BASH · POWERSHELL · SSH · GIT · CRON/SYSTEMD</div>
+  </div>
+
+  <!-- 4. DevOps & Containers — mid-right -->
+  <div class="panel p4" style="--pw:322px; --ph:150px; right:64px; top:452px;">
+    <div class="row">
+      <div class="icon-wrap">
+        <svg viewBox="0 0 32 32" fill="none" stroke="var(--chart-3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="5" y="20" width="9" height="7" rx="1.5"/>
+          <rect x="15" y="20" width="9" height="7" rx="1.5"/>
+          <rect x="10" y="11" width="9" height="7" rx="1.5"/>
+          <path d="M14.5 18 V16 M9.5 20 v-3 h10 v3" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="name">DevOps &amp; Containers</div>
+    </div>
+    <div class="topics">DOCKER · COMPOSE · KUBERNETES · NGINX</div>
+  </div>
+
+  <!-- 5. Programming — lower-left -->
+  <div class="panel p5" style="--pw:300px; --ph:140px; left:150px; top:740px;">
+    <div class="row">
+      <div class="icon-wrap">
+        <svg viewBox="0 0 32 32" fill="none" stroke="var(--chart-4)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M11 9 L4 16 L11 23 M21 9 L28 16 L21 23"/>
+          <path d="M18 6 L14 26"/>
+        </svg>
+      </div>
+      <div class="name">Programming</div>
+    </div>
+    <div class="topics">PYTHON · ASYNCIO · TYPE HINTS</div>
+  </div>
+
+  <!-- 6. Homelab — lower-right -->
+  <div class="panel p6" style="--pw:322px; --ph:140px; right:150px; top:740px;">
+    <div class="row">
+      <div class="icon-wrap">
+        <svg viewBox="0 0 32 32" fill="none" stroke="var(--chart-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M5 15 L16 5 L27 15"/>
+          <path d="M8 14 V27 H24 V14"/>
+          <rect x="13" y="19" width="6" height="8"/>
+        </svg>
+      </div>
+      <div class="name">Homelab</div>
+    </div>
+    <div class="topics">AD LABS · VIRTUALBOX · PFSENSE</div>
+  </div>
+
+  <div class="footer">
+    <div class="line">// <span>quantumrepository.com</span> — learn by building real, working systems</div>
+  </div>
+
+  <div class="grain"></div>
+</div>
+</body>
+</html>
